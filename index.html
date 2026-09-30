@@ -782,7 +782,9 @@ function lineChart(container, data, opts={}){
   series[0].points.forEach((p,i)=>{
     if(i%step!==0 && i!==n-1) return;
     const x = padL + xStep*i;
-    const t = svgEl('text',{x, y:h-8, 'font-size':10, fill:mutedColor, 'text-anchor':'middle'});
+    // First/last labels anchor inward so they can't spill past the chart's own edge.
+    const anchor = i===0 ? 'start' : (i===n-1 ? 'end' : 'middle');
+    const t = svgEl('text',{x, y:h-8, 'font-size':10, fill:mutedColor, 'text-anchor':anchor});
     t.textContent = p.x;
     svg.appendChild(t);
   });
