@@ -1032,6 +1032,7 @@ let quickAddLogExpanded = false;
 let monthByMonthExpanded = false;
 let categoryBreakdownMonth = null;
 let categoryBreakdownMode = 'all';
+let monthCatMode = 'all';
 
 function render(){
   document.getElementById('monthLabel').textContent = monthLabelFromKey(state.currentMonthKey);
@@ -1115,6 +1116,21 @@ function renderMonth(){
       <div class="card"><div class="k">Incoming</div><div class="v pos" id="incomingVal">${fmt(t.allIncoming)}</div><div class="sub" id="incomingSub">${fmt(t.doneIncoming)} done</div></div>
       <div class="card"><div class="k">Weekly Budget</div><div class="v neg" id="weeklyVal">${fmt(t.weeklyTotal)}</div><div class="sub" id="weeklySub">${fmt(t.doneWeekly)} done</div></div>
       <div class="card"><div class="k">Outgoings</div><div class="v neg" id="outgoingVal">${fmt(t.allOutgoing)}</div><div class="sub" id="outgoingSub">${fmt(t.doneOutgoing)} done</div></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Spending by Category</h2><span class="hint" id="monthCatTotal"></span></div>
+      <div class="field-inline" style="margin-bottom:16px;flex-wrap:wrap;">
+        <div class="seg-toggle" id="monthCatModeToggle">
+          <button class="seg-btn" data-mode="all">Budgeted</button>
+          <button class="seg-btn" data-mode="done">Actual (Done)</button>
+        </div>
+        <a href="#" id="monthCatSeeTrend" style="font-size:12px;color:var(--muted);text-decoration:underline;margin-left:auto;">See full Trend breakdown →</a>
+      </div>
+      <div class="cat-breakdown-layout">
+        <div id="monthCatDonut" class="cat-breakdown-donut"></div>
+        <div id="monthCatBars" class="cat-breakdown-bars"></div>
+      </div>
     </div>
 
     <div class="panel">
@@ -1352,9 +1368,9 @@ function renderMonth(){
       const recurSel = tr.querySelector('.out-recur');
       recurSel.onchange = e=>{ item.recurring = (e.target.value==='yes'); save(); e.target.className = `out-recur recur-select ${item.recurring?'recur-yes':'recur-no'}`; };
       const catSel = tr.querySelector('.out-category');
-      catSel.onchange = e=>{ item.category = e.target.value; propagateOutgoingFieldForward(item, state.currentMonthKey, 'category'); save(); e.target.style.borderLeftColor = categoryColor(item.category); };
+      catSel.onchange = e=>{ item.category = e.target.value; propagateOutgoingFieldForward(item, state.currentMonthKey, 'category'); save(); e.target.style.borderLeftColor = categoryColor(item.category); refreshCards(); };
       const dayInp = tr.querySelector('.out-day');
-      dayInp.onchange = e=>{ item.day = clampDay(e.target.value); e.target.value = item.day||''; propagateOutgoingFieldForward(item, state.currentMonthKey, 'day'); save(); };
+      dayInp.onchange = e=>{ item.day = clampDay(e.target.value); e.target.value = item.day||''; propagateOutgoingFieldForward(item, state.currentMonthKey, 'day'); save(); refreshCards(); };
       tr.querySelector('.out-del').onclick = ()=>{ m.outgoings = m.outgoings.filter(x=>x.id!==id); save(); drawOutgoings(); refreshCards(); };
     });
   }
@@ -1362,6 +1378,14 @@ function renderMonth(){
   document.getElementById('addOutgoingBtn').onclick = ()=>{
     m.outgoings.push({id:uid(), name:'New outgoing', amount:0, status:'none', recurring:false, category:'Uncategorized'});
     save(); drawOutgoings(); refreshCards();
+  };
+
+  renderMonthCategoryBreakdown(m);
+  document.getElementById('monthCatSeeTrend').onclick = e=>{
+    e.preventDefault();
+    categoryBreakdownMonth = state.currentMonthKey;
+    currentView = 'trend';
+    render();
   };
 
   function refreshCards(){
@@ -1384,7 +1408,34 @@ function renderMonth(){
     document.getElementById('weeklySub').textContent = `${fmt(t2.doneWeekly)} done`;
     document.getElementById('outgoingVal').textContent = fmt(t2.allOutgoing);
     document.getElementById('outgoingSub').textContent = `${fmt(t2.doneOutgoing)} done`;
+    renderMonthCategoryBreakdown(m);
   }
+}
+function renderMonthCategoryBreakdown(m){
+  const donutEl = document.getElementById('monthCatDonut');
+  const barsEl = document.getElementById('monthCatBars');
+  const totalEl = document.getElementById('monthCatTotal');
+  if(!donutEl || !barsEl || !totalEl) return;
+  document.querySelectorAll('#monthCatModeToggle .seg-btn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.mode===monthCatMode);
+    b.onclick = ()=>{ monthCatMode = b.dataset.mode; renderMonthCategoryBreakdown(m); };
+  });
+  const rows = categoryBreakdown(m, monthCatMode);
+  const total = rows.reduce((s,r)=>s+r.amount,0);
+  totalEl.textContent = rows.length ? `${fmt(total)} ${monthCatMode==='done'?'spent so far':'budgeted'}` : '';
+  donutChart(donutEl, rows, {size:180});
+  if(!rows.length){
+    barsEl.innerHTML = '<div class="empty">No outgoings for this month yet.</div>';
+    return;
+  }
+  const max = Math.max(...rows.map(r=>r.amount));
+  barsEl.innerHTML = rows.map(r=>`
+    <div class="cat-bar-row">
+      <div class="cat-bar-label"><span class="cat-dot" style="background:${categoryColor(r.category)};"></span><span style="margin-right:5px;">${categoryIcon(r.category)}</span>${escapeHtml(r.category)}</div>
+      <div class="cat-bar-track"><div class="cat-bar-fill" style="width:${max?(r.amount/max*100).toFixed(1):0}%;background:${categoryColor(r.category)};"></div></div>
+      <div class="cat-bar-amt">${fmt(r.amount)} <span class="cat-bar-pct">(${total?Math.round(r.amount/total*100):0}%)</span></div>
+    </div>
+  `).join('');
 }
 
 // ---------------- Calendar ----------------
@@ -1464,7 +1515,7 @@ function renderTrend(){
       <div class="panel-head"><h2>Spending by Category</h2><span class="hint" id="catBreakdownTotal"></span></div>
       <div class="field-inline" style="margin-bottom:16px;flex-wrap:wrap;">
         <select id="catBreakdownMonth" style="max-width:220px;"></select>
-        <div class="seg-toggle">
+        <div class="seg-toggle" id="catBreakdownModeToggle">
           <button class="seg-btn" data-mode="all">Budgeted</button>
           <button class="seg-btn" data-mode="done">Actual (Done)</button>
         </div>
@@ -1550,7 +1601,7 @@ function renderCategoryBreakdown(){
   const monthSel = document.getElementById('catBreakdownMonth');
   monthSel.innerHTML = keys.map(k=>`<option value="${k}" ${k===categoryBreakdownMonth?'selected':''}>${monthLabelFromKey(k)}</option>`).join('');
   monthSel.onchange = e=>{ categoryBreakdownMonth = e.target.value; renderCategoryBreakdown(); renderSpendingHeatmap(); };
-  document.querySelectorAll('.seg-btn').forEach(b=>{
+  document.querySelectorAll('#catBreakdownModeToggle .seg-btn').forEach(b=>{
     b.classList.toggle('active', b.dataset.mode===categoryBreakdownMode);
     b.onclick = ()=>{ categoryBreakdownMode = b.dataset.mode; renderCategoryBreakdown(); renderSpendingHeatmap(); };
   });
