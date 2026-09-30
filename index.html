@@ -153,6 +153,9 @@
   .heatmap-legend{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);margin-top:14px;}
   .heatmap-legend-swatch{width:14px;height:14px;border-radius:4px;border:1px solid var(--border);}
   .schedule-hint{font-size:11px;color:var(--muted);margin-top:4px;}
+  .cell-name-flex{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 10px;}
+  .cell-name-flex .row-input{flex:1 1 140px;width:auto;}
+  .cell-name-flex .schedule-hint{margin-top:0;white-space:nowrap;flex:0 0 auto;}
   .legend-item .dash{width:16px;height:0;border-top:2px dashed;flex-shrink:0;}
   .hidden{display:none !important;}
   .formula-note{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.5;}
@@ -1402,8 +1405,10 @@ function renderMonth(){
     incomeBody.innerHTML = m.incoming.map(i=>`
       <tr data-id="${i.id}">
         <td class="cell-name">
-          <input class="row-input inc-name" type="text" value="${escapeHtml(i.name)}">
-          <div class="hint schedule-hint">${scheduleHint(i, curYear, curMonthNum)}</div>
+          <div class="cell-name-flex">
+            <input class="row-input inc-name" type="text" value="${escapeHtml(i.name)}">
+            <span class="hint schedule-hint">${scheduleHint(i, curYear, curMonthNum)}</span>
+          </div>
         </td>
         <td class="cell-category" data-label="Schedule">${scheduleSelectHtml('inc-schedule', i)}</td>
         <td data-label="Amount"><input class="row-input inc-amount amt-cell" type="number" step="0.01" value="${i.amount}"></td>
@@ -2000,8 +2005,10 @@ function drawRecurringTable(m, kind){
   body.innerHTML = items.map(x=>`
     <tr data-id="${x.id}">
       <td class="cell-name">
-        <input class="row-input recur-name-${kind}" type="text" value="${escapeHtml(x.name)}">
-        ${kind==='incoming' ? `<div class="hint schedule-hint">${scheduleHint(x, curYear, curMonthNum)}</div>` : ''}
+        <div class="cell-name-flex">
+          <input class="row-input recur-name-${kind}" type="text" value="${escapeHtml(x.name)}">
+          ${kind==='incoming' ? `<span class="hint schedule-hint">${scheduleHint(x, curYear, curMonthNum)}</span>` : ''}
+        </div>
       </td>
       ${kind==='outgoing'
         ? `<td class="cell-category" data-label="Category">${categorySelectHtml(`recur-category-${kind}`, x.category)}</td><td class="cell-day" data-label="Day">${dayInputHtml(`recur-day-${kind}`, x.day)}</td>`
