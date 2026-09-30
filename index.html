@@ -1111,6 +1111,7 @@ function renderMonth(){
           <button class="seg-btn" data-days="14">Next 14 days</button>
         </div>
       </div>
+      <div class="hint" id="upcomingBillsHint" style="margin-bottom:10px;"></div>
       <div id="upcomingBillsList"></div>
     </div>
 
@@ -1495,11 +1496,20 @@ function upcomingBills(daysAhead){
 }
 function renderUpcomingBills(){
   const el = document.getElementById('upcomingBillsList');
+  const hintEl = document.getElementById('upcomingBillsHint');
   if(!el) return;
   document.querySelectorAll('#upcomingBillsToggle .seg-btn').forEach(b=>{
     b.classList.toggle('active', Number(b.dataset.days)===upcomingBillsWindow);
     b.onclick = ()=>{ upcomingBillsWindow = Number(b.dataset.days); renderUpcomingBills(); };
   });
+  const today = new Date();
+  const todayKey = monthKey(today);
+  if(hintEl){
+    const todayText = today.toLocaleDateString('en-GB',{weekday:'short', day:'numeric', month:'short', year:'numeric'});
+    hintEl.textContent = state.currentMonthKey===todayKey
+      ? `As of today, ${todayText}`
+      : `As of today, ${todayText} — independent of ${monthLabelFromKey(state.currentMonthKey)} shown below`;
+  }
   const bills = upcomingBills(upcomingBillsWindow);
   if(!bills.length){
     el.innerHTML = `<div class="empty">Nothing due in the next ${upcomingBillsWindow} days.</div>`;
