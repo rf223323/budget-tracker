@@ -164,6 +164,17 @@
   .month-tile .mt-year{font-size:11px;color:var(--muted);margin-bottom:10px;}
   .month-tile .mt-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;}
   .month-tile .mt-balance{font-size:16px;font-weight:700;margin-top:3px;}
+  .mt-bill-strip{display:flex;gap:1px;margin-top:10px;overflow:hidden;}
+  .mt-bill-dot{flex:1 1 0;height:5px;min-width:2px;background:var(--border);border-radius:1px;}
+  .mt-bill-dot.due{background:var(--amber);cursor:pointer;}
+  .bill-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
+  .bill-row:last-child{border-bottom:none;}
+  .bill-icon{font-size:18px;flex-shrink:0;width:34px;height:34px;display:flex;align-items:center;justify-content:center;background:var(--panel2);border-radius:9px;}
+  .bill-info{flex:1;min-width:0;}
+  .bill-name{font-weight:600;font-size:14px;}
+  .bill-due{font-size:12px;color:var(--muted);margin-top:2px;}
+  .bill-due.due-soon{color:var(--amber);font-weight:600;}
+  .bill-amount{font-weight:700;font-size:15px;flex-shrink:0;}
 
   .hamburger-btn{display:none;background:var(--panel2);border:1px solid var(--border);color:var(--text);width:38px;height:38px;border-radius:10px;font-size:17px;cursor:pointer;align-items:center;justify-content:center;flex-shrink:0;}
   .sidebar-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:90;}
@@ -1037,6 +1048,7 @@ let monthByMonthExpanded = false;
 let categoryBreakdownMonth = null;
 let categoryBreakdownMode = 'all';
 let monthCatMode = 'all';
+let upcomingBillsWindow = 14;
 
 function render(){
   document.getElementById('monthLabel').textContent = monthLabelFromKey(state.currentMonthKey);
@@ -1090,6 +1102,17 @@ function renderMonth(){
   const t = monthTotals(m);
   const el = document.getElementById('view-month');
   el.innerHTML = `
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Upcoming Bills</h2>
+        <div class="seg-toggle" id="upcomingBillsToggle">
+          <button class="seg-btn" data-days="7">Next 7 days</button>
+          <button class="seg-btn" data-days="14">Next 14 days</button>
+        </div>
+      </div>
+      <div id="upcomingBillsList"></div>
+    </div>
+
     <div class="panel quick-add-panel">
       <div class="panel-head"><h2>Quick Add</h2><span class="hint">for one-off spends or money in — added as Done right away</span></div>
       <div class="field-inline" style="flex-wrap:wrap;">
@@ -1392,6 +1415,7 @@ function renderMonth(){
     currentView = 'trend';
     render();
   };
+  renderUpcomingBills();
 
   function refreshCards(){
     const t2 = monthTotals(m);
@@ -1443,6 +1467,58 @@ function renderMonthCategoryBreakdown(m){
     </div>
   `).join('');
 }
+// Walks forward day by day from today (real calendar date, independent of
+// whichever month is being viewed) looking for pending outgoings with a Day
+// set. Only looks at months that already exist — it never creates one just
+// to peek ahead.
+function upcomingBills(daysAhead){
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const results = [];
+  for(let i=0; i<=daysAhead; i++){
+    const d = new Date(today);
+    d.setDate(d.getDate()+i);
+    const mk = monthKey(d);
+    const m = state.months[mk];
+    if(!m) continue;
+    const daysInMonth = new Date(d.getFullYear(), d.getMonth()+1, 0).getDate();
+    m.outgoings.forEach(o=>{
+      if(!o.day || o.status==='done') return;
+      if(Math.min(o.day, daysInMonth) === d.getDate()){
+        results.push({name:o.name, amount:o.amount, category:o.category, daysAway:i, dueDate:new Date(d)});
+      }
+    });
+  }
+  results.sort((a,b)=>a.daysAway-b.daysAway);
+  return results;
+}
+function renderUpcomingBills(){
+  const el = document.getElementById('upcomingBillsList');
+  if(!el) return;
+  document.querySelectorAll('#upcomingBillsToggle .seg-btn').forEach(b=>{
+    b.classList.toggle('active', Number(b.dataset.days)===upcomingBillsWindow);
+    b.onclick = ()=>{ upcomingBillsWindow = Number(b.dataset.days); renderUpcomingBills(); };
+  });
+  const bills = upcomingBills(upcomingBillsWindow);
+  if(!bills.length){
+    el.innerHTML = `<div class="empty">Nothing due in the next ${upcomingBillsWindow} days.</div>`;
+    return;
+  }
+  el.innerHTML = bills.map(b=>{
+    const dueText = b.daysAway===0 ? 'Due today' : b.daysAway===1 ? 'Due tomorrow' : `Due in ${b.daysAway} days`;
+    const dateText = b.dueDate.toLocaleDateString('en-GB',{weekday:'short', day:'numeric', month:'short'});
+    return `
+      <div class="bill-row">
+        <div class="bill-icon">${categoryIcon(b.category)}</div>
+        <div class="bill-info">
+          <div class="bill-name">${escapeHtml(b.name)}</div>
+          <div class="bill-due${b.daysAway<=1?' due-soon':''}">${dueText} · ${dateText}</div>
+        </div>
+        <div class="bill-amount">${fmt(b.amount)}</div>
+      </div>
+    `;
+  }).join('');
+}
 
 // ---------------- Calendar ----------------
 function renderCalendar(){
@@ -1460,18 +1536,34 @@ function renderCalendar(){
   const years = Object.keys(byYear).sort();
   el.innerHTML = years.map(year=>`
     <div class="panel">
-      <div class="panel-head"><h2>${year}</h2><span class="hint">${byYear[year].length} month${byYear[year].length!==1?'s':''} tracked</span></div>
+      <div class="panel-head"><h2>${year}</h2><span class="hint">${byYear[year].length} month${byYear[year].length!==1?'s':''} tracked · dots show days with a bill due</span></div>
       <div class="month-grid">
         ${byYear[year].map(k=>{
           const m = state.months[k]; const t = monthTotals(m);
           const monthName = monthLabelFromKey(k).split(' ')[0];
           const isActive = k===state.currentMonthKey;
+          const [yy, mm] = k.split('-').map(Number);
+          const daysInMonth = new Date(yy, mm, 0).getDate();
+          const billDays = {};
+          m.outgoings.forEach(o=>{
+            if(!o.day || o.status==='done') return;
+            const day = Math.min(o.day, daysInMonth);
+            (billDays[day] = billDays[day]||[]).push(o.name);
+          });
+          const strip = Array.from({length:daysInMonth}, (_,i)=>{
+            const day = i+1;
+            const names = billDays[day];
+            return names
+              ? `<span class="mt-bill-dot due" data-tip="${escapeHtml(monthName+' '+day+': '+names.join(', '))}"></span>`
+              : `<span class="mt-bill-dot"></span>`;
+          }).join('');
           return `
             <div class="month-tile ${isActive?'active':''}" data-key="${k}">
               <div class="mt-name">${monthName}</div>
               <div class="mt-year">${year}</div>
               <div class="mt-label">Current Balance</div>
               <div class="mt-balance" style="color:${t.liveBalance>=0?'var(--green)':'var(--red)'};">${fmt(t.liveBalance)}</div>
+              <div class="mt-bill-strip">${strip}</div>
             </div>
           `;
         }).join('')}
@@ -1485,6 +1577,11 @@ function renderCalendar(){
       save();
       render();
     };
+  });
+  el.querySelectorAll('.mt-bill-dot.due[data-tip]').forEach(dot=>{
+    dot.addEventListener('mouseenter', evt=>{ evt.stopPropagation(); showChartTooltip(evt, dot.dataset.tip); });
+    dot.addEventListener('mousemove', evt=>{ evt.stopPropagation(); showChartTooltip(evt, dot.dataset.tip); });
+    dot.addEventListener('mouseleave', hideChartTooltip);
   });
 }
 
