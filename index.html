@@ -213,7 +213,11 @@
     .responsive-table td{display:block;border:none;padding:0;width:auto;}
     .responsive-table td.cell-name{flex:1 1 100%;}
     .responsive-table td.cell-name input{font-size:15px;font-weight:600;}
-    .responsive-table td:not(.cell-name):not(.cell-del){flex:1 1 90px;min-width:90px;}
+    .responsive-table td.cell-category{flex:1 1 100%;}
+    .responsive-table td.cell-category select{width:100%;}
+    .responsive-table td.cell-day{flex:0 0 72px;min-width:0;}
+    .responsive-table td.cell-day input{width:100%;}
+    .responsive-table td:not(.cell-name):not(.cell-category):not(.cell-day):not(.cell-del){flex:1 1 90px;min-width:90px;}
     .responsive-table td.cell-del{flex:0 0 auto;margin-left:auto;}
     .responsive-table td[data-label]::before{content:attr(data-label);display:block;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin-bottom:3px;}
     .responsive-table .empty{padding:14px 4px;}
@@ -1350,8 +1354,8 @@ function renderMonth(){
     outgoingBody.innerHTML = m.outgoings.map(o=>`
       <tr data-id="${o.id}">
         <td class="cell-name"><input class="row-input out-name" type="text" value="${escapeHtml(o.name)}"></td>
-        <td data-label="Category">${categorySelectHtml('out-category', o.category)}</td>
-        <td data-label="Day">${dayInputHtml('out-day', o.day)}</td>
+        <td class="cell-category" data-label="Category">${categorySelectHtml('out-category', o.category)}</td>
+        <td class="cell-day" data-label="Day">${dayInputHtml('out-day', o.day)}</td>
         <td data-label="Amount"><input class="row-input out-amount amt-cell" type="number" step="0.01" value="${o.amount}"></td>
         <td data-label="Status">${statusSelectHtml('out-status', o.status)}</td>
         <td data-label="Recurring">${recurringSelectHtml('out-recur', o.recurring)}</td>
@@ -1784,7 +1788,7 @@ function drawRecurringTable(m, kind){
   body.innerHTML = items.map(x=>`
     <tr data-id="${x.id}">
       <td class="cell-name"><input class="row-input recur-name-${kind}" type="text" value="${escapeHtml(x.name)}"></td>
-      ${kind==='outgoing' ? `<td data-label="Category">${categorySelectHtml(`recur-category-${kind}`, x.category)}</td><td data-label="Day">${dayInputHtml(`recur-day-${kind}`, x.day)}</td>` : ''}
+      ${kind==='outgoing' ? `<td class="cell-category" data-label="Category">${categorySelectHtml(`recur-category-${kind}`, x.category)}</td><td class="cell-day" data-label="Day">${dayInputHtml(`recur-day-${kind}`, x.day)}</td>` : ''}
       <td data-label="Amount"><input class="row-input recur-amount-${kind} amt-cell" type="number" step="0.01" value="${x.amount}"></td>
       <td data-label="Status">${statusSelectHtml(`recur-status-${kind}`, x.status)}</td>
       <td class="cell-del"><button class="del-btn recur-del-${kind}">✕</button></td>
