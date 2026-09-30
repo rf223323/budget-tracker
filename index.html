@@ -1131,6 +1131,7 @@ function renderMonth(){
         <div id="monthCatDonut" class="cat-breakdown-donut"></div>
         <div id="monthCatBars" class="cat-breakdown-bars"></div>
       </div>
+      <div id="monthCatDeltas" style="margin-top:8px;"></div>
     </div>
 
     <div class="panel">
@@ -1424,6 +1425,7 @@ function renderMonthCategoryBreakdown(m){
   const total = rows.reduce((s,r)=>s+r.amount,0);
   totalEl.textContent = rows.length ? `${fmt(total)} ${monthCatMode==='done'?'spent so far':'budgeted'}` : '';
   donutChart(donutEl, rows, {size:180});
+  renderCategoryDeltas(state.currentMonthKey, monthCatMode, 'monthCatDeltas');
   if(!rows.length){
     barsEl.innerHTML = '<div class="empty">No outgoings for this month yet.</div>';
     return;
@@ -1637,8 +1639,8 @@ function renderCategoryBreakdown(){
 }
 // Compares this month's category spend against the previous tracked month, one
 // callout per category whose spend actually changed — biggest swings first.
-function renderCategoryDeltas(monthKey, mode){
-  const el = document.getElementById('catBreakdownDeltas');
+function renderCategoryDeltas(monthKey, mode, elId){
+  const el = document.getElementById(elId||'catBreakdownDeltas');
   if(!el) return;
   const keys = Object.keys(state.months).sort();
   const idx = keys.indexOf(monthKey);
