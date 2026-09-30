@@ -145,7 +145,8 @@
   .delta-text{color:var(--text);line-height:1.45;}
   .heatmap-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;}
   .heatmap-dow{font-size:10.5px;color:var(--muted);text-align:center;text-transform:uppercase;letter-spacing:.03em;padding-bottom:6px;}
-  .heatmap-cell{aspect-ratio:1;border-radius:7px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11.5px;color:var(--text);cursor:default;}
+  .heatmap-cell{position:relative;aspect-ratio:1;border-radius:7px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11.5px;color:var(--text);cursor:default;}
+  .heatmap-cell .bill-marker{position:absolute;top:3px;right:3px;width:6px;height:6px;border-radius:50%;background:var(--amber);box-shadow:0 0 0 1.5px var(--panel);}
   .heatmap-cell.empty{border:none;}
   .heatmap-cell.weekend{border-color:color-mix(in srgb, var(--accent) 35%, var(--border));}
   .heatmap-legend{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);margin-top:14px;}
@@ -1521,6 +1522,22 @@ function renderUpcomingBills(){
 }
 
 // ---------------- Calendar ----------------
+// Days (1-31, clamped to the month's real length) that have a pending
+// (not yet Done) outgoing with a Day set — name:[] map. Shared by the
+// Calendar tab's bill-dot strip and the Trend heatmap's bill markers.
+function billDaysForMonth(monthKey){
+  const m = state.months[monthKey];
+  const map = {};
+  if(!m) return map;
+  const [y, mo] = monthKey.split('-').map(Number);
+  const daysInMonth = new Date(y, mo, 0).getDate();
+  m.outgoings.forEach(o=>{
+    if(!o.day || o.status==='done') return;
+    const day = Math.min(o.day, daysInMonth);
+    (map[day] = map[day]||[]).push(o.name);
+  });
+  return map;
+}
 function renderCalendar(){
   const el = document.getElementById('view-calendar');
   const keys = Object.keys(state.months).sort();
@@ -1544,12 +1561,7 @@ function renderCalendar(){
           const isActive = k===state.currentMonthKey;
           const [yy, mm] = k.split('-').map(Number);
           const daysInMonth = new Date(yy, mm, 0).getDate();
-          const billDays = {};
-          m.outgoings.forEach(o=>{
-            if(!o.day || o.status==='done') return;
-            const day = Math.min(o.day, daysInMonth);
-            (billDays[day] = billDays[day]||[]).push(o.name);
-          });
+          const billDays = billDaysForMonth(k);
           const strip = Array.from({length:daysInMonth}, (_,i)=>{
             const day = i+1;
             const names = billDays[day];
@@ -1827,6 +1839,7 @@ function renderSpendingHeatmap(){
   const mondayIndex = jsDay => (jsDay+6)%7; // JS: 0=Sun..6=Sat -> Monday-first index
   const firstDow = mondayIndex(new Date(y, mo-1, 1).getDay());
   const daySpend = dailySpendSeries(monthKey, categoryBreakdownMode);
+  const billDays = billDaysForMonth(monthKey);
   const max = Math.max(0, ...Object.values(daySpend));
   const accentRgb = hexToRgbTriplet(getComputedStyle(document.body).getPropertyValue('--accent').trim() || '#5b8cff');
   const monthShort = monthLabelFromKey(monthKey).split(' ')[0];
@@ -1838,10 +1851,13 @@ function renderSpendingHeatmap(){
     const ratio = max>0 ? amt/max : 0;
     const isWeekend = mondayIndex(new Date(y, mo-1, day).getDay()) >= 5;
     const bg = amt>0 ? `rgba(${accentRgb},${(0.18+0.72*ratio).toFixed(2)})` : 'transparent';
-    const tip = amt>0 ? `${monthShort} ${day}: ${fmt(amt)}` : `${monthShort} ${day}: no dated spending`;
-    cells += `<div class="heatmap-cell${isWeekend?' weekend':''}" data-tip="${escapeHtml(tip)}" style="background:${bg};">${day}</div>`;
+    const billNames = billDays[day];
+    let tip = amt>0 ? `${monthShort} ${day}: ${fmt(amt)}` : `${monthShort} ${day}: no dated spending`;
+    if(billNames) tip += ` · due: ${billNames.join(', ')}`;
+    const marker = billNames ? '<span class="bill-marker"></span>' : '';
+    cells += `<div class="heatmap-cell${isWeekend?' weekend':''}" data-tip="${escapeHtml(tip)}" style="background:${bg};">${day}${marker}</div>`;
   }
-  if(!Object.keys(daySpend).length){
+  if(!Object.keys(daySpend).length && !Object.keys(billDays).length){
     el.innerHTML = '<div class="empty">No Quick Add spends or dated outgoings for this month yet — add a "Day" to an outgoing, or use Quick Add.</div>';
     return;
   }
@@ -1857,6 +1873,7 @@ function renderSpendingHeatmap(){
       <span class="heatmap-legend-swatch" style="background:rgba(${accentRgb},0.65);"></span>
       <span class="heatmap-legend-swatch" style="background:rgba(${accentRgb},0.9);"></span>
       <span>More</span>
+      <span style="margin-left:14px;display:inline-flex;align-items:center;gap:5px;"><span style="width:6px;height:6px;border-radius:50%;background:var(--amber);display:inline-block;"></span>Bill due</span>
     </div>
   `;
   el.querySelectorAll('.heatmap-cell[data-tip]').forEach(c=>{
