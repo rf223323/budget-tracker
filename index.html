@@ -147,6 +147,7 @@
   .heatmap-dow{font-size:10.5px;color:var(--muted);text-align:center;text-transform:uppercase;letter-spacing:.03em;padding-bottom:6px;}
   .heatmap-cell{position:relative;aspect-ratio:1;border-radius:7px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11.5px;color:var(--text);cursor:default;}
   .heatmap-cell .bill-marker{position:absolute;top:3px;right:3px;width:6px;height:6px;border-radius:50%;background:var(--amber);box-shadow:0 0 0 1.5px var(--panel);}
+  .heatmap-cell .pay-marker{position:absolute;top:3px;left:3px;width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 0 1.5px var(--panel);}
   .heatmap-cell.empty{border:none;}
   .heatmap-cell.weekend{border-color:color-mix(in srgb, var(--accent) 35%, var(--border));}
   .heatmap-legend{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);margin-top:14px;}
@@ -169,6 +170,7 @@
   .mt-bill-strip{display:flex;gap:1px;margin-top:10px;overflow:hidden;}
   .mt-bill-dot{flex:1 1 0;height:5px;min-width:2px;background:var(--border);border-radius:1px;}
   .mt-bill-dot.due{background:var(--amber);cursor:pointer;}
+  .mt-bill-dot.pay{background:var(--green);cursor:pointer;}
   .bill-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
   .bill-row:last-child{border-bottom:none;}
   .bill-icon{font-size:18px;flex-shrink:0;width:34px;height:34px;display:flex;align-items:center;justify-content:center;background:var(--panel2);border-radius:9px;}
@@ -1399,11 +1401,11 @@ function renderMonth(){
   function drawIncome(){
     incomeBody.innerHTML = m.incoming.map(i=>`
       <tr data-id="${i.id}">
-        <td class="cell-name"><input class="row-input inc-name" type="text" value="${escapeHtml(i.name)}"></td>
-        <td class="cell-category" data-label="Schedule">
-          ${scheduleSelectHtml('inc-schedule', i)}
+        <td class="cell-name">
+          <input class="row-input inc-name" type="text" value="${escapeHtml(i.name)}">
           <div class="hint schedule-hint">${scheduleHint(i, curYear, curMonthNum)}</div>
         </td>
+        <td class="cell-category" data-label="Schedule">${scheduleSelectHtml('inc-schedule', i)}</td>
         <td data-label="Amount"><input class="row-input inc-amount amt-cell" type="number" step="0.01" value="${i.amount}"></td>
         <td data-label="Status">${statusSelectHtml('inc-status', i.status)}</td>
         <td data-label="Recurring">${recurringSelectHtml('inc-recur', i.recurring)}</td>
@@ -1611,6 +1613,21 @@ function billDaysForMonth(monthKey){
   });
   return map;
 }
+// Same idea as billDaysForMonth but for pending incoming (pay) — used to mark
+// payday on the Calendar tab and the Trend heatmap.
+function payDaysForMonth(monthKey){
+  const m = state.months[monthKey];
+  const map = {};
+  if(!m) return map;
+  const [y, mo] = monthKey.split('-').map(Number);
+  m.incoming.forEach(inc=>{
+    if(inc.status==='done') return;
+    const day = resolveScheduledDay(inc, y, mo);
+    if(!day) return;
+    (map[day] = map[day]||[]).push(inc.name);
+  });
+  return map;
+}
 function renderCalendar(){
   const el = document.getElementById('view-calendar');
   const keys = Object.keys(state.months).sort();
@@ -1626,7 +1643,7 @@ function renderCalendar(){
   const years = Object.keys(byYear).sort();
   el.innerHTML = years.map(year=>`
     <div class="panel">
-      <div class="panel-head"><h2>${year}</h2><span class="hint">${byYear[year].length} month${byYear[year].length!==1?'s':''} tracked · dots show days with a bill due</span></div>
+      <div class="panel-head"><h2>${year}</h2><span class="hint">${byYear[year].length} month${byYear[year].length!==1?'s':''} tracked · amber = bill due, green = payday</span></div>
       <div class="month-grid">
         ${byYear[year].map(k=>{
           const m = state.months[k]; const t = monthTotals(m);
@@ -1635,12 +1652,18 @@ function renderCalendar(){
           const [yy, mm] = k.split('-').map(Number);
           const daysInMonth = new Date(yy, mm, 0).getDate();
           const billDays = billDaysForMonth(k);
+          const payDays = payDaysForMonth(k);
           const strip = Array.from({length:daysInMonth}, (_,i)=>{
             const day = i+1;
-            const names = billDays[day];
-            return names
-              ? `<span class="mt-bill-dot due" data-tip="${escapeHtml(monthName+' '+day+': '+names.join(', '))}"></span>`
-              : `<span class="mt-bill-dot"></span>`;
+            const billNames = billDays[day];
+            const payNames = payDays[day];
+            if(!billNames && !payNames) return `<span class="mt-bill-dot"></span>`;
+            const parts = [];
+            if(payNames) parts.push(`Pay: ${payNames.join(', ')}`);
+            if(billNames) parts.push(`Due: ${billNames.join(', ')}`);
+            const tip = `${monthName} ${day} — ${parts.join(' · ')}`;
+            const cls = payNames ? 'pay' : 'due';
+            return `<span class="mt-bill-dot ${cls}" data-tip="${escapeHtml(tip)}"></span>`;
           }).join('');
           return `
             <div class="month-tile ${isActive?'active':''}" data-key="${k}">
@@ -1663,7 +1686,7 @@ function renderCalendar(){
       render();
     };
   });
-  el.querySelectorAll('.mt-bill-dot.due[data-tip]').forEach(dot=>{
+  el.querySelectorAll('.mt-bill-dot[data-tip]').forEach(dot=>{
     dot.addEventListener('mouseenter', evt=>{ evt.stopPropagation(); showChartTooltip(evt, dot.dataset.tip); });
     dot.addEventListener('mousemove', evt=>{ evt.stopPropagation(); showChartTooltip(evt, dot.dataset.tip); });
     dot.addEventListener('mouseleave', hideChartTooltip);
@@ -1910,6 +1933,7 @@ function renderSpendingHeatmap(){
   const firstDow = mondayIndex(new Date(y, mo-1, 1).getDay());
   const daySpend = dailySpendSeries(monthKey, categoryBreakdownMode);
   const billDays = billDaysForMonth(monthKey);
+  const payDays = payDaysForMonth(monthKey);
   const max = Math.max(0, ...Object.values(daySpend));
   const accentRgb = hexToRgbTriplet(getComputedStyle(document.body).getPropertyValue('--accent').trim() || '#5b8cff');
   const monthShort = monthLabelFromKey(monthKey).split(' ')[0];
@@ -1922,12 +1946,14 @@ function renderSpendingHeatmap(){
     const isWeekend = mondayIndex(new Date(y, mo-1, day).getDay()) >= 5;
     const bg = amt>0 ? `rgba(${accentRgb},${(0.18+0.72*ratio).toFixed(2)})` : 'transparent';
     const billNames = billDays[day];
+    const payNames = payDays[day];
     let tip = amt>0 ? `${monthShort} ${day}: ${fmt(amt)}` : `${monthShort} ${day}: no dated spending`;
+    if(payNames) tip += ` · pay: ${payNames.join(', ')}`;
     if(billNames) tip += ` · due: ${billNames.join(', ')}`;
-    const marker = billNames ? '<span class="bill-marker"></span>' : '';
+    const marker = (billNames?'<span class="bill-marker"></span>':'') + (payNames?'<span class="pay-marker"></span>':'');
     cells += `<div class="heatmap-cell${isWeekend?' weekend':''}" data-tip="${escapeHtml(tip)}" style="background:${bg};">${day}${marker}</div>`;
   }
-  if(!Object.keys(daySpend).length && !Object.keys(billDays).length){
+  if(!Object.keys(daySpend).length && !Object.keys(billDays).length && !Object.keys(payDays).length){
     el.innerHTML = '<div class="empty">No Quick Add spends or dated outgoings for this month yet — add a "Day" to an outgoing, or use Quick Add.</div>';
     return;
   }
@@ -1944,6 +1970,7 @@ function renderSpendingHeatmap(){
       <span class="heatmap-legend-swatch" style="background:rgba(${accentRgb},0.9);"></span>
       <span>More</span>
       <span style="margin-left:14px;display:inline-flex;align-items:center;gap:5px;"><span style="width:6px;height:6px;border-radius:50%;background:var(--amber);display:inline-block;"></span>Bill due</span>
+      <span style="margin-left:10px;display:inline-flex;align-items:center;gap:5px;"><span style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;"></span>Payday</span>
     </div>
   `;
   el.querySelectorAll('.heatmap-cell[data-tip]').forEach(c=>{
@@ -1972,10 +1999,13 @@ function drawRecurringTable(m, kind){
   const [curYear, curMonthNum] = state.currentMonthKey.split('-').map(Number);
   body.innerHTML = items.map(x=>`
     <tr data-id="${x.id}">
-      <td class="cell-name"><input class="row-input recur-name-${kind}" type="text" value="${escapeHtml(x.name)}"></td>
+      <td class="cell-name">
+        <input class="row-input recur-name-${kind}" type="text" value="${escapeHtml(x.name)}">
+        ${kind==='incoming' ? `<div class="hint schedule-hint">${scheduleHint(x, curYear, curMonthNum)}</div>` : ''}
+      </td>
       ${kind==='outgoing'
         ? `<td class="cell-category" data-label="Category">${categorySelectHtml(`recur-category-${kind}`, x.category)}</td><td class="cell-day" data-label="Day">${dayInputHtml(`recur-day-${kind}`, x.day)}</td>`
-        : `<td class="cell-category" data-label="Schedule">${scheduleSelectHtml(`recur-schedule-${kind}`, x)}<div class="hint schedule-hint">${scheduleHint(x, curYear, curMonthNum)}</div></td>`}
+        : `<td class="cell-category" data-label="Schedule">${scheduleSelectHtml(`recur-schedule-${kind}`, x)}</td>`}
       <td data-label="Amount"><input class="row-input recur-amount-${kind} amt-cell" type="number" step="0.01" value="${x.amount}"></td>
       <td data-label="Status">${statusSelectHtml(`recur-status-${kind}`, x.status)}</td>
       <td class="cell-del"><button class="del-btn recur-del-${kind}">✕</button></td>
