@@ -109,6 +109,10 @@
   .legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);}
   .legend-item .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
   .cat-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:middle;flex-shrink:0;}
+  .sync-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:middle;}
+  .sync-dot-ok{background:var(--green);}
+  .sync-dot-error{background:var(--red);}
+  .sync-dot-pending{background:var(--amber);}
   .cat-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
   .cat-bar-label{width:150px;flex-shrink:0;font-size:13px;display:flex;align-items:center;}
   .cat-bar-track{flex:1;min-width:80px;background:var(--bg);border-radius:6px;height:16px;overflow:hidden;border:1px solid var(--border);}
@@ -243,7 +247,7 @@
     <div class="sidebar-footer">
       <label style="font-size:11px;color:var(--muted);">Profile</label>
       <select id="sidebarProfileSelect" style="width:100%;"></select>
-      <div>Data is saved locally in this browser only.</div>
+      <div id="syncStatusLine"></div>
       <button class="btn secondary small" id="themeToggle">Toggle theme</button>
     </div>
   </div>
@@ -311,7 +315,13 @@ const CATEGORY_COLORS = {
   'Shopping':'#ff5c7a','Pay in 3':'#2ec4b6','Eating Out':'#f2994a','Health & Fitness':'#00b894',
   'Grooming':'#d4a373','Entertainment':'#bb6bd9','Savings & Debt':'#e84393','Other':'#636e72'
 };
+const CATEGORY_ICONS = {
+  'Uncategorized':'❔','Housing':'🏠','Bills & Utilities':'🧾','Groceries':'🛒','Transport':'🚗',
+  'Subscriptions':'🔁','Shopping':'🛍️','Pay in 3':'📦','Eating Out':'🍽️','Health & Fitness':'💪',
+  'Grooming':'💇','Entertainment':'🎬','Savings & Debt':'💰','Other':'📁'
+};
 function categoryColor(cat){ return CATEGORY_COLORS[cat] || CATEGORY_COLORS['Other']; }
+function categoryIcon(cat){ return CATEGORY_ICONS[cat] || CATEGORY_ICONS['Other']; }
 
 function uid(){ return Math.random().toString(36).slice(2,10)+Date.now().toString(36); }
 function round2(n){ return Math.round((Number(n)||0)*100)/100; }
@@ -505,6 +515,32 @@ const BUILT_IN_CLOUD_CONFIG = {
 };
 const CLOUD_CONFIG_KEY = 'budgetTracker.cloudConfig';
 let cloudDb = null, cloudPushTimer = null;
+// Tracks the last successful cloud round-trip per profile, purely local UI state
+// (never itself synced) so "last synced" stays meaningful per device.
+function syncStatusKeyFor(profileId){ return `budgetTracker.syncStatus:${profileId}`; }
+function getSyncStatus(profileId){
+  try{
+    const raw = localStorage.getItem(syncStatusKeyFor(profileId));
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return null;
+}
+function setSyncStatus(profileId, status){
+  const existing = getSyncStatus(profileId) || {};
+  const at = Date.now();
+  const rec = {status, at, lastSuccessAt: status==='synced' ? at : (existing.lastSuccessAt||null)};
+  localStorage.setItem(syncStatusKeyFor(profileId), JSON.stringify(rec));
+  renderSyncIndicator();
+}
+function formatRelativeTime(ts){
+  if(!ts) return 'never';
+  const diff = Date.now() - ts;
+  if(diff < 10000) return 'just now';
+  if(diff < 60000) return Math.floor(diff/1000)+'s ago';
+  if(diff < 3600000) return Math.floor(diff/60000)+'m ago';
+  if(diff < 86400000) return Math.floor(diff/3600000)+'h ago';
+  return Math.floor(diff/86400000)+'d ago';
+}
 function getCloudConfig(){
   try{
     const raw = localStorage.getItem(CLOUD_CONFIG_KEY);
@@ -553,17 +589,19 @@ function pushToCloud(){
   if(!db) return;
   clearTimeout(cloudPushTimer);
   const snapshot = JSON.stringify(state);
+  const profileId = p.id;
   cloudPushTimer = setTimeout(()=>{
     db.collection('budgets').doc(p.syncCode).set({data: snapshot, updatedAt: Date.now()})
-      .catch(e=>console.error('Cloud push failed', e));
+      .then(()=> setSyncStatus(profileId, 'synced'))
+      .catch(e=>{ console.error('Cloud push failed', e); setSyncStatus(profileId, 'error'); });
   }, 800);
 }
+// Rejects on a real network/permission error; resolves null when the code simply has no cloud doc yet.
 function pullFromCloud(syncCode){
   const db = initCloud();
   if(!db) return Promise.resolve(null);
   return db.collection('budgets').doc(syncCode).get()
-    .then(doc=> doc.exists ? doc.data() : null)
-    .catch(e=>{ console.error('Cloud pull failed', e); return null; });
+    .then(doc=> doc.exists ? doc.data() : null);
 }
 // Reconciles the CURRENT profile with its cloud copy: whichever was saved more recently wins.
 function syncActiveProfileFromCloud(){
@@ -573,6 +611,7 @@ function syncActiveProfileFromCloud(){
   const localUpdatedAt = state.__updatedAt || 0;
   pullFromCloud(p.syncCode).then(cloudDoc=>{
     if(profilesMeta.activeId !== startedForId) return; // user switched away while this was in flight
+    setSyncStatus(startedForId, 'synced');
     if(!cloudDoc){ pushToCloud(); return; }
     if((cloudDoc.updatedAt||0) > localUpdatedAt){
       try{
@@ -584,6 +623,9 @@ function syncActiveProfileFromCloud(){
     } else if((cloudDoc.updatedAt||0) < localUpdatedAt){
       pushToCloud();
     }
+  }).catch(e=>{
+    console.error('Cloud pull failed', e);
+    setSyncStatus(startedForId, 'error');
   });
 }
 
@@ -781,7 +823,7 @@ function recurringSelectHtml(cls, isRecurring){
 function categorySelectHtml(cls, value){
   const v = value || 'Uncategorized';
   return `<select class="${cls}" style="border-left:3px solid ${categoryColor(v)};">
-    ${OUTGOING_CATEGORIES.map(c=>`<option value="${escapeHtml(c)}" ${c===v?'selected':''}>${escapeHtml(c)}</option>`).join('')}
+    ${OUTGOING_CATEGORIES.map(c=>`<option value="${escapeHtml(c)}" ${c===v?'selected':''}>${categoryIcon(c)} ${escapeHtml(c)}</option>`).join('')}
   </select>`;
 }
 
@@ -923,7 +965,7 @@ function donutChart(container, rows, opts={}){
       const sweep = frac*360;
       const color = categoryColor(r.category);
       const pct = Math.round(frac*100);
-      const tipText = `${r.category}: ${fmt(r.amount)} (${pct}%)`;
+      const tipText = `${categoryIcon(r.category)} ${r.category}: ${fmt(r.amount)} (${pct}%)`;
       const segs = sweep >= 359.99 ? [[angle,angle+180],[angle+180,angle+360]] : [[angle, angle+sweep]];
       segs.forEach(([a0,a1])=>{
         const d = donutSlicePath(cx,cy,outerR,innerR,a0,a1);
@@ -935,7 +977,7 @@ function donutChart(container, rows, opts={}){
         path.addEventListener('mouseenter', evt=>{
           path.style.filter = 'brightness(1.15)';
           allPaths.forEach(p=>{ if(p!==path) p.style.opacity='0.4'; });
-          setCenter(fmt(r.amount), `${r.category} · ${pct}%`);
+          setCenter(fmt(r.amount), `${categoryIcon(r.category)} ${r.category} · ${pct}%`);
           showChartTooltip(evt, tipText);
         });
         path.addEventListener('mousemove', evt=>showChartTooltip(evt, tipText));
@@ -973,6 +1015,7 @@ function render(){
   const profileSel = document.getElementById('sidebarProfileSelect');
   profileSel.innerHTML = profilesMeta.profiles.map(p=>`<option value="${p.id}" ${p.id===profilesMeta.activeId?'selected':''}>${escapeHtml(p.name)}</option>`).join('');
   profileSel.onchange = e=>switchProfile(e.target.value);
+  renderSyncIndicator();
   const titles = {month:'Month Tracker', calendar:'Calendar', trend:'Trend', recurring:'Recurring', pots:'Pots', settings:'Settings'};
   document.getElementById('viewTitle').textContent = titles[currentView];
   document.querySelectorAll('.view').forEach(v=>v.classList.add('hidden'));
@@ -983,6 +1026,32 @@ function render(){
   if(currentView==='recurring') renderRecurring();
   if(currentView==='pots') renderPots();
   if(currentView==='settings') renderSettings();
+}
+function renderSyncIndicator(){
+  const p = activeProfileMeta();
+  const el = document.getElementById('syncStatusLine');
+  if(el){
+    if(!p || !p.syncEnabled){
+      el.innerHTML = 'Data is saved locally in this browser only.';
+    } else {
+      const s = getSyncStatus(p.id);
+      if(!s) el.innerHTML = '<span class="sync-dot sync-dot-pending"></span>Cloud sync on · not yet synced';
+      else if(s.status==='error') el.innerHTML = `<span class="sync-dot sync-dot-error"></span>Sync error${s.lastSuccessAt ? ' · last synced '+formatRelativeTime(s.lastSuccessAt) : ''}`;
+      else el.innerHTML = `<span class="sync-dot sync-dot-ok"></span>Synced ${formatRelativeTime(s.lastSuccessAt||s.at)}`;
+    }
+  }
+  const detailEl = document.getElementById('syncDetailStatus');
+  if(detailEl && p && p.syncEnabled){
+    const s = getSyncStatus(p.id);
+    if(!s){
+      detailEl.textContent = 'Not yet synced from this device.';
+    } else {
+      const exact = new Date(s.lastSuccessAt||s.at).toLocaleString('en-GB',{dateStyle:'medium',timeStyle:'short'});
+      detailEl.textContent = s.status==='error'
+        ? `Sync error on last attempt.${s.lastSuccessAt ? ' Last successful sync: '+exact : ' No successful sync yet.'}`
+        : `Last synced: ${exact}`;
+    }
+  }
 }
 
 // ---------------- Month Tracker ----------------
@@ -1001,7 +1070,7 @@ function renderMonth(){
         <input type="number" step="0.01" id="quickAddAmount" placeholder="Amount" style="max-width:120px;">
         <input type="text" id="quickAddReason" placeholder="Reason (e.g. Bus, Pizza from Sam)" style="max-width:260px;flex:1;min-width:160px;">
         <select id="quickAddCategory" style="max-width:170px;">
-          ${OUTGOING_CATEGORIES.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('')}
+          ${OUTGOING_CATEGORIES.map(c=>`<option value="${escapeHtml(c)}">${categoryIcon(c)} ${escapeHtml(c)}</option>`).join('')}
         </select>
         <button class="btn small" id="quickAddBtn">+ Add</button>
       </div>
@@ -1134,7 +1203,7 @@ function renderMonth(){
     body.innerHTML = entries.length ? entries.map(e=>`
       <tr data-id="${e.id}" data-kind="${e.kind}">
         <td>${e.kind==='in' ? '<span style="color:var(--green);">In</span>' : '<span style="color:var(--red);">Out</span>'}</td>
-        <td>${e.kind==='out' ? `<span class="cat-dot" style="background:${categoryColor(e.category)};"></span>` : ''}${escapeHtml(e.name)}</td>
+        <td>${e.kind==='out' ? `<span title="${escapeHtml(e.category||'Uncategorized')}" style="margin-right:6px;">${categoryIcon(e.category)}</span>` : ''}${escapeHtml(e.name)}</td>
         <td class="amt-cell">${fmt(e.amount)}</td>
         <td><button class="del-btn quick-log-del">✕</button></td>
       </tr>
@@ -1472,7 +1541,7 @@ function renderCategoryBreakdown(){
   const max = Math.max(...rows.map(r=>r.amount));
   bars.innerHTML = rows.map(r=>`
     <div class="cat-bar-row">
-      <div class="cat-bar-label"><span class="cat-dot" style="background:${categoryColor(r.category)};"></span>${escapeHtml(r.category)}</div>
+      <div class="cat-bar-label"><span class="cat-dot" style="background:${categoryColor(r.category)};"></span><span style="margin-right:5px;">${categoryIcon(r.category)}</span>${escapeHtml(r.category)}</div>
       <div class="cat-bar-track"><div class="cat-bar-fill" style="width:${max?(r.amount/max*100).toFixed(1):0}%;background:${categoryColor(r.category)};"></div></div>
       <div class="cat-bar-amt">${fmt(r.amount)} <span class="cat-bar-pct">(${total?Math.round(r.amount/total*100):0}%)</span></div>
     </div>
@@ -1659,6 +1728,10 @@ function renderSettings(){
           <input type="text" id="syncCodeDisplay" readonly value="${escapeHtml(p.syncCode||'')}" style="font-family:monospace;max-width:260px;">
           <button class="btn secondary small" id="copySyncCodeBtn">Copy</button>
         </div>
+        <div class="field-inline" style="margin-top:12px;">
+          <span id="syncDetailStatus" style="font-size:12px;color:var(--muted);"></span>
+          <button class="btn secondary small" id="syncNowBtn">Sync now</button>
+        </div>
       </div>
       <div class="formula-note">To bring this profile's cloud data onto a new device: either open this browser's exact URL there (the sync code travels in the link), or make a fresh profile, turn Cloud Sync on for it, then paste this same code below and pull.</div>
       <div class="field-inline" style="margin-top:10px;">
@@ -1733,6 +1806,16 @@ function renderSettings(){
     copyBtn.textContent = 'Copied!';
     setTimeout(()=>{ copyBtn.textContent = 'Copy'; }, 1500);
   };
+  const syncNowBtn = document.getElementById('syncNowBtn');
+  if(syncNowBtn) syncNowBtn.onclick = ()=>{
+    syncNowBtn.disabled = true;
+    const original = syncNowBtn.textContent;
+    syncNowBtn.textContent = 'Syncing…';
+    save();
+    syncActiveProfileFromCloud();
+    setTimeout(()=>{ syncNowBtn.disabled = false; syncNowBtn.textContent = original; }, 900);
+  };
+  renderSyncIndicator();
   document.getElementById('pullSyncBtn').onclick = ()=>{
     const code = document.getElementById('pullSyncCodeInput').value.trim();
     if(!code) return;
@@ -1749,7 +1832,7 @@ function renderSettings(){
         currentView = 'month';
         render();
       }catch(e){ alert('That sync code\'s data looked corrupted.'); }
-    });
+    }).catch(()=>{ alert('Could not reach the cloud — check your connection and try again.'); });
   };
 
   document.getElementById('currencyInput').oninput = e=>{ state.currency = e.target.value||'£'; save(); };
@@ -1864,6 +1947,7 @@ if(bootstrapFromUrlIfNeeded()) render();
   if(p && p.syncEnabled && p.syncCode) updateUrlHashForSyncCode(p.syncCode);
 })();
 syncActiveProfileFromCloud();
+setInterval(renderSyncIndicator, 60000);
 
 if('serviceWorker' in navigator){
   window.addEventListener('load', ()=>{
