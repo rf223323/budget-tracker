@@ -163,7 +163,9 @@
   .quick-add-panel{border-color:rgba(91,140,255,.4);background:linear-gradient(180deg,rgba(91,140,255,.06),var(--panel));}
   .quick-add-panel select{max-width:130px;}
   .month-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;}
-  .month-tile{background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;transition:border-color .15s,transform .1s;}
+  .month-tile{position:relative;background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;transition:border-color .15s,transform .1s;}
+  .mt-del-btn{position:absolute;top:8px;right:8px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:3px 6px;border-radius:6px;line-height:1;}
+  .mt-del-btn:hover{color:var(--red);background:rgba(255,92,122,.12);}
   .month-tile:hover{border-color:var(--accent);transform:translateY(-1px);}
   .month-tile.active{border-color:var(--accent);background:linear-gradient(180deg,rgba(91,140,255,.14),var(--panel2));}
   .month-tile .mt-name{font-weight:700;font-size:15px;}
@@ -1672,6 +1674,7 @@ function renderCalendar(){
           }).join('');
           return `
             <div class="month-tile ${isActive?'active':''}" data-key="${k}">
+              <button class="mt-del-btn" data-key="${k}" title="Delete this month">✕</button>
               <div class="mt-name">${monthName}</div>
               <div class="mt-year">${year}</div>
               <div class="mt-label">Current Balance</div>
@@ -1696,6 +1699,35 @@ function renderCalendar(){
     dot.addEventListener('mousemove', evt=>{ evt.stopPropagation(); showChartTooltip(evt, dot.dataset.tip); });
     dot.addEventListener('mouseleave', hideChartTooltip);
   });
+  el.querySelectorAll('.mt-del-btn').forEach(btn=>{
+    btn.onclick = e=>{
+      e.stopPropagation();
+      const key = btn.dataset.key;
+      openConfirmModal(
+        `Delete ${monthLabelFromKey(key)}?`,
+        `This permanently removes all outgoings, incoming, weekly budget, and balance data tracked for ${monthLabelFromKey(key)}. Later months' starting balances will be recalculated automatically. This cannot be undone.`,
+        ()=>{ deleteMonth(key); render(); }
+      );
+    };
+  });
+}
+// Deletes a tracked month entirely. If it was the currently viewed month,
+// moves to the nearest remaining month (or starts a fresh one if none are
+// left) so the app is never left pointing at a month that no longer exists.
+function deleteMonth(key){
+  delete state.months[key];
+  const remaining = Object.keys(state.months).sort();
+  if(state.currentMonthKey === key){
+    if(remaining.length){
+      const before = remaining.filter(k=>k<key).pop();
+      state.currentMonthKey = before || remaining[0];
+    } else {
+      const freshKey = monthKey(new Date());
+      state.currentMonthKey = freshKey;
+      state.months[freshKey] = freshMonth(0);
+    }
+  }
+  save();
 }
 
 // ---------------- Trend ----------------
