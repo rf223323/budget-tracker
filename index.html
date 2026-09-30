@@ -375,7 +375,7 @@ function freshMonth(startingBalance){
 function carryForwardMonth(prevMonth, startingBalance){
   const m = blankMonth(startingBalance);
   m.incoming = prevMonth.incoming.filter(i=>i.recurring).map(i=>({id:uid(), name:i.name, amount:i.amount, status:'none', recurring:true}));
-  m.outgoings = prevMonth.outgoings.filter(o=>o.recurring).map(o=>({id:uid(), name:o.name, amount:o.amount, status:'none', recurring:true, category:o.category||'Uncategorized'}));
+  m.outgoings = prevMonth.outgoings.filter(o=>o.recurring).map(o=>({id:uid(), name:o.name, amount:o.amount, status:'none', recurring:true, category:o.category||'Uncategorized', day:o.day||null}));
   ['week1','week2','week3','week4'].forEach(wk=>{
     if(prevMonth.weekly[wk].recurring){
       m.weekly[wk] = {amount: prevMonth.weekly[wk].amount, status:'none', recurring:true};
@@ -402,20 +402,21 @@ function syncRecurringForward(sourceMonth, targetMonth){
   const targetOutgoingNames = new Set(targetMonth.outgoings.map(o=>normName(o.name)));
   sourceMonth.outgoings.filter(o=>o.recurring).forEach(o=>{
     if(!targetOutgoingNames.has(normName(o.name))){
-      targetMonth.outgoings.push({id:uid(), name:o.name, amount:o.amount, status:'none', recurring:true, category:o.category||'Uncategorized'});
+      targetMonth.outgoings.push({id:uid(), name:o.name, amount:o.amount, status:'none', recurring:true, category:o.category||'Uncategorized', day:o.day||null});
     }
   });
 }
-// When a recurring outgoing's category is changed, keep every future month's
-// copy of that same recurring item (matched by name) in sync — categories are
-// a classification, not something that should drift month to month like an amount.
-function propagateCategoryForward(item, fromMonthKey){
+// When a recurring outgoing's category or day-of-month is changed, keep every
+// future month's copy of that same recurring item (matched by name) in sync —
+// these are classification/scheduling, not something that should drift month
+// to month like an amount.
+function propagateOutgoingFieldForward(item, fromMonthKey, field){
   if(!item.recurring) return;
   const normName = s => (s||'').trim().toLowerCase();
   const name = normName(item.name);
   Object.keys(state.months).filter(k=>k>fromMonthKey).forEach(k=>{
     state.months[k].outgoings.forEach(o=>{
-      if(o.recurring && normName(o.name)===name) o.category = item.category;
+      if(o.recurring && normName(o.name)===name) o[field] = item[field];
     });
   });
 }
@@ -840,6 +841,16 @@ function categorySelectHtml(cls, value){
     ${OUTGOING_CATEGORIES.map(c=>`<option value="${escapeHtml(c)}" ${c===v?'selected':''}>${categoryIcon(c)} ${escapeHtml(c)}</option>`).join('')}
   </select>`;
 }
+// Optional day-of-month (1-31) an outgoing posts on — powers the spending heatmap.
+// Left blank, an item just isn't placed on any specific day.
+function dayInputHtml(cls, value){
+  return `<input class="${cls}" type="number" min="1" max="31" step="1" placeholder="Day" value="${value||''}" style="max-width:68px;">`;
+}
+function clampDay(v){
+  const n = Math.round(Number(v));
+  if(!v || !n || n<1) return null;
+  return Math.min(31, n);
+}
 
 // ---------- tiny SVG line chart (no external deps) ----------
 function svgEl(tag, attrs){
@@ -1161,7 +1172,7 @@ function renderMonth(){
         <button class="btn small" id="addOutgoingBtn">+ Add outgoing</button>
       </div>
       <table class="responsive-table">
-        <thead><tr><th>Name</th><th style="width:140px;">Category</th><th style="width:120px;">Amount</th><th style="width:100px;">Status</th><th style="width:110px;">Recurring</th><th style="width:36px;"></th></tr></thead>
+        <thead><tr><th>Name</th><th style="width:140px;">Category</th><th style="width:76px;">Day</th><th style="width:120px;">Amount</th><th style="width:100px;">Status</th><th style="width:110px;">Recurring</th><th style="width:36px;"></th></tr></thead>
         <tbody id="outgoingBody"></tbody>
       </table>
       <div class="formula-note">
@@ -1323,12 +1334,13 @@ function renderMonth(){
       <tr data-id="${o.id}">
         <td class="cell-name"><input class="row-input out-name" type="text" value="${escapeHtml(o.name)}"></td>
         <td data-label="Category">${categorySelectHtml('out-category', o.category)}</td>
+        <td data-label="Day">${dayInputHtml('out-day', o.day)}</td>
         <td data-label="Amount"><input class="row-input out-amount amt-cell" type="number" step="0.01" value="${o.amount}"></td>
         <td data-label="Status">${statusSelectHtml('out-status', o.status)}</td>
         <td data-label="Recurring">${recurringSelectHtml('out-recur', o.recurring)}</td>
         <td class="cell-del"><button class="del-btn out-del">✕</button></td>
       </tr>
-    `).join('') || `<tr><td colspan="6" class="empty">No outgoings added yet</td></tr>`;
+    `).join('') || `<tr><td colspan="7" class="empty">No outgoings added yet</td></tr>`;
     outgoingBody.querySelectorAll('tr').forEach(tr=>{
       const id = tr.dataset.id;
       const item = m.outgoings.find(x=>x.id===id);
@@ -1340,7 +1352,9 @@ function renderMonth(){
       const recurSel = tr.querySelector('.out-recur');
       recurSel.onchange = e=>{ item.recurring = (e.target.value==='yes'); save(); e.target.className = `out-recur recur-select ${item.recurring?'recur-yes':'recur-no'}`; };
       const catSel = tr.querySelector('.out-category');
-      catSel.onchange = e=>{ item.category = e.target.value; propagateCategoryForward(item, state.currentMonthKey); save(); e.target.style.borderLeftColor = categoryColor(item.category); };
+      catSel.onchange = e=>{ item.category = e.target.value; propagateOutgoingFieldForward(item, state.currentMonthKey, 'category'); save(); e.target.style.borderLeftColor = categoryColor(item.category); };
+      const dayInp = tr.querySelector('.out-day');
+      dayInp.onchange = e=>{ item.day = clampDay(e.target.value); e.target.value = item.day||''; propagateOutgoingFieldForward(item, state.currentMonthKey, 'day'); save(); };
       tr.querySelector('.out-del').onclick = ()=>{ m.outgoings = m.outgoings.filter(x=>x.id!==id); save(); drawOutgoings(); refreshCards(); };
     });
   }
@@ -1462,7 +1476,7 @@ function renderTrend(){
       <div id="catBreakdownDeltas" style="margin-top:8px;"></div>
     </div>
     <div class="panel">
-      <div class="panel-head"><h2>Daily Spending Heatmap</h2><span class="hint">based on Quick Add spends — good for spotting weekend patterns</span></div>
+      <div class="panel-head"><h2>Daily Spending Heatmap</h2><span class="hint">Quick Add spends, plus any outgoing you've given a Day — good for spotting weekend patterns</span></div>
       <div id="spendHeatmap"></div>
     </div>
     <div class="panel">
@@ -1538,7 +1552,7 @@ function renderCategoryBreakdown(){
   monthSel.onchange = e=>{ categoryBreakdownMonth = e.target.value; renderCategoryBreakdown(); renderSpendingHeatmap(); };
   document.querySelectorAll('.seg-btn').forEach(b=>{
     b.classList.toggle('active', b.dataset.mode===categoryBreakdownMode);
-    b.onclick = ()=>{ categoryBreakdownMode = b.dataset.mode; renderCategoryBreakdown(); };
+    b.onclick = ()=>{ categoryBreakdownMode = b.dataset.mode; renderCategoryBreakdown(); renderSpendingHeatmap(); };
   });
   const bars = document.getElementById('catBreakdownBars');
   const donutEl = document.getElementById('catBreakdownDonut');
@@ -1618,20 +1632,30 @@ function renderCategoryDeltas(monthKey, mode){
     }).join('')}
   `;
 }
-// Daily spend heatmap: only Quick Add entries carry a real timestamp, so this
-// reflects day-to-day/one-off spending patterns rather than every outgoing —
-// which is exactly the kind of spend that actually varies by day of week.
-function dailySpendSeries(monthKey){
+// Daily spend heatmap data: Quick Add entries carry a real timestamp, so those
+// are placed on their exact day; any other outgoing with an optional "Day" set
+// (e.g. Rent on the 1st) is placed on that day of the displayed month, clamped
+// to the month's actual length. In 'done' mode, dated non-Quick-Add outgoings
+// only count once marked Done — Quick Add entries are always Done already.
+function dailySpendSeries(monthKey, mode){
   const m = state.months[monthKey];
   const days = {};
   if(!m) return days;
   const [y, mo] = monthKey.split('-').map(Number);
+  const daysInMonth = new Date(y, mo, 0).getDate();
   m.outgoings.forEach(o=>{
-    if(!o.quickAdd || !o.ts) return;
-    const d = new Date(o.ts);
-    if(d.getFullYear()!==y || (d.getMonth()+1)!==mo) return;
-    const day = d.getDate();
-    days[day] = round2((days[day]||0) + (Number(o.amount)||0));
+    if(o.quickAdd && o.ts){
+      const d = new Date(o.ts);
+      if(d.getFullYear()!==y || (d.getMonth()+1)!==mo) return;
+      const day = d.getDate();
+      days[day] = round2((days[day]||0) + (Number(o.amount)||0));
+      return;
+    }
+    if(o.day){
+      if(mode==='done' && o.status!=='done') return;
+      const day = Math.min(o.day, daysInMonth);
+      days[day] = round2((days[day]||0) + (Number(o.amount)||0));
+    }
   });
   return days;
 }
@@ -1648,7 +1672,7 @@ function renderSpendingHeatmap(){
   const daysInMonth = new Date(y, mo, 0).getDate();
   const mondayIndex = jsDay => (jsDay+6)%7; // JS: 0=Sun..6=Sat -> Monday-first index
   const firstDow = mondayIndex(new Date(y, mo-1, 1).getDay());
-  const daySpend = dailySpendSeries(monthKey);
+  const daySpend = dailySpendSeries(monthKey, categoryBreakdownMode);
   const max = Math.max(0, ...Object.values(daySpend));
   const accentRgb = hexToRgbTriplet(getComputedStyle(document.body).getPropertyValue('--accent').trim() || '#5b8cff');
   const monthShort = monthLabelFromKey(monthKey).split(' ')[0];
@@ -1660,11 +1684,11 @@ function renderSpendingHeatmap(){
     const ratio = max>0 ? amt/max : 0;
     const isWeekend = mondayIndex(new Date(y, mo-1, day).getDay()) >= 5;
     const bg = amt>0 ? `rgba(${accentRgb},${(0.18+0.72*ratio).toFixed(2)})` : 'transparent';
-    const tip = amt>0 ? `${monthShort} ${day}: ${fmt(amt)}` : `${monthShort} ${day}: no quick-add spending`;
+    const tip = amt>0 ? `${monthShort} ${day}: ${fmt(amt)}` : `${monthShort} ${day}: no dated spending`;
     cells += `<div class="heatmap-cell${isWeekend?' weekend':''}" data-tip="${escapeHtml(tip)}" style="background:${bg};">${day}</div>`;
   }
   if(!Object.keys(daySpend).length){
-    el.innerHTML = '<div class="empty">No Quick Add spends logged for this month yet.</div>';
+    el.innerHTML = '<div class="empty">No Quick Add spends or dated outgoings for this month yet — add a "Day" to an outgoing, or use Quick Add.</div>';
     return;
   }
   el.innerHTML = `
@@ -1691,7 +1715,7 @@ function renderSpendingHeatmap(){
 // ---------------- Recurring ----------------
 function recurringTableHtml(kind){
   const label = kind==='incoming' ? 'Source' : 'Name';
-  const catTh = kind==='outgoing' ? '<th style="width:140px;">Category</th>' : '';
+  const catTh = kind==='outgoing' ? '<th style="width:140px;">Category</th><th style="width:76px;">Day</th>' : '';
   return `
     <table class="responsive-table">
       <thead><tr><th>${label}</th>${catTh}<th style="width:120px;">Amount</th><th style="width:100px;">Status</th><th style="width:36px;"></th></tr></thead>
@@ -1703,11 +1727,11 @@ function drawRecurringTable(m, kind){
   const list = kind==='incoming' ? m.incoming : m.outgoings;
   const body = document.querySelector(`.recur-body-${kind}`);
   const items = list.filter(x=>x.recurring);
-  const colspan = kind==='outgoing' ? 5 : 4;
+  const colspan = kind==='outgoing' ? 6 : 4;
   body.innerHTML = items.map(x=>`
     <tr data-id="${x.id}">
       <td class="cell-name"><input class="row-input recur-name-${kind}" type="text" value="${escapeHtml(x.name)}"></td>
-      ${kind==='outgoing' ? `<td data-label="Category">${categorySelectHtml(`recur-category-${kind}`, x.category)}</td>` : ''}
+      ${kind==='outgoing' ? `<td data-label="Category">${categorySelectHtml(`recur-category-${kind}`, x.category)}</td><td data-label="Day">${dayInputHtml(`recur-day-${kind}`, x.day)}</td>` : ''}
       <td data-label="Amount"><input class="row-input recur-amount-${kind} amt-cell" type="number" step="0.01" value="${x.amount}"></td>
       <td data-label="Status">${statusSelectHtml(`recur-status-${kind}`, x.status)}</td>
       <td class="cell-del"><button class="del-btn recur-del-${kind}">✕</button></td>
@@ -1722,7 +1746,9 @@ function drawRecurringTable(m, kind){
     const sel = tr.querySelector(`.recur-status-${kind}`);
     sel.onchange = e=>{ item.status=e.target.value; save(); e.target.className = `recur-status-${kind} status-select status-${e.target.value}`; };
     const catSel = tr.querySelector(`.recur-category-${kind}`);
-    if(catSel) catSel.onchange = e=>{ item.category = e.target.value; propagateCategoryForward(item, state.currentMonthKey); save(); e.target.style.borderLeftColor = categoryColor(item.category); };
+    if(catSel) catSel.onchange = e=>{ item.category = e.target.value; propagateOutgoingFieldForward(item, state.currentMonthKey, 'category'); save(); e.target.style.borderLeftColor = categoryColor(item.category); };
+    const dayInp = tr.querySelector(`.recur-day-${kind}`);
+    if(dayInp) dayInp.onchange = e=>{ item.day = clampDay(e.target.value); e.target.value = item.day||''; propagateOutgoingFieldForward(item, state.currentMonthKey, 'day'); save(); };
     tr.querySelector(`.recur-del-${kind}`).onclick = ()=>{
       if(kind==='incoming') m.incoming = m.incoming.filter(x=>x.id!==id);
       else m.outgoings = m.outgoings.filter(x=>x.id!==id);
