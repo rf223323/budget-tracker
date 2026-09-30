@@ -151,6 +151,7 @@
   .heatmap-cell.weekend{border-color:color-mix(in srgb, var(--accent) 35%, var(--border));}
   .heatmap-legend{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);margin-top:14px;}
   .heatmap-legend-swatch{width:14px;height:14px;border-radius:4px;border:1px solid var(--border);}
+  .schedule-hint{font-size:11px;color:var(--muted);margin-top:4px;}
   .legend-item .dash{width:16px;height:0;border-top:2px dashed;flex-shrink:0;}
   .hidden{display:none !important;}
   .formula-note{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.5;}
@@ -390,8 +391,8 @@ function freshMonth(startingBalance){
 }
 function carryForwardMonth(prevMonth, startingBalance){
   const m = blankMonth(startingBalance);
-  m.incoming = prevMonth.incoming.filter(i=>i.recurring).map(i=>({id:uid(), name:i.name, amount:i.amount, status:'none', recurring:true}));
-  m.outgoings = prevMonth.outgoings.filter(o=>o.recurring).map(o=>({id:uid(), name:o.name, amount:o.amount, status:'none', recurring:true, category:o.category||'Uncategorized', day:o.day||null}));
+  m.incoming = prevMonth.incoming.filter(i=>i.recurring).map(i=>({id:uid(), name:i.name, amount:i.amount, status:'none', recurring:true, day:i.day||null, lastWeekday: i.lastWeekday!=null?i.lastWeekday:null}));
+  m.outgoings = prevMonth.outgoings.filter(o=>o.recurring).map(o=>({id:uid(), name:o.name, amount:o.amount, status:'none', recurring:true, category:o.category||'Uncategorized', day:o.day||null, lastWeekday: o.lastWeekday!=null?o.lastWeekday:null}));
   ['week1','week2','week3','week4'].forEach(wk=>{
     if(prevMonth.weekly[wk].recurring){
       m.weekly[wk] = {amount: prevMonth.weekly[wk].amount, status:'none', recurring:true};
@@ -412,27 +413,37 @@ function syncRecurringForward(sourceMonth, targetMonth){
   const targetIncomingNames = new Set(targetMonth.incoming.map(i=>normName(i.name)));
   sourceMonth.incoming.filter(i=>i.recurring).forEach(i=>{
     if(!targetIncomingNames.has(normName(i.name))){
-      targetMonth.incoming.push({id:uid(), name:i.name, amount:i.amount, status:'none', recurring:true});
+      targetMonth.incoming.push({id:uid(), name:i.name, amount:i.amount, status:'none', recurring:true, day:i.day||null, lastWeekday: i.lastWeekday!=null?i.lastWeekday:null});
     }
   });
   const targetOutgoingNames = new Set(targetMonth.outgoings.map(o=>normName(o.name)));
   sourceMonth.outgoings.filter(o=>o.recurring).forEach(o=>{
     if(!targetOutgoingNames.has(normName(o.name))){
-      targetMonth.outgoings.push({id:uid(), name:o.name, amount:o.amount, status:'none', recurring:true, category:o.category||'Uncategorized', day:o.day||null});
+      targetMonth.outgoings.push({id:uid(), name:o.name, amount:o.amount, status:'none', recurring:true, category:o.category||'Uncategorized', day:o.day||null, lastWeekday: o.lastWeekday!=null?o.lastWeekday:null});
     }
   });
 }
-// When a recurring outgoing's category or day-of-month is changed, keep every
-// future month's copy of that same recurring item (matched by name) in sync —
-// these are classification/scheduling, not something that should drift month
-// to month like an amount.
-function propagateOutgoingFieldForward(item, fromMonthKey, field){
+// When a recurring item's category, day-of-month, or schedule is changed, keep
+// every future month's copy of that same recurring item (matched by name) in
+// sync — these are classification/scheduling, not something that should drift
+// month to month like an amount. listKey is 'outgoings' or 'incoming'.
+function propagateOutgoingFieldForward(item, fromMonthKey, field, listKey){
   if(!item.recurring) return;
   const normName = s => (s||'').trim().toLowerCase();
   const name = normName(item.name);
   Object.keys(state.months).filter(k=>k>fromMonthKey).forEach(k=>{
-    state.months[k].outgoings.forEach(o=>{
+    state.months[k][listKey||'outgoings'].forEach(o=>{
       if(o.recurring && normName(o.name)===name) o[field] = item[field];
+    });
+  });
+}
+function propagateScheduleForward(item, fromMonthKey, listKey){
+  if(!item.recurring) return;
+  const normName = s => (s||'').trim().toLowerCase();
+  const name = normName(item.name);
+  Object.keys(state.months).filter(k=>k>fromMonthKey).forEach(k=>{
+    state.months[k][listKey].forEach(o=>{
+      if(o.recurring && normName(o.name)===name){ o.day = item.day; o.lastWeekday = item.lastWeekday; }
     });
   });
 }
@@ -867,6 +878,46 @@ function clampDay(v){
   if(!v || !n || n<1) return null;
   return Math.min(31, n);
 }
+// Recurring schedule for an incoming/outgoing item: either a fixed day-of-month
+// (item.day) or a "last <weekday> of the month" rule (item.lastWeekday, 0=Sun..
+// 6=Sat) — used for things like a payday that lands on the last Friday.
+const WEEKDAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+function scheduleSelectHtml(cls, item){
+  const value = item.lastWeekday!=null ? `w:${item.lastWeekday}` : (item.day ? `d:${item.day}` : '');
+  return `<select class="${cls}">
+    <option value="" ${value===''?'selected':''}>No fixed date</option>
+    <optgroup label="Day of month">
+      ${Array.from({length:31},(_,i)=>i+1).map(n=>`<option value="d:${n}" ${value==='d:'+n?'selected':''}>Day ${n}</option>`).join('')}
+    </optgroup>
+    <optgroup label="Last weekday of month">
+      ${WEEKDAY_NAMES.map((name,idx)=>`<option value="w:${idx}" ${value==='w:'+idx?'selected':''}>Last ${name}</option>`).join('')}
+    </optgroup>
+  </select>`;
+}
+function applyScheduleValue(item, v){
+  if(v && v.startsWith('w:')){ item.lastWeekday = Number(v.slice(2)); item.day = null; }
+  else if(v && v.startsWith('d:')){ item.day = Number(v.slice(2)); item.lastWeekday = null; }
+  else { item.day = null; item.lastWeekday = null; }
+}
+// Resolves an item's schedule to an actual day-of-month (1-31) for a specific
+// calendar month, or null if it has none. month is 1-12.
+function resolveScheduledDay(item, year, month){
+  const daysInMonth = new Date(year, month, 0).getDate();
+  if(item.lastWeekday!=null && item.lastWeekday!==undefined){
+    for(let d=daysInMonth; d>=1; d--){
+      if(new Date(year, month-1, d).getDay()===item.lastWeekday) return d;
+    }
+    return null;
+  }
+  if(item.day) return Math.min(item.day, daysInMonth);
+  return null;
+}
+function scheduleHint(item, year, month){
+  const day = resolveScheduledDay(item, year, month);
+  if(!day) return '';
+  const d = new Date(year, month-1, day);
+  return `Next: ${d.toLocaleDateString('en-GB',{weekday:'short', day:'numeric', month:'short'})}`;
+}
 
 // ---------- tiny SVG line chart (no external deps) ----------
 function svgEl(tag, attrs){
@@ -1101,6 +1152,7 @@ function renderSyncIndicator(){
 function renderMonth(){
   const m = ensureMonth(state.currentMonthKey);
   const t = monthTotals(m);
+  const [curYear, curMonthNum] = state.currentMonthKey.split('-').map(Number);
   const el = document.getElementById('view-month');
   el.innerHTML = `
     <div class="panel">
@@ -1188,7 +1240,7 @@ function renderMonth(){
         <button class="btn small" id="addIncomeBtn">+ Add incoming</button>
       </div>
       <table class="responsive-table">
-        <thead><tr><th>Source</th><th style="width:120px;">Amount</th><th style="width:100px;">Status</th><th style="width:110px;">Recurring</th><th style="width:36px;"></th></tr></thead>
+        <thead><tr><th>Source</th><th style="width:150px;">Schedule</th><th style="width:120px;">Amount</th><th style="width:100px;">Status</th><th style="width:110px;">Recurring</th><th style="width:36px;"></th></tr></thead>
         <tbody id="incomeBody"></tbody>
       </table>
     </div>
@@ -1348,12 +1400,16 @@ function renderMonth(){
     incomeBody.innerHTML = m.incoming.map(i=>`
       <tr data-id="${i.id}">
         <td class="cell-name"><input class="row-input inc-name" type="text" value="${escapeHtml(i.name)}"></td>
+        <td class="cell-category" data-label="Schedule">
+          ${scheduleSelectHtml('inc-schedule', i)}
+          <div class="hint schedule-hint">${scheduleHint(i, curYear, curMonthNum)}</div>
+        </td>
         <td data-label="Amount"><input class="row-input inc-amount amt-cell" type="number" step="0.01" value="${i.amount}"></td>
         <td data-label="Status">${statusSelectHtml('inc-status', i.status)}</td>
         <td data-label="Recurring">${recurringSelectHtml('inc-recur', i.recurring)}</td>
         <td class="cell-del"><button class="del-btn inc-del">✕</button></td>
       </tr>
-    `).join('') || `<tr><td colspan="5" class="empty">No incoming added yet</td></tr>`;
+    `).join('') || `<tr><td colspan="6" class="empty">No incoming added yet</td></tr>`;
     incomeBody.querySelectorAll('tr').forEach(tr=>{
       const id = tr.dataset.id;
       const item = m.incoming.find(x=>x.id===id);
@@ -1364,6 +1420,14 @@ function renderMonth(){
       sel.onchange = e=>{ item.status=e.target.value; save(); e.target.className = `inc-status status-select status-${e.target.value}`; refreshCards(); };
       const recurSel = tr.querySelector('.inc-recur');
       recurSel.onchange = e=>{ item.recurring = (e.target.value==='yes'); save(); e.target.className = `inc-recur recur-select ${item.recurring?'recur-yes':'recur-no'}`; };
+      const schedSel = tr.querySelector('.inc-schedule');
+      schedSel.onchange = e=>{
+        applyScheduleValue(item, e.target.value);
+        propagateScheduleForward(item, state.currentMonthKey, 'incoming');
+        save();
+        tr.querySelector('.schedule-hint').textContent = scheduleHint(item, curYear, curMonthNum);
+        renderUpcomingBills();
+      };
       tr.querySelector('.inc-del').onclick = ()=>{ m.incoming = m.incoming.filter(x=>x.id!==id); save(); drawIncome(); refreshCards(); };
     });
   }
@@ -1482,11 +1546,17 @@ function upcomingBills(daysAhead){
     const mk = monthKey(d);
     const m = state.months[mk];
     if(!m) continue;
-    const daysInMonth = new Date(d.getFullYear(), d.getMonth()+1, 0).getDate();
+    const [yy, mo] = mk.split('-').map(Number);
     m.outgoings.forEach(o=>{
-      if(!o.day || o.status==='done') return;
-      if(Math.min(o.day, daysInMonth) === d.getDate()){
-        results.push({name:o.name, amount:o.amount, category:o.category, daysAway:i, dueDate:new Date(d)});
+      if(o.status==='done') return;
+      if(resolveScheduledDay(o, yy, mo) === d.getDate()){
+        results.push({type:'out', name:o.name, amount:o.amount, category:o.category, daysAway:i, dueDate:new Date(d)});
+      }
+    });
+    m.incoming.forEach(inc=>{
+      if(inc.status==='done') return;
+      if(resolveScheduledDay(inc, yy, mo) === d.getDate()){
+        results.push({type:'in', name:inc.name, amount:inc.amount, daysAway:i, dueDate:new Date(d)});
       }
     });
   }
@@ -1502,20 +1572,23 @@ function renderUpcomingBills(){
   });
   const bills = upcomingBills(upcomingBillsWindow);
   if(!bills.length){
-    el.innerHTML = `<div class="empty">Nothing due in the next ${upcomingBillsWindow} days.</div>`;
+    el.innerHTML = `<div class="empty">Nothing due or arriving in the next ${upcomingBillsWindow} days.</div>`;
     return;
   }
   el.innerHTML = bills.map(b=>{
-    const dueText = b.daysAway===0 ? 'Due today' : b.daysAway===1 ? 'Due tomorrow' : `Due in ${b.daysAway} days`;
+    const isIn = b.type==='in';
+    const verb = isIn ? 'Arriving' : 'Due';
+    const dueText = b.daysAway===0 ? `${verb} today` : b.daysAway===1 ? `${verb} tomorrow` : `${verb} in ${b.daysAway} days`;
     const dateText = b.dueDate.toLocaleDateString('en-GB',{weekday:'short', day:'numeric', month:'short'});
+    const icon = isIn ? '💰' : categoryIcon(b.category);
     return `
       <div class="bill-row">
-        <div class="bill-icon">${categoryIcon(b.category)}</div>
+        <div class="bill-icon">${icon}</div>
         <div class="bill-info">
           <div class="bill-name">${escapeHtml(b.name)}</div>
           <div class="bill-due${b.daysAway<=1?' due-soon':''}">${dueText} · ${dateText}</div>
         </div>
-        <div class="bill-amount">${fmt(b.amount)}</div>
+        <div class="bill-amount" style="${isIn?'color:var(--green);':''}">${isIn?'+':''}${fmt(b.amount)}</div>
       </div>
     `;
   }).join('');
@@ -1530,10 +1603,10 @@ function billDaysForMonth(monthKey){
   const map = {};
   if(!m) return map;
   const [y, mo] = monthKey.split('-').map(Number);
-  const daysInMonth = new Date(y, mo, 0).getDate();
   m.outgoings.forEach(o=>{
-    if(!o.day || o.status==='done') return;
-    const day = Math.min(o.day, daysInMonth);
+    if(o.status==='done') return;
+    const day = resolveScheduledDay(o, y, mo);
+    if(!day) return;
     (map[day] = map[day]||[]).push(o.name);
   });
   return map;
@@ -1808,7 +1881,6 @@ function dailySpendSeries(monthKey, mode){
   const days = {};
   if(!m) return days;
   const [y, mo] = monthKey.split('-').map(Number);
-  const daysInMonth = new Date(y, mo, 0).getDate();
   m.outgoings.forEach(o=>{
     if(o.quickAdd && o.ts){
       const d = new Date(o.ts);
@@ -1817,11 +1889,9 @@ function dailySpendSeries(monthKey, mode){
       days[day] = round2((days[day]||0) + (Number(o.amount)||0));
       return;
     }
-    if(o.day){
-      if(mode==='done' && o.status!=='done') return;
-      const day = Math.min(o.day, daysInMonth);
-      days[day] = round2((days[day]||0) + (Number(o.amount)||0));
-    }
+    if(mode==='done' && o.status!=='done') return;
+    const day = resolveScheduledDay(o, y, mo);
+    if(day) days[day] = round2((days[day]||0) + (Number(o.amount)||0));
   });
   return days;
 }
@@ -1886,7 +1956,7 @@ function renderSpendingHeatmap(){
 // ---------------- Recurring ----------------
 function recurringTableHtml(kind){
   const label = kind==='incoming' ? 'Source' : 'Name';
-  const catTh = kind==='outgoing' ? '<th style="width:140px;">Category</th><th style="width:76px;">Day</th>' : '';
+  const catTh = kind==='outgoing' ? '<th style="width:140px;">Category</th><th style="width:76px;">Day</th>' : '<th style="width:150px;">Schedule</th>';
   return `
     <table class="responsive-table">
       <thead><tr><th>${label}</th>${catTh}<th style="width:120px;">Amount</th><th style="width:100px;">Status</th><th style="width:36px;"></th></tr></thead>
@@ -1898,11 +1968,14 @@ function drawRecurringTable(m, kind){
   const list = kind==='incoming' ? m.incoming : m.outgoings;
   const body = document.querySelector(`.recur-body-${kind}`);
   const items = list.filter(x=>x.recurring);
-  const colspan = kind==='outgoing' ? 6 : 4;
+  const colspan = kind==='outgoing' ? 6 : 5;
+  const [curYear, curMonthNum] = state.currentMonthKey.split('-').map(Number);
   body.innerHTML = items.map(x=>`
     <tr data-id="${x.id}">
       <td class="cell-name"><input class="row-input recur-name-${kind}" type="text" value="${escapeHtml(x.name)}"></td>
-      ${kind==='outgoing' ? `<td class="cell-category" data-label="Category">${categorySelectHtml(`recur-category-${kind}`, x.category)}</td><td class="cell-day" data-label="Day">${dayInputHtml(`recur-day-${kind}`, x.day)}</td>` : ''}
+      ${kind==='outgoing'
+        ? `<td class="cell-category" data-label="Category">${categorySelectHtml(`recur-category-${kind}`, x.category)}</td><td class="cell-day" data-label="Day">${dayInputHtml(`recur-day-${kind}`, x.day)}</td>`
+        : `<td class="cell-category" data-label="Schedule">${scheduleSelectHtml(`recur-schedule-${kind}`, x)}<div class="hint schedule-hint">${scheduleHint(x, curYear, curMonthNum)}</div></td>`}
       <td data-label="Amount"><input class="row-input recur-amount-${kind} amt-cell" type="number" step="0.01" value="${x.amount}"></td>
       <td data-label="Status">${statusSelectHtml(`recur-status-${kind}`, x.status)}</td>
       <td class="cell-del"><button class="del-btn recur-del-${kind}">✕</button></td>
@@ -1920,6 +1993,13 @@ function drawRecurringTable(m, kind){
     if(catSel) catSel.onchange = e=>{ item.category = e.target.value; propagateOutgoingFieldForward(item, state.currentMonthKey, 'category'); save(); e.target.style.borderLeftColor = categoryColor(item.category); };
     const dayInp = tr.querySelector(`.recur-day-${kind}`);
     if(dayInp) dayInp.onchange = e=>{ item.day = clampDay(e.target.value); e.target.value = item.day||''; propagateOutgoingFieldForward(item, state.currentMonthKey, 'day'); save(); };
+    const schedSel = tr.querySelector(`.recur-schedule-${kind}`);
+    if(schedSel) schedSel.onchange = e=>{
+      applyScheduleValue(item, e.target.value);
+      propagateScheduleForward(item, state.currentMonthKey, 'incoming');
+      save();
+      tr.querySelector('.schedule-hint').textContent = scheduleHint(item, curYear, curMonthNum);
+    };
     tr.querySelector(`.recur-del-${kind}`).onclick = ()=>{
       if(kind==='incoming') m.incoming = m.incoming.filter(x=>x.id!==id);
       else m.outgoings = m.outgoings.filter(x=>x.id!==id);
