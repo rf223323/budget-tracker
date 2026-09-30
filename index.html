@@ -108,6 +108,20 @@
   .legend{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:10px;}
   .legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);}
   .legend-item .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+  .cat-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:middle;flex-shrink:0;}
+  .cat-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
+  .cat-bar-label{width:150px;flex-shrink:0;font-size:13px;display:flex;align-items:center;}
+  .cat-bar-track{flex:1;min-width:80px;background:var(--bg);border-radius:6px;height:16px;overflow:hidden;border:1px solid var(--border);}
+  .cat-bar-fill{height:100%;border-radius:6px;transition:width .2s;}
+  .cat-bar-amt{width:120px;flex-shrink:0;text-align:right;font-size:13px;font-weight:600;}
+  .cat-bar-pct{color:var(--muted);font-weight:400;font-size:11.5px;}
+  .seg-toggle{display:flex;border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+  .seg-btn{background:var(--panel2);border:none;color:var(--muted);padding:8px 14px;font-size:12.5px;font-weight:600;cursor:pointer;}
+  .seg-btn.active{background:var(--accent);color:white;}
+  @media (max-width:600px){
+    .cat-bar-label{width:100%;}
+    .cat-bar-amt{width:auto;margin-left:auto;}
+  }
   .legend-item .dash{width:16px;height:0;border-top:2px dashed;flex-shrink:0;}
   .hidden{display:none !important;}
   .formula-note{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.5;}
@@ -276,6 +290,19 @@ const DATA_KEY_BASE = 'budgetTracker.v5';
 const PROFILES_META_KEY = 'budgetTracker.profiles';
 function dataKeyFor(profileId){ return `${DATA_KEY_BASE}:${profileId}`; }
 
+const OUTGOING_CATEGORIES = [
+  'Uncategorized','Housing','Bills & Utilities','Groceries','Transport',
+  'Subscriptions','Shopping','Eating Out','Health & Fitness','Entertainment',
+  'Savings & Debt','Other'
+];
+const CATEGORY_COLORS = {
+  'Uncategorized':'#8a93ab','Housing':'#5b8cff','Bills & Utilities':'#7c5bff',
+  'Groceries':'#3ecf8e','Transport':'#36c5f0','Subscriptions':'#ffb946',
+  'Shopping':'#ff5c7a','Eating Out':'#f2994a','Health & Fitness':'#00b894',
+  'Entertainment':'#bb6bd9','Savings & Debt':'#e84393','Other':'#636e72'
+};
+function categoryColor(cat){ return CATEGORY_COLORS[cat] || CATEGORY_COLORS['Other']; }
+
 function uid(){ return Math.random().toString(36).slice(2,10)+Date.now().toString(36); }
 function round2(n){ return Math.round((Number(n)||0)*100)/100; }
 
@@ -314,7 +341,7 @@ function freshMonth(startingBalance){
 function carryForwardMonth(prevMonth, startingBalance){
   const m = blankMonth(startingBalance);
   m.incoming = prevMonth.incoming.filter(i=>i.recurring).map(i=>({id:uid(), name:i.name, amount:i.amount, status:'none', recurring:true}));
-  m.outgoings = prevMonth.outgoings.filter(o=>o.recurring).map(o=>({id:uid(), name:o.name, amount:o.amount, status:'none', recurring:true}));
+  m.outgoings = prevMonth.outgoings.filter(o=>o.recurring).map(o=>({id:uid(), name:o.name, amount:o.amount, status:'none', recurring:true, category:o.category||'Uncategorized'}));
   ['week1','week2','week3','week4'].forEach(wk=>{
     if(prevMonth.weekly[wk].recurring){
       m.weekly[wk] = {amount: prevMonth.weekly[wk].amount, status:'none', recurring:true};
@@ -341,7 +368,7 @@ function syncRecurringForward(sourceMonth, targetMonth){
   const targetOutgoingNames = new Set(targetMonth.outgoings.map(o=>normName(o.name)));
   sourceMonth.outgoings.filter(o=>o.recurring).forEach(o=>{
     if(!targetOutgoingNames.has(normName(o.name))){
-      targetMonth.outgoings.push({id:uid(), name:o.name, amount:o.amount, status:'none', recurring:true});
+      targetMonth.outgoings.push({id:uid(), name:o.name, amount:o.amount, status:'none', recurring:true, category:o.category||'Uncategorized'});
     }
   });
 }
@@ -366,7 +393,7 @@ function normalizeState(){
     if(!m.stocks) m.stocks = {amount:0, status:'none'};
     if(typeof m.adjustment !== 'number') m.adjustment = 0;
     m.incoming.forEach(i=>{ if(typeof i.recurring !== 'boolean') i.recurring = false; });
-    m.outgoings.forEach(o=>{ if(typeof o.recurring !== 'boolean') o.recurring = false; });
+    m.outgoings.forEach(o=>{ if(typeof o.recurring !== 'boolean') o.recurring = false; if(!o.category || !OUTGOING_CATEGORIES.includes(o.category)) o.category = 'Uncategorized'; });
     ['week1','week2','week3','week4'].forEach(wk=>{
       if(typeof m.weekly[wk].recurring !== 'boolean') m.weekly[wk].recurring = false;
     });
@@ -598,6 +625,18 @@ function monthTotals(m){
 
   return {allIncoming, doneIncoming, allOutgoing, doneOutgoing, weeklyTotal, doneWeekly, savingsAmount, doneSavings, stocksAmount, doneStocks, adjustment, liveBalance, totalLeftOver};
 }
+// mode: 'all' = every outgoing regardless of status, 'done' = only what's actually been spent.
+function categoryBreakdown(m, mode){
+  const totals = {};
+  m.outgoings.forEach(o=>{
+    if(mode==='done' && o.status!=='done') return;
+    const cat = o.category || 'Uncategorized';
+    totals[cat] = (totals[cat]||0) + (Number(o.amount)||0);
+  });
+  const rows = Object.entries(totals).filter(([,amt])=>amt>0).map(([category,amount])=>({category, amount:round2(amount)}));
+  rows.sort((a,b)=>b.amount-a.amount);
+  return rows;
+}
 
 // ---------------- Pots (Savings / Stocks & Shares) ----------------
 function potBalance(potKey){
@@ -678,7 +717,7 @@ function addPotTransfer(potKey, type, amount, note){
   if(type==='out'){
     m.incoming.push({id:linkedItemId, name:`From ${potLabel}`, amount, status:'done', recurring:false});
   } else {
-    m.outgoings.push({id:linkedItemId, name:`To ${potLabel}`, amount, status:'done', recurring:false});
+    m.outgoings.push({id:linkedItemId, name:`To ${potLabel}`, amount, status:'done', recurring:false, category:'Savings & Debt'});
   }
   state.pots[potKey].manualLedger.push({id:uid(), type, amount, note: note||'', monthKey: state.currentMonthKey, linkedItemId, source:'manual'});
   save();
@@ -714,6 +753,12 @@ function recurringSelectHtml(cls, isRecurring){
   return `<select class="${cls} recur-select ${isRecurring?'recur-yes':'recur-no'}">
     <option value="no" ${!isRecurring?'selected':''}>One-off</option>
     <option value="yes" ${isRecurring?'selected':''}>Recurring</option>
+  </select>`;
+}
+function categorySelectHtml(cls, value){
+  const v = value || 'Uncategorized';
+  return `<select class="${cls}" style="border-left:3px solid ${categoryColor(v)};">
+    ${OUTGOING_CATEGORIES.map(c=>`<option value="${escapeHtml(c)}" ${c===v?'selected':''}>${escapeHtml(c)}</option>`).join('')}
   </select>`;
 }
 
@@ -818,6 +863,8 @@ function lineChart(container, data, opts={}){
 let currentView = 'month';
 let quickAddLogExpanded = false;
 let monthByMonthExpanded = false;
+let categoryBreakdownMonth = null;
+let categoryBreakdownMode = 'all';
 
 function render(){
   document.getElementById('monthLabel').textContent = monthLabelFromKey(state.currentMonthKey);
@@ -853,6 +900,9 @@ function renderMonth(){
         </select>
         <input type="number" step="0.01" id="quickAddAmount" placeholder="Amount" style="max-width:120px;">
         <input type="text" id="quickAddReason" placeholder="Reason (e.g. Bus, Pizza from Sam)" style="max-width:260px;flex:1;min-width:160px;">
+        <select id="quickAddCategory" style="max-width:170px;">
+          ${OUTGOING_CATEGORIES.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('')}
+        </select>
         <button class="btn small" id="quickAddBtn">+ Add</button>
       </div>
       <button class="btn secondary small" id="quickAddLogToggle" style="margin-top:12px;">Show log</button>
@@ -928,7 +978,7 @@ function renderMonth(){
         <button class="btn small" id="addOutgoingBtn">+ Add outgoing</button>
       </div>
       <table class="responsive-table">
-        <thead><tr><th>Name</th><th style="width:120px;">Amount</th><th style="width:100px;">Status</th><th style="width:110px;">Recurring</th><th style="width:36px;"></th></tr></thead>
+        <thead><tr><th>Name</th><th style="width:140px;">Category</th><th style="width:120px;">Amount</th><th style="width:100px;">Status</th><th style="width:110px;">Recurring</th><th style="width:36px;"></th></tr></thead>
         <tbody id="outgoingBody"></tbody>
       </table>
       <div class="formula-note">
@@ -941,13 +991,19 @@ function renderMonth(){
   const quickAddAmount = document.getElementById('quickAddAmount');
   const quickAddReason = document.getElementById('quickAddReason');
   const quickAddType = document.getElementById('quickAddType');
+  const quickAddCategory = document.getElementById('quickAddCategory');
+  const syncQuickAddCategoryVisibility = ()=>{
+    quickAddCategory.style.display = quickAddType.value==='out' ? '' : 'none';
+  };
+  syncQuickAddCategoryVisibility();
+  quickAddType.onchange = syncQuickAddCategoryVisibility;
   const doQuickAdd = ()=>{
     const amt = Number(quickAddAmount.value);
     if(!amt || amt<=0) return;
     const reason = quickAddReason.value.trim();
     const type = quickAddType.value;
     const entry = {id:uid(), name: reason || (type==='out'?'Spent':'Received'), amount: amt, status:'done', recurring:false, quickAdd:true, ts:Date.now()};
-    if(type==='out') m.outgoings.push(entry); else m.incoming.push(entry);
+    if(type==='out'){ entry.category = quickAddCategory.value; m.outgoings.push(entry); } else m.incoming.push(entry);
     save();
     quickAddLogExpanded = true;
     renderMonth();
@@ -978,7 +1034,7 @@ function renderMonth(){
     body.innerHTML = entries.length ? entries.map(e=>`
       <tr data-id="${e.id}" data-kind="${e.kind}">
         <td>${e.kind==='in' ? '<span style="color:var(--green);">In</span>' : '<span style="color:var(--red);">Out</span>'}</td>
-        <td>${escapeHtml(e.name)}</td>
+        <td>${e.kind==='out' ? `<span class="cat-dot" style="background:${categoryColor(e.category)};"></span>` : ''}${escapeHtml(e.name)}</td>
         <td class="amt-cell">${fmt(e.amount)}</td>
         <td><button class="del-btn quick-log-del">✕</button></td>
       </tr>
@@ -1083,12 +1139,13 @@ function renderMonth(){
     outgoingBody.innerHTML = m.outgoings.map(o=>`
       <tr data-id="${o.id}">
         <td class="cell-name"><input class="row-input out-name" type="text" value="${escapeHtml(o.name)}"></td>
+        <td data-label="Category">${categorySelectHtml('out-category', o.category)}</td>
         <td data-label="Amount"><input class="row-input out-amount amt-cell" type="number" step="0.01" value="${o.amount}"></td>
         <td data-label="Status">${statusSelectHtml('out-status', o.status)}</td>
         <td data-label="Recurring">${recurringSelectHtml('out-recur', o.recurring)}</td>
         <td class="cell-del"><button class="del-btn out-del">✕</button></td>
       </tr>
-    `).join('') || `<tr><td colspan="5" class="empty">No outgoings added yet</td></tr>`;
+    `).join('') || `<tr><td colspan="6" class="empty">No outgoings added yet</td></tr>`;
     outgoingBody.querySelectorAll('tr').forEach(tr=>{
       const id = tr.dataset.id;
       const item = m.outgoings.find(x=>x.id===id);
@@ -1099,12 +1156,14 @@ function renderMonth(){
       sel.onchange = e=>{ item.status=e.target.value; save(); e.target.className = `out-status status-select status-${e.target.value}`; refreshCards(); };
       const recurSel = tr.querySelector('.out-recur');
       recurSel.onchange = e=>{ item.recurring = (e.target.value==='yes'); save(); e.target.className = `out-recur recur-select ${item.recurring?'recur-yes':'recur-no'}`; };
+      const catSel = tr.querySelector('.out-category');
+      catSel.onchange = e=>{ item.category = e.target.value; save(); e.target.style.borderLeftColor = categoryColor(item.category); };
       tr.querySelector('.out-del').onclick = ()=>{ m.outgoings = m.outgoings.filter(x=>x.id!==id); save(); drawOutgoings(); refreshCards(); };
     });
   }
   drawOutgoings();
   document.getElementById('addOutgoingBtn').onclick = ()=>{
-    m.outgoings.push({id:uid(), name:'New outgoing', amount:0, status:'none', recurring:false});
+    m.outgoings.push({id:uid(), name:'New outgoing', amount:0, status:'none', recurring:false, category:'Uncategorized'});
     save(); drawOutgoings(); refreshCards();
   };
 
@@ -1205,6 +1264,17 @@ function renderTrend(){
       <div id="trendChart"></div>
     </div>
     <div class="panel">
+      <div class="panel-head"><h2>Spending by Category</h2><span class="hint" id="catBreakdownTotal"></span></div>
+      <div class="field-inline" style="margin-bottom:16px;flex-wrap:wrap;">
+        <select id="catBreakdownMonth" style="max-width:220px;"></select>
+        <div class="seg-toggle">
+          <button class="seg-btn" data-mode="all">Budgeted</button>
+          <button class="seg-btn" data-mode="done">Actual (Done)</button>
+        </div>
+      </div>
+      <div id="catBreakdownBars"></div>
+    </div>
+    <div class="panel">
       <div class="panel-head"><h2>Savings Pot: Actual vs Projected</h2><span class="hint">running balance</span></div>
       <div id="savingsPotChart"></div>
       <div class="legend">
@@ -1264,14 +1334,52 @@ function renderTrend(){
       {color:'#3ecf8e', name:'Projected', dashed:true, points: keys.map((k,i)=>({x:shortLabels[i], label:monthLabels[i], y:plannedStocksSeries[i]}))}
     ], {height:200});
   }
+  renderCategoryBreakdown();
+}
+function renderCategoryBreakdown(){
+  const keys = Object.keys(state.months).sort();
+  if(!categoryBreakdownMonth || !keys.includes(categoryBreakdownMonth)){
+    categoryBreakdownMonth = keys.includes(state.currentMonthKey) ? state.currentMonthKey : (keys[keys.length-1]||null);
+  }
+  const monthSel = document.getElementById('catBreakdownMonth');
+  monthSel.innerHTML = keys.map(k=>`<option value="${k}" ${k===categoryBreakdownMonth?'selected':''}>${monthLabelFromKey(k)}</option>`).join('');
+  monthSel.onchange = e=>{ categoryBreakdownMonth = e.target.value; renderCategoryBreakdown(); };
+  document.querySelectorAll('.seg-btn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.mode===categoryBreakdownMode);
+    b.onclick = ()=>{ categoryBreakdownMode = b.dataset.mode; renderCategoryBreakdown(); };
+  });
+  const bars = document.getElementById('catBreakdownBars');
+  const totalEl = document.getElementById('catBreakdownTotal');
+  if(!categoryBreakdownMonth){
+    bars.innerHTML = '<div class="empty">No months tracked yet.</div>';
+    totalEl.textContent = '';
+    return;
+  }
+  const m = state.months[categoryBreakdownMonth];
+  const rows = categoryBreakdown(m, categoryBreakdownMode);
+  const total = rows.reduce((s,r)=>s+r.amount,0);
+  totalEl.textContent = rows.length ? `${fmt(total)} ${categoryBreakdownMode==='done'?'spent so far':'budgeted'}` : '';
+  if(!rows.length){
+    bars.innerHTML = '<div class="empty">No outgoings for this month yet.</div>';
+    return;
+  }
+  const max = Math.max(...rows.map(r=>r.amount));
+  bars.innerHTML = rows.map(r=>`
+    <div class="cat-bar-row">
+      <div class="cat-bar-label"><span class="cat-dot" style="background:${categoryColor(r.category)};"></span>${escapeHtml(r.category)}</div>
+      <div class="cat-bar-track"><div class="cat-bar-fill" style="width:${max?(r.amount/max*100).toFixed(1):0}%;background:${categoryColor(r.category)};"></div></div>
+      <div class="cat-bar-amt">${fmt(r.amount)} <span class="cat-bar-pct">(${total?Math.round(r.amount/total*100):0}%)</span></div>
+    </div>
+  `).join('');
 }
 
 // ---------------- Recurring ----------------
 function recurringTableHtml(kind){
   const label = kind==='incoming' ? 'Source' : 'Name';
+  const catTh = kind==='outgoing' ? '<th style="width:140px;">Category</th>' : '';
   return `
     <table class="responsive-table">
-      <thead><tr><th>${label}</th><th style="width:120px;">Amount</th><th style="width:100px;">Status</th><th style="width:36px;"></th></tr></thead>
+      <thead><tr><th>${label}</th>${catTh}<th style="width:120px;">Amount</th><th style="width:100px;">Status</th><th style="width:36px;"></th></tr></thead>
       <tbody class="recur-body-${kind}"></tbody>
     </table>
   `;
@@ -1280,14 +1388,16 @@ function drawRecurringTable(m, kind){
   const list = kind==='incoming' ? m.incoming : m.outgoings;
   const body = document.querySelector(`.recur-body-${kind}`);
   const items = list.filter(x=>x.recurring);
+  const colspan = kind==='outgoing' ? 5 : 4;
   body.innerHTML = items.map(x=>`
     <tr data-id="${x.id}">
       <td class="cell-name"><input class="row-input recur-name-${kind}" type="text" value="${escapeHtml(x.name)}"></td>
+      ${kind==='outgoing' ? `<td data-label="Category">${categorySelectHtml(`recur-category-${kind}`, x.category)}</td>` : ''}
       <td data-label="Amount"><input class="row-input recur-amount-${kind} amt-cell" type="number" step="0.01" value="${x.amount}"></td>
       <td data-label="Status">${statusSelectHtml(`recur-status-${kind}`, x.status)}</td>
       <td class="cell-del"><button class="del-btn recur-del-${kind}">✕</button></td>
     </tr>
-  `).join('') || `<tr><td colspan="4" class="empty">No recurring ${kind==='incoming'?'incoming':'outgoings'} yet</td></tr>`;
+  `).join('') || `<tr><td colspan="${colspan}" class="empty">No recurring ${kind==='incoming'?'incoming':'outgoings'} yet</td></tr>`;
   body.querySelectorAll('tr').forEach(tr=>{
     const id = tr.dataset.id;
     const item = list.find(x=>x.id===id);
@@ -1296,6 +1406,8 @@ function drawRecurringTable(m, kind){
     tr.querySelector(`.recur-amount-${kind}`).oninput = e=>{ item.amount=Number(e.target.value); save(); };
     const sel = tr.querySelector(`.recur-status-${kind}`);
     sel.onchange = e=>{ item.status=e.target.value; save(); e.target.className = `recur-status-${kind} status-select status-${e.target.value}`; };
+    const catSel = tr.querySelector(`.recur-category-${kind}`);
+    if(catSel) catSel.onchange = e=>{ item.category = e.target.value; save(); e.target.style.borderLeftColor = categoryColor(item.category); };
     tr.querySelector(`.recur-del-${kind}`).onclick = ()=>{
       if(kind==='incoming') m.incoming = m.incoming.filter(x=>x.id!==id);
       else m.outgoings = m.outgoings.filter(x=>x.id!==id);
@@ -1332,7 +1444,7 @@ function renderRecurring(){
     save(); renderRecurring();
   };
   document.getElementById('addRecurOutgoingBtn').onclick = ()=>{
-    m.outgoings.push({id:uid(), name:'New recurring outgoing', amount:0, status:'none', recurring:true});
+    m.outgoings.push({id:uid(), name:'New recurring outgoing', amount:0, status:'none', recurring:true, category:'Uncategorized'});
     save(); renderRecurring();
   };
 }
