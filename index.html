@@ -155,6 +155,26 @@
     .field-inline{flex-direction:column;align-items:stretch;}
     .field-inline label{min-width:0 !important;}
     .field-inline select,.field-inline input{max-width:none !important;}
+
+    /* Incoming/Outgoing/Recurring tables become stacked cards instead of a
+       cramped, horizontally-scrolled grid — the name gets its own full-width
+       line so it's actually readable, everything else wraps below it. */
+    .responsive-table{display:block;overflow-x:visible;}
+    .responsive-table thead{display:none;}
+    .responsive-table tbody{display:block;}
+    .responsive-table tr{
+      display:flex;flex-wrap:wrap;gap:8px;align-items:center;
+      background:var(--panel2);border:1px solid var(--border);border-radius:10px;
+      padding:10px;margin-bottom:8px;
+    }
+    .responsive-table tr:hover td{background:transparent;}
+    .responsive-table td{display:block;border:none;padding:0;width:auto;}
+    .responsive-table td.cell-name{flex:1 1 100%;}
+    .responsive-table td.cell-name input{font-size:15px;font-weight:600;}
+    .responsive-table td:not(.cell-name):not(.cell-del){flex:1 1 90px;min-width:90px;}
+    .responsive-table td.cell-del{flex:0 0 auto;margin-left:auto;}
+    .responsive-table td[data-label]::before{content:attr(data-label);display:block;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin-bottom:3px;}
+    .responsive-table .empty{padding:14px 4px;}
   }
   @media (max-width:420px){
     .grid{grid-template-columns:1fr;}
@@ -878,7 +898,7 @@ function renderMonth(){
         <h2>Incoming</h2>
         <button class="btn small" id="addIncomeBtn">+ Add incoming</button>
       </div>
-      <table>
+      <table class="responsive-table">
         <thead><tr><th>Source</th><th style="width:120px;">Amount</th><th style="width:100px;">Status</th><th style="width:110px;">Recurring</th><th style="width:36px;"></th></tr></thead>
         <tbody id="incomeBody"></tbody>
       </table>
@@ -907,7 +927,7 @@ function renderMonth(){
         <h2>Outgoings</h2>
         <button class="btn small" id="addOutgoingBtn">+ Add outgoing</button>
       </div>
-      <table>
+      <table class="responsive-table">
         <thead><tr><th>Name</th><th style="width:120px;">Amount</th><th style="width:100px;">Status</th><th style="width:110px;">Recurring</th><th style="width:36px;"></th></tr></thead>
         <tbody id="outgoingBody"></tbody>
       </table>
@@ -1032,11 +1052,11 @@ function renderMonth(){
   function drawIncome(){
     incomeBody.innerHTML = m.incoming.map(i=>`
       <tr data-id="${i.id}">
-        <td><input class="row-input inc-name" type="text" value="${escapeHtml(i.name)}"></td>
-        <td><input class="row-input inc-amount amt-cell" type="number" step="0.01" value="${i.amount}"></td>
-        <td>${statusSelectHtml('inc-status', i.status)}</td>
-        <td>${recurringSelectHtml('inc-recur', i.recurring)}</td>
-        <td><button class="del-btn inc-del">✕</button></td>
+        <td class="cell-name"><input class="row-input inc-name" type="text" value="${escapeHtml(i.name)}"></td>
+        <td data-label="Amount"><input class="row-input inc-amount amt-cell" type="number" step="0.01" value="${i.amount}"></td>
+        <td data-label="Status">${statusSelectHtml('inc-status', i.status)}</td>
+        <td data-label="Recurring">${recurringSelectHtml('inc-recur', i.recurring)}</td>
+        <td class="cell-del"><button class="del-btn inc-del">✕</button></td>
       </tr>
     `).join('') || `<tr><td colspan="5" class="empty">No incoming added yet</td></tr>`;
     incomeBody.querySelectorAll('tr').forEach(tr=>{
@@ -1062,11 +1082,11 @@ function renderMonth(){
   function drawOutgoings(){
     outgoingBody.innerHTML = m.outgoings.map(o=>`
       <tr data-id="${o.id}">
-        <td><input class="row-input out-name" type="text" value="${escapeHtml(o.name)}"></td>
-        <td><input class="row-input out-amount amt-cell" type="number" step="0.01" value="${o.amount}"></td>
-        <td>${statusSelectHtml('out-status', o.status)}</td>
-        <td>${recurringSelectHtml('out-recur', o.recurring)}</td>
-        <td><button class="del-btn out-del">✕</button></td>
+        <td class="cell-name"><input class="row-input out-name" type="text" value="${escapeHtml(o.name)}"></td>
+        <td data-label="Amount"><input class="row-input out-amount amt-cell" type="number" step="0.01" value="${o.amount}"></td>
+        <td data-label="Status">${statusSelectHtml('out-status', o.status)}</td>
+        <td data-label="Recurring">${recurringSelectHtml('out-recur', o.recurring)}</td>
+        <td class="cell-del"><button class="del-btn out-del">✕</button></td>
       </tr>
     `).join('') || `<tr><td colspan="5" class="empty">No outgoings added yet</td></tr>`;
     outgoingBody.querySelectorAll('tr').forEach(tr=>{
@@ -1250,7 +1270,7 @@ function renderTrend(){
 function recurringTableHtml(kind){
   const label = kind==='incoming' ? 'Source' : 'Name';
   return `
-    <table>
+    <table class="responsive-table">
       <thead><tr><th>${label}</th><th style="width:120px;">Amount</th><th style="width:100px;">Status</th><th style="width:36px;"></th></tr></thead>
       <tbody class="recur-body-${kind}"></tbody>
     </table>
@@ -1262,10 +1282,10 @@ function drawRecurringTable(m, kind){
   const items = list.filter(x=>x.recurring);
   body.innerHTML = items.map(x=>`
     <tr data-id="${x.id}">
-      <td><input class="row-input recur-name-${kind}" type="text" value="${escapeHtml(x.name)}"></td>
-      <td><input class="row-input recur-amount-${kind} amt-cell" type="number" step="0.01" value="${x.amount}"></td>
-      <td>${statusSelectHtml(`recur-status-${kind}`, x.status)}</td>
-      <td><button class="del-btn recur-del-${kind}">✕</button></td>
+      <td class="cell-name"><input class="row-input recur-name-${kind}" type="text" value="${escapeHtml(x.name)}"></td>
+      <td data-label="Amount"><input class="row-input recur-amount-${kind} amt-cell" type="number" step="0.01" value="${x.amount}"></td>
+      <td data-label="Status">${statusSelectHtml(`recur-status-${kind}`, x.status)}</td>
+      <td class="cell-del"><button class="del-btn recur-del-${kind}">✕</button></td>
     </tr>
   `).join('') || `<tr><td colspan="4" class="empty">No recurring ${kind==='incoming'?'incoming':'outgoings'} yet</td></tr>`;
   body.querySelectorAll('tr').forEach(tr=>{
