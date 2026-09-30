@@ -136,6 +136,20 @@
   .donut-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;width:64%;}
   .donut-center-value{font-size:19px;font-weight:700;color:var(--text);}
   .donut-center-label{font-size:11.5px;color:var(--muted);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .delta-row{display:flex;align-items:flex-start;gap:8px;font-size:13px;padding:7px 0;border-bottom:1px solid var(--border);}
+  .delta-row:last-child{border-bottom:none;}
+  .delta-arrow{font-size:11px;flex-shrink:0;margin-top:3px;}
+  .delta-up{color:var(--red);}
+  .delta-down{color:var(--green);}
+  .delta-icon{flex-shrink:0;}
+  .delta-text{color:var(--text);line-height:1.45;}
+  .heatmap-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;}
+  .heatmap-dow{font-size:10.5px;color:var(--muted);text-align:center;text-transform:uppercase;letter-spacing:.03em;padding-bottom:6px;}
+  .heatmap-cell{aspect-ratio:1;border-radius:7px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11.5px;color:var(--text);cursor:default;}
+  .heatmap-cell.empty{border:none;}
+  .heatmap-cell.weekend{border-color:color-mix(in srgb, var(--accent) 35%, var(--border));}
+  .heatmap-legend{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);margin-top:14px;}
+  .heatmap-legend-swatch{width:14px;height:14px;border-radius:4px;border:1px solid var(--border);}
   .legend-item .dash{width:16px;height:0;border-top:2px dashed;flex-shrink:0;}
   .hidden{display:none !important;}
   .formula-note{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.5;}
@@ -1445,6 +1459,11 @@ function renderTrend(){
         <div id="catBreakdownDonut" class="cat-breakdown-donut"></div>
         <div id="catBreakdownBars" class="cat-breakdown-bars"></div>
       </div>
+      <div id="catBreakdownDeltas" style="margin-top:8px;"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h2>Daily Spending Heatmap</h2><span class="hint">based on Quick Add spends — good for spotting weekend patterns</span></div>
+      <div id="spendHeatmap"></div>
     </div>
     <div class="panel">
       <div class="panel-head"><h2>Savings Pot: Actual vs Projected</h2><span class="hint">running balance</span></div>
@@ -1507,6 +1526,7 @@ function renderTrend(){
     ], {height:200});
   }
   renderCategoryBreakdown();
+  renderSpendingHeatmap();
 }
 function renderCategoryBreakdown(){
   const keys = Object.keys(state.months).sort();
@@ -1515,7 +1535,7 @@ function renderCategoryBreakdown(){
   }
   const monthSel = document.getElementById('catBreakdownMonth');
   monthSel.innerHTML = keys.map(k=>`<option value="${k}" ${k===categoryBreakdownMonth?'selected':''}>${monthLabelFromKey(k)}</option>`).join('');
-  monthSel.onchange = e=>{ categoryBreakdownMonth = e.target.value; renderCategoryBreakdown(); };
+  monthSel.onchange = e=>{ categoryBreakdownMonth = e.target.value; renderCategoryBreakdown(); renderSpendingHeatmap(); };
   document.querySelectorAll('.seg-btn').forEach(b=>{
     b.classList.toggle('active', b.dataset.mode===categoryBreakdownMode);
     b.onclick = ()=>{ categoryBreakdownMode = b.dataset.mode; renderCategoryBreakdown(); };
@@ -1523,10 +1543,12 @@ function renderCategoryBreakdown(){
   const bars = document.getElementById('catBreakdownBars');
   const donutEl = document.getElementById('catBreakdownDonut');
   const totalEl = document.getElementById('catBreakdownTotal');
+  const deltasEl = document.getElementById('catBreakdownDeltas');
   if(!categoryBreakdownMonth){
     bars.innerHTML = '<div class="empty">No months tracked yet.</div>';
     donutEl.innerHTML = '';
     totalEl.textContent = '';
+    deltasEl.innerHTML = '';
     return;
   }
   const m = state.months[categoryBreakdownMonth];
@@ -1534,6 +1556,7 @@ function renderCategoryBreakdown(){
   const total = rows.reduce((s,r)=>s+r.amount,0);
   totalEl.textContent = rows.length ? `${fmt(total)} ${categoryBreakdownMode==='done'?'spent so far':'budgeted'}` : '';
   donutChart(donutEl, rows, {size:220});
+  renderCategoryDeltas(categoryBreakdownMonth, categoryBreakdownMode);
   if(!rows.length){
     bars.innerHTML = '<div class="empty">No outgoings for this month yet.</div>';
     return;
@@ -1546,6 +1569,123 @@ function renderCategoryBreakdown(){
       <div class="cat-bar-amt">${fmt(r.amount)} <span class="cat-bar-pct">(${total?Math.round(r.amount/total*100):0}%)</span></div>
     </div>
   `).join('');
+}
+// Compares this month's category spend against the previous tracked month, one
+// callout per category whose spend actually changed — biggest swings first.
+function renderCategoryDeltas(monthKey, mode){
+  const el = document.getElementById('catBreakdownDeltas');
+  if(!el) return;
+  const keys = Object.keys(state.months).sort();
+  const idx = keys.indexOf(monthKey);
+  if(idx<=0){
+    el.innerHTML = '<div class="hint" style="font-size:12px;">Track an earlier month too to see month-over-month comparisons.</div>';
+    return;
+  }
+  const prevKey = keys[idx-1];
+  const curMap = {}; categoryBreakdown(state.months[monthKey], mode).forEach(r=>curMap[r.category]=r.amount);
+  const prevMap = {}; categoryBreakdown(state.months[prevKey], mode).forEach(r=>prevMap[r.category]=r.amount);
+  const cats = new Set([...Object.keys(curMap), ...Object.keys(prevMap)]);
+  const deltas = [];
+  cats.forEach(category=>{
+    const cur = curMap[category]||0, prev = prevMap[category]||0;
+    const diff = round2(cur-prev);
+    if(Math.abs(diff) < 0.01) return;
+    deltas.push({category, cur, prev, diff});
+  });
+  if(!deltas.length){
+    el.innerHTML = `<div class="hint" style="font-size:12px;">No change from ${monthLabelFromKey(prevKey)} in any category.</div>`;
+    return;
+  }
+  deltas.sort((a,b)=>Math.abs(b.diff)-Math.abs(a.diff));
+  el.innerHTML = `
+    <div class="hint" style="font-size:12px;margin-bottom:6px;">Compared to ${monthLabelFromKey(prevKey)}</div>
+    ${deltas.slice(0,6).map(d=>{
+      const up = d.diff>0;
+      let text;
+      if(d.prev<=0){
+        text = `New spending on <b>${escapeHtml(d.category)}</b>: ${fmt(d.cur)}`;
+      } else if(d.cur<=0){
+        text = `No more spending on <b>${escapeHtml(d.category)}</b> (was ${fmt(d.prev)})`;
+      } else {
+        const pct = Math.round(Math.abs(d.diff)/d.prev*100);
+        text = `You spent <b>${pct}% ${up?'more':'less'}</b> on <b>${escapeHtml(d.category)}</b> than ${monthLabelFromKey(prevKey)} (${fmt(d.cur)} vs ${fmt(d.prev)})`;
+      }
+      return `<div class="delta-row">
+        <span class="delta-arrow ${up?'delta-up':'delta-down'}">${up?'▲':'▼'}</span>
+        <span class="delta-icon">${categoryIcon(d.category)}</span>
+        <span class="delta-text">${text}</span>
+      </div>`;
+    }).join('')}
+  `;
+}
+// Daily spend heatmap: only Quick Add entries carry a real timestamp, so this
+// reflects day-to-day/one-off spending patterns rather than every outgoing —
+// which is exactly the kind of spend that actually varies by day of week.
+function dailySpendSeries(monthKey){
+  const m = state.months[monthKey];
+  const days = {};
+  if(!m) return days;
+  const [y, mo] = monthKey.split('-').map(Number);
+  m.outgoings.forEach(o=>{
+    if(!o.quickAdd || !o.ts) return;
+    const d = new Date(o.ts);
+    if(d.getFullYear()!==y || (d.getMonth()+1)!==mo) return;
+    const day = d.getDate();
+    days[day] = round2((days[day]||0) + (Number(o.amount)||0));
+  });
+  return days;
+}
+function hexToRgbTriplet(hex){
+  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return m ? `${parseInt(m[1],16)},${parseInt(m[2],16)},${parseInt(m[3],16)}` : '91,140,255';
+}
+function renderSpendingHeatmap(){
+  const el = document.getElementById('spendHeatmap');
+  if(!el) return;
+  const monthKey = categoryBreakdownMonth;
+  if(!monthKey){ el.innerHTML = '<div class="empty">No months tracked yet.</div>'; return; }
+  const [y, mo] = monthKey.split('-').map(Number);
+  const daysInMonth = new Date(y, mo, 0).getDate();
+  const mondayIndex = jsDay => (jsDay+6)%7; // JS: 0=Sun..6=Sat -> Monday-first index
+  const firstDow = mondayIndex(new Date(y, mo-1, 1).getDay());
+  const daySpend = dailySpendSeries(monthKey);
+  const max = Math.max(0, ...Object.values(daySpend));
+  const accentRgb = hexToRgbTriplet(getComputedStyle(document.body).getPropertyValue('--accent').trim() || '#5b8cff');
+  const monthShort = monthLabelFromKey(monthKey).split(' ')[0];
+
+  let cells = '';
+  for(let i=0;i<firstDow;i++) cells += `<div class="heatmap-cell empty"></div>`;
+  for(let day=1; day<=daysInMonth; day++){
+    const amt = daySpend[day]||0;
+    const ratio = max>0 ? amt/max : 0;
+    const isWeekend = mondayIndex(new Date(y, mo-1, day).getDay()) >= 5;
+    const bg = amt>0 ? `rgba(${accentRgb},${(0.18+0.72*ratio).toFixed(2)})` : 'transparent';
+    const tip = amt>0 ? `${monthShort} ${day}: ${fmt(amt)}` : `${monthShort} ${day}: no quick-add spending`;
+    cells += `<div class="heatmap-cell${isWeekend?' weekend':''}" data-tip="${escapeHtml(tip)}" style="background:${bg};">${day}</div>`;
+  }
+  if(!Object.keys(daySpend).length){
+    el.innerHTML = '<div class="empty">No Quick Add spends logged for this month yet.</div>';
+    return;
+  }
+  el.innerHTML = `
+    <div class="heatmap-grid">
+      ${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d=>`<div class="heatmap-dow">${d}</div>`).join('')}
+      ${cells}
+    </div>
+    <div class="heatmap-legend">
+      <span>Less</span>
+      <span class="heatmap-legend-swatch" style="background:rgba(${accentRgb},0.18);"></span>
+      <span class="heatmap-legend-swatch" style="background:rgba(${accentRgb},0.4);"></span>
+      <span class="heatmap-legend-swatch" style="background:rgba(${accentRgb},0.65);"></span>
+      <span class="heatmap-legend-swatch" style="background:rgba(${accentRgb},0.9);"></span>
+      <span>More</span>
+    </div>
+  `;
+  el.querySelectorAll('.heatmap-cell[data-tip]').forEach(c=>{
+    c.addEventListener('mouseenter', evt=>showChartTooltip(evt, c.dataset.tip));
+    c.addEventListener('mousemove', evt=>showChartTooltip(evt, c.dataset.tip));
+    c.addEventListener('mouseleave', hideChartTooltip);
+  });
 }
 
 // ---------------- Recurring ----------------
