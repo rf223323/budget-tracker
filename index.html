@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Budget Tracker</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#5b8cff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Budget">
 <style>
   :root{
     --bg:#0f1420; --panel:#161d2e; --panel2:#1d2740; --border:#2a3552;
@@ -1566,6 +1573,12 @@ if(bootstrapFromUrlIfNeeded()) render();
   if(p && p.syncEnabled && p.syncCode) updateUrlHashForSyncCode(p.syncCode);
 })();
 syncActiveProfileFromCloud();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').catch(e=>console.error('Service worker registration failed', e));
+  });
+}
 </script>
 </body>
 </html>
