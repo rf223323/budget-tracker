@@ -292,13 +292,13 @@ function dataKeyFor(profileId){ return `${DATA_KEY_BASE}:${profileId}`; }
 
 const OUTGOING_CATEGORIES = [
   'Uncategorized','Housing','Bills & Utilities','Groceries','Transport',
-  'Subscriptions','Shopping','Eating Out','Health & Fitness','Entertainment',
+  'Subscriptions','Shopping','Pay in 3','Eating Out','Health & Fitness','Entertainment',
   'Savings & Debt','Other'
 ];
 const CATEGORY_COLORS = {
   'Uncategorized':'#8a93ab','Housing':'#5b8cff','Bills & Utilities':'#7c5bff',
   'Groceries':'#3ecf8e','Transport':'#36c5f0','Subscriptions':'#ffb946',
-  'Shopping':'#ff5c7a','Eating Out':'#f2994a','Health & Fitness':'#00b894',
+  'Shopping':'#ff5c7a','Pay in 3':'#2ec4b6','Eating Out':'#f2994a','Health & Fitness':'#00b894',
   'Entertainment':'#bb6bd9','Savings & Debt':'#e84393','Other':'#636e72'
 };
 function categoryColor(cat){ return CATEGORY_COLORS[cat] || CATEGORY_COLORS['Other']; }
