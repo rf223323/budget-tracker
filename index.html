@@ -122,6 +122,16 @@
     .cat-bar-label{width:100%;}
     .cat-bar-amt{width:auto;margin-left:auto;}
   }
+  .cat-breakdown-layout{display:flex;gap:30px;flex-wrap:wrap;align-items:center;}
+  .cat-breakdown-donut{flex:0 0 auto;margin:0 auto;}
+  .cat-breakdown-bars{flex:1 1 260px;min-width:220px;}
+  .donut-wrap{position:relative;display:inline-block;}
+  .donut-wrap svg path{animation:donutIn .5s ease backwards;}
+  @keyframes donutIn{from{opacity:0;transform:scale(.85);}to{opacity:1;transform:scale(1);}}
+  .donut-wrap svg{transform-origin:center;}
+  .donut-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;width:64%;}
+  .donut-center-value{font-size:19px;font-weight:700;color:var(--text);}
+  .donut-center-label{font-size:11.5px;color:var(--muted);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .legend-item .dash{width:16px;height:0;border-top:2px dashed;flex-shrink:0;}
   .hidden{display:none !important;}
   .formula-note{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.5;}
@@ -870,6 +880,83 @@ function lineChart(container, data, opts={}){
   container.appendChild(svg);
 }
 
+function donutSlicePath(cx,cy,outerR,innerR,startA,endA){
+  const toRad = d=>d*Math.PI/180;
+  const pt=(r,a)=>[cx+r*Math.cos(toRad(a)), cy+r*Math.sin(toRad(a))];
+  const [x1,y1]=pt(outerR,startA), [x2,y2]=pt(outerR,endA);
+  const [x3,y3]=pt(innerR,endA), [x4,y4]=pt(innerR,startA);
+  const largeArc = (endA-startA) > 180 ? 1 : 0;
+  return `M ${x1} ${y1} A ${outerR} ${outerR} 0 ${largeArc} 1 ${x2} ${y2} L ${x3} ${y3} A ${innerR} ${innerR} 0 ${largeArc} 0 ${x4} ${y4} Z`;
+}
+// Donut chart for a category breakdown: rows = [{category, amount}], sorted desc.
+function donutChart(container, rows, opts={}){
+  const size = opts.size || 220;
+  const cx = size/2, cy = size/2;
+  const outerR = size/2 - 4;
+  const innerR = outerR * 0.6;
+  const total = rows.reduce((s,r)=>s+r.amount,0);
+  const panelColor = getComputedStyle(document.body).getPropertyValue('--panel').trim() || '#161d2e';
+  const borderColor = getComputedStyle(document.body).getPropertyValue('--border').trim() || '#2a3552';
+
+  container.innerHTML = '';
+  const wrap = document.createElement('div');
+  wrap.className = 'donut-wrap';
+  wrap.style.width = size+'px';
+  wrap.style.height = size+'px';
+
+  const svg = svgEl('svg', {viewBox:`0 0 ${size} ${size}`, width:size, height:size, style:'display:block;overflow:visible;'});
+  svg.appendChild(svgEl('circle',{cx,cy,r:(outerR+innerR)/2, fill:'none', stroke:borderColor,'stroke-width':outerR-innerR}));
+
+  const center = document.createElement('div');
+  center.className = 'donut-center';
+  const centerValue = document.createElement('div'); centerValue.className='donut-center-value';
+  const centerLabel = document.createElement('div'); centerLabel.className='donut-center-label';
+  center.appendChild(centerValue); center.appendChild(centerLabel);
+  const setCenter = (value,label)=>{ centerValue.textContent=value; centerLabel.textContent=label; };
+  setCenter(fmt(total), total ? 'Total' : 'No spending');
+
+  if(total>0){
+    let angle = -90, idx = 0;
+    const allPaths = [];
+    rows.forEach(r=>{
+      const frac = r.amount/total;
+      const sweep = frac*360;
+      const color = categoryColor(r.category);
+      const pct = Math.round(frac*100);
+      const tipText = `${r.category}: ${fmt(r.amount)} (${pct}%)`;
+      const segs = sweep >= 359.99 ? [[angle,angle+180],[angle+180,angle+360]] : [[angle, angle+sweep]];
+      segs.forEach(([a0,a1])=>{
+        const d = donutSlicePath(cx,cy,outerR,innerR,a0,a1);
+        const path = svgEl('path', {d, fill:color, stroke:panelColor, 'stroke-width':2});
+        path.style.cursor = 'pointer';
+        path.style.transition = 'opacity .15s, filter .15s';
+        path.style.animationDelay = (idx*0.05)+'s';
+        allPaths.push(path);
+        path.addEventListener('mouseenter', evt=>{
+          path.style.filter = 'brightness(1.15)';
+          allPaths.forEach(p=>{ if(p!==path) p.style.opacity='0.4'; });
+          setCenter(fmt(r.amount), `${r.category} · ${pct}%`);
+          showChartTooltip(evt, tipText);
+        });
+        path.addEventListener('mousemove', evt=>showChartTooltip(evt, tipText));
+        path.addEventListener('mouseleave', ()=>{
+          path.style.filter='';
+          allPaths.forEach(p=>p.style.opacity='1');
+          setCenter(fmt(total), 'Total');
+          hideChartTooltip();
+        });
+        svg.appendChild(path);
+      });
+      angle += sweep;
+      idx++;
+    });
+  }
+
+  wrap.appendChild(svg);
+  wrap.appendChild(center);
+  container.appendChild(wrap);
+}
+
 // ============================================================
 // VIEWS
 // ============================================================
@@ -1285,7 +1372,10 @@ function renderTrend(){
           <button class="seg-btn" data-mode="done">Actual (Done)</button>
         </div>
       </div>
-      <div id="catBreakdownBars"></div>
+      <div class="cat-breakdown-layout">
+        <div id="catBreakdownDonut" class="cat-breakdown-donut"></div>
+        <div id="catBreakdownBars" class="cat-breakdown-bars"></div>
+      </div>
     </div>
     <div class="panel">
       <div class="panel-head"><h2>Savings Pot: Actual vs Projected</h2><span class="hint">running balance</span></div>
@@ -1362,9 +1452,11 @@ function renderCategoryBreakdown(){
     b.onclick = ()=>{ categoryBreakdownMode = b.dataset.mode; renderCategoryBreakdown(); };
   });
   const bars = document.getElementById('catBreakdownBars');
+  const donutEl = document.getElementById('catBreakdownDonut');
   const totalEl = document.getElementById('catBreakdownTotal');
   if(!categoryBreakdownMonth){
     bars.innerHTML = '<div class="empty">No months tracked yet.</div>';
+    donutEl.innerHTML = '';
     totalEl.textContent = '';
     return;
   }
@@ -1372,6 +1464,7 @@ function renderCategoryBreakdown(){
   const rows = categoryBreakdown(m, categoryBreakdownMode);
   const total = rows.reduce((s,r)=>s+r.amount,0);
   totalEl.textContent = rows.length ? `${fmt(total)} ${categoryBreakdownMode==='done'?'spent so far':'budgeted'}` : '';
+  donutChart(donutEl, rows, {size:220});
   if(!rows.length){
     bars.innerHTML = '<div class="empty">No outgoings for this month yet.</div>';
     return;
