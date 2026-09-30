@@ -372,6 +372,19 @@ function syncRecurringForward(sourceMonth, targetMonth){
     }
   });
 }
+// When a recurring outgoing's category is changed, keep every future month's
+// copy of that same recurring item (matched by name) in sync — categories are
+// a classification, not something that should drift month to month like an amount.
+function propagateCategoryForward(item, fromMonthKey){
+  if(!item.recurring) return;
+  const normName = s => (s||'').trim().toLowerCase();
+  const name = normName(item.name);
+  Object.keys(state.months).filter(k=>k>fromMonthKey).forEach(k=>{
+    state.months[k].outgoings.forEach(o=>{
+      if(o.recurring && normName(o.name)===name) o.category = item.category;
+    });
+  });
+}
 function defaultState(){
   const now = new Date();
   const key = monthKey(now);
@@ -1157,7 +1170,7 @@ function renderMonth(){
       const recurSel = tr.querySelector('.out-recur');
       recurSel.onchange = e=>{ item.recurring = (e.target.value==='yes'); save(); e.target.className = `out-recur recur-select ${item.recurring?'recur-yes':'recur-no'}`; };
       const catSel = tr.querySelector('.out-category');
-      catSel.onchange = e=>{ item.category = e.target.value; save(); e.target.style.borderLeftColor = categoryColor(item.category); };
+      catSel.onchange = e=>{ item.category = e.target.value; propagateCategoryForward(item, state.currentMonthKey); save(); e.target.style.borderLeftColor = categoryColor(item.category); };
       tr.querySelector('.out-del').onclick = ()=>{ m.outgoings = m.outgoings.filter(x=>x.id!==id); save(); drawOutgoings(); refreshCards(); };
     });
   }
@@ -1407,7 +1420,7 @@ function drawRecurringTable(m, kind){
     const sel = tr.querySelector(`.recur-status-${kind}`);
     sel.onchange = e=>{ item.status=e.target.value; save(); e.target.className = `recur-status-${kind} status-select status-${e.target.value}`; };
     const catSel = tr.querySelector(`.recur-category-${kind}`);
-    if(catSel) catSel.onchange = e=>{ item.category = e.target.value; save(); e.target.style.borderLeftColor = categoryColor(item.category); };
+    if(catSel) catSel.onchange = e=>{ item.category = e.target.value; propagateCategoryForward(item, state.currentMonthKey); save(); e.target.style.borderLeftColor = categoryColor(item.category); };
     tr.querySelector(`.recur-del-${kind}`).onclick = ()=>{
       if(kind==='incoming') m.incoming = m.incoming.filter(x=>x.id!==id);
       else m.outgoings = m.outgoings.filter(x=>x.id!==id);
