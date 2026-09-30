@@ -1,0 +1,1571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Budget Tracker</title>
+<style>
+  :root{
+    --bg:#0f1420; --panel:#161d2e; --panel2:#1d2740; --border:#2a3552;
+    --text:#e8ecf7; --muted:#8a93ab; --accent:#5b8cff; --accent2:#7c5bff;
+    --green:#3ecf8e; --red:#ff5c7a; --amber:#ffb946;
+    --radius:14px; --shadow:0 8px 24px rgba(0,0,0,0.35);
+    --font: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  [data-theme="light"]{
+    --bg:#f4f6fb; --panel:#ffffff; --panel2:#f0f2fa; --border:#e2e6f0;
+    --text:#1a2033; --muted:#6b7186; --shadow:0 8px 24px rgba(30,40,80,0.08);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);transition:background .2s,color .2s;}
+  ::-webkit-scrollbar{width:10px;height:10px;}
+  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px;}
+
+  .app{display:flex;min-height:100vh;}
+
+  .sidebar{width:210px;flex-shrink:0;background:var(--panel);border-right:1px solid var(--border);padding:20px 14px;display:flex;flex-direction:column;gap:4px;}
+  .brand{display:flex;align-items:center;gap:10px;padding:6px 10px 18px 10px;}
+  .brand .logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:white;}
+  .brand .name{font-weight:700;font-size:16px;}
+  .brand .sub{font-size:11px;color:var(--muted);}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;color:var(--muted);font-size:14px;font-weight:500;user-select:none;}
+  .nav-item svg{width:18px;height:18px;flex-shrink:0;}
+  .nav-item:hover{background:var(--panel2);color:var(--text);}
+  .nav-item.active{background:linear-gradient(135deg,rgba(91,140,255,.18),rgba(124,91,255,.18));color:var(--text);}
+  .nav-item.active svg{color:var(--accent);}
+  .sidebar-footer{margin-top:auto;padding:10px;font-size:11px;color:var(--muted);display:flex;flex-direction:column;gap:8px;}
+
+  .main{flex:1;min-width:0;padding:26px 30px 60px;max-width:1150px;}
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:22px;flex-wrap:wrap;}
+  .topbar h1{font-size:22px;margin:0;}
+  .month-switch{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:6px 8px;}
+  .month-switch button{background:var(--panel2);border:1px solid var(--border);color:var(--text);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:15px;}
+  .month-switch button:hover{border-color:var(--accent);}
+  .month-switch .label{font-weight:600;min-width:150px;text-align:center;font-size:14px;}
+  .btn{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:white;padding:9px 16px;border-radius:10px;cursor:pointer;font-weight:600;font-size:13px;display:inline-flex;align-items:center;gap:6px;}
+  .btn:hover{filter:brightness(1.08);}
+  .btn.secondary{background:var(--panel2);color:var(--text);border:1px solid var(--border);}
+  .btn.danger{background:rgba(255,92,122,.15);color:var(--red);border:1px solid rgba(255,92,122,.3);}
+  .btn.small{padding:5px 10px;font-size:12px;border-radius:8px;}
+
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px;}
+  @media (max-width:980px){.grid{grid-template-columns:repeat(2,1fr);}}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);}
+  .card.highlight{border-color:rgba(91,140,255,.5);background:linear-gradient(180deg,rgba(91,140,255,.08),var(--panel));}
+  .card .k{font-size:11.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;}
+  .card .v{font-size:21px;font-weight:700;}
+  .card .v.pos{color:var(--green);}
+  .card .v.neg{color:var(--red);}
+  .card .sub{font-size:11.5px;color:var(--muted);margin-top:4px;}
+
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;margin-bottom:20px;box-shadow:var(--shadow);}
+  .panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .panel-head h2{font-size:15px;margin:0;font-weight:700;}
+  .panel-head .hint{font-size:12px;color:var(--muted);}
+
+  table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  th{text-align:left;color:var(--muted);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.03em;padding:8px 10px;border-bottom:1px solid var(--border);}
+  td{padding:8px 10px;border-bottom:1px solid var(--border);}
+  tr:last-child td{border-bottom:none;}
+  tr:hover td{background:var(--panel2);}
+  input[type=text],input[type=number],textarea{
+    background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:7px 9px;font-size:13px;font-family:inherit;width:100%;
+  }
+  select{
+    background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:7px 9px;font-size:12.5px;font-family:inherit;font-weight:600;cursor:pointer;
+  }
+  select.status-done{color:var(--green);border-color:rgba(62,207,142,.5);background:rgba(62,207,142,.08);}
+  select.status-none{color:var(--amber);border-color:rgba(255,185,70,.4);background:rgba(255,185,70,.06);}
+  select.recur-yes{color:var(--accent);border-color:rgba(91,140,255,.5);background:rgba(91,140,255,.08);}
+  select.recur-no{color:var(--muted);border-color:var(--border);background:var(--bg);}
+  .row-input{border:none;background:transparent;padding:4px 6px;width:100%;}
+  .row-input:focus{background:var(--panel2);border-radius:6px;}
+  .amt-cell{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .del-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;padding:2px 6px;border-radius:6px;}
+  .del-btn:hover{color:var(--red);background:rgba(255,92,122,.1);}
+
+  .weekly-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+  @media (max-width:700px){.weekly-grid{grid-template-columns:repeat(2,1fr);}}
+  .weekly-item label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px;}
+  .weekly-item select{width:100%;}
+
+  .field-inline{display:flex;gap:10px;align-items:center;}
+  .empty{color:var(--muted);font-size:13px;text-align:center;padding:22px 10px;}
+
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:50;}
+  .modal-bg.open{display:flex;}
+  .modal{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:22px;width:340px;box-shadow:var(--shadow);}
+  .modal h3{margin:0 0 14px;font-size:16px;}
+  .modal .actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;}
+
+  .legend{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:10px;}
+  .legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);}
+  .legend-item .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+  .legend-item .dash{width:16px;height:0;border-top:2px dashed;flex-shrink:0;}
+  .hidden{display:none !important;}
+  .formula-note{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.5;}
+  .formula-note b{color:var(--text);}
+  .quick-add-panel{border-color:rgba(91,140,255,.4);background:linear-gradient(180deg,rgba(91,140,255,.06),var(--panel));}
+  .quick-add-panel select{max-width:130px;}
+  .month-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;}
+  .month-tile{background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;transition:border-color .15s,transform .1s;}
+  .month-tile:hover{border-color:var(--accent);transform:translateY(-1px);}
+  .month-tile.active{border-color:var(--accent);background:linear-gradient(180deg,rgba(91,140,255,.14),var(--panel2));}
+  .month-tile .mt-name{font-weight:700;font-size:15px;}
+  .month-tile .mt-year{font-size:11px;color:var(--muted);margin-bottom:10px;}
+  .month-tile .mt-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;}
+  .month-tile .mt-balance{font-size:16px;font-weight:700;margin-top:3px;}
+</style>
+</head>
+<body data-theme="dark">
+<div class="app">
+
+  <div class="sidebar">
+    <div class="brand">
+      <div class="logo">£</div>
+      <div>
+        <div class="name">Budget Tracker</div>
+        <div class="sub">personal finance</div>
+      </div>
+    </div>
+    <div class="nav-item active" data-view="month">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+      Month Tracker
+    </div>
+    <div class="nav-item" data-view="calendar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/><circle cx="8" cy="15" r="1.2" fill="currentColor" stroke="none"/><circle cx="12" cy="15" r="1.2" fill="currentColor" stroke="none"/><circle cx="16" cy="15" r="1.2" fill="currentColor" stroke="none"/></svg>
+      Calendar
+    </div>
+    <div class="nav-item" data-view="trend">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>
+      Trend
+    </div>
+    <div class="nav-item" data-view="recurring">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+      Recurring
+    </div>
+    <div class="nav-item" data-view="pots">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 8a4 4 0 0 0-4-4h-1.2a5 5 0 0 0-9.3 2.1C4 6.4 3 7.9 3 9.5 3 11.4 4.6 13 6.5 13H7v3a2 2 0 0 0 2 2h1v3h6v-4a5 5 0 0 0 3-4.6V11a3 3 0 0 0 1-2.3z"/><circle cx="16.5" cy="8.5" r=".6" fill="currentColor" stroke="none"/></svg>
+      Pots
+    </div>
+    <div class="nav-item" data-view="settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.2a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.2a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.2a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.6 1H21a2 2 0 1 1 0 4h-.2a1.7 1.7 0 0 0-1.6 1z"/></svg>
+      Settings
+    </div>
+    <div class="sidebar-footer">
+      <label style="font-size:11px;color:var(--muted);">Profile</label>
+      <select id="sidebarProfileSelect" style="width:100%;"></select>
+      <div>Data is saved locally in this browser only.</div>
+      <button class="btn secondary small" id="themeToggle">Toggle theme</button>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <div class="topbar">
+      <h1 id="viewTitle">Month Tracker</h1>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="month-switch">
+          <button id="prevMonth">‹</button>
+          <div class="label" id="monthLabel">—</div>
+          <button id="nextMonth">›</button>
+        </div>
+        <button class="btn" id="newMonthBtn">+ New Month</button>
+      </div>
+    </div>
+
+    <div id="view-month" class="view"></div>
+    <div id="view-calendar" class="view hidden"></div>
+    <div id="view-trend" class="view hidden"></div>
+    <div id="view-recurring" class="view hidden"></div>
+    <div id="view-pots" class="view hidden"></div>
+    <div id="view-settings" class="view hidden"></div>
+
+  </div>
+</div>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal" id="modalBox"></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script>
+/* =========================================================
+   BUDGET TRACKER — single-file local app
+
+   Each incoming / outgoing item, and the savings amount, carries
+   a status: 'none' (pending) or 'done' (actually happened).
+   - Current Balance (live) = Starting Balance + done incoming
+     - done outgoing - (savings if done). It updates the moment
+     you flip an item's dropdown to "Done".
+   - Total Left Over (projected) = Starting Balance + ALL incoming
+     - weekly budget - ALL outgoing - savings, regardless of status.
+     This is what carries forward as next month's Starting Balance.
+   ========================================================= */
+const DATA_KEY_BASE = 'budgetTracker.v5';
+const PROFILES_META_KEY = 'budgetTracker.profiles';
+function dataKeyFor(profileId){ return `${DATA_KEY_BASE}:${profileId}`; }
+
+function uid(){ return Math.random().toString(36).slice(2,10)+Date.now().toString(36); }
+function round2(n){ return Math.round((Number(n)||0)*100)/100; }
+
+function monthKey(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+function monthLabelFromKey(k){
+  const [y,m] = k.split('-').map(Number);
+  return new Date(y, m-1, 1).toLocaleString('en-GB',{month:'long',year:'numeric'});
+}
+function shiftKey(k, delta){
+  let [y,m] = k.split('-').map(Number);
+  m += delta;
+  while(m>12){m-=12;y++;}
+  while(m<1){m+=12;y--;}
+  return y+'-'+String(m).padStart(2,'0');
+}
+
+function blankMonth(startingBalance){
+  return {
+    startingBalance: round2(startingBalance||0),
+    weekly: {
+      week1:{amount:0, status:'none', recurring:false}, week2:{amount:0, status:'none', recurring:false},
+      week3:{amount:0, status:'none', recurring:false}, week4:{amount:0, status:'none', recurring:false}
+    },
+    incoming: [],
+    savings: {amount:0, status:'none'},
+    stocks: {amount:0, status:'none'},
+    outgoings: [],
+    adjustment: 0
+  };
+}
+function freshMonth(startingBalance){
+  const m = blankMonth(startingBalance);
+  m.incoming.push({id:uid(), name:'Pay', amount:0, status:'none', recurring:false});
+  return m;
+}
+function carryForwardMonth(prevMonth, startingBalance){
+  const m = blankMonth(startingBalance);
+  m.incoming = prevMonth.incoming.filter(i=>i.recurring).map(i=>({id:uid(), name:i.name, amount:i.amount, status:'none', recurring:true}));
+  m.outgoings = prevMonth.outgoings.filter(o=>o.recurring).map(o=>({id:uid(), name:o.name, amount:o.amount, status:'none', recurring:true}));
+  ['week1','week2','week3','week4'].forEach(wk=>{
+    if(prevMonth.weekly[wk].recurring){
+      m.weekly[wk] = {amount: prevMonth.weekly[wk].amount, status:'none', recurring:true};
+    }
+  });
+  return m;
+}
+// Backfills recurring items/weeks from sourceMonth into an ALREADY-EXISTING targetMonth
+// (e.g. it was created before an item was switched to Recurring). Never overwrites
+// anything already present in targetMonth — only adds what's missing.
+function syncRecurringForward(sourceMonth, targetMonth){
+  const normName = s => (s||'').trim().toLowerCase();
+  ['week1','week2','week3','week4'].forEach(wk=>{
+    if(sourceMonth.weekly[wk].recurring && !targetMonth.weekly[wk].recurring){
+      targetMonth.weekly[wk] = {amount: sourceMonth.weekly[wk].amount, status:'none', recurring:true};
+    }
+  });
+  const targetIncomingNames = new Set(targetMonth.incoming.map(i=>normName(i.name)));
+  sourceMonth.incoming.filter(i=>i.recurring).forEach(i=>{
+    if(!targetIncomingNames.has(normName(i.name))){
+      targetMonth.incoming.push({id:uid(), name:i.name, amount:i.amount, status:'none', recurring:true});
+    }
+  });
+  const targetOutgoingNames = new Set(targetMonth.outgoings.map(o=>normName(o.name)));
+  sourceMonth.outgoings.filter(o=>o.recurring).forEach(o=>{
+    if(!targetOutgoingNames.has(normName(o.name))){
+      targetMonth.outgoings.push({id:uid(), name:o.name, amount:o.amount, status:'none', recurring:true});
+    }
+  });
+}
+function defaultState(){
+  const now = new Date();
+  const key = monthKey(now);
+  const state = {
+    currency: '£',
+    theme: 'dark',
+    currentMonthKey: key,
+    months: {},
+    pots: { savings:{manualLedger:[]}, stocks:{manualLedger:[]} }
+  };
+  state.months[key] = freshMonth(0);
+  return state;
+}
+function normalizeState(){
+  if(!state.pots) state.pots = {};
+  if(!state.pots.savings) state.pots.savings = {manualLedger:[]};
+  if(!state.pots.stocks) state.pots.stocks = {manualLedger:[]};
+  Object.values(state.months).forEach(m=>{
+    if(!m.stocks) m.stocks = {amount:0, status:'none'};
+    if(typeof m.adjustment !== 'number') m.adjustment = 0;
+    m.incoming.forEach(i=>{ if(typeof i.recurring !== 'boolean') i.recurring = false; });
+    m.outgoings.forEach(o=>{ if(typeof o.recurring !== 'boolean') o.recurring = false; });
+    ['week1','week2','week3','week4'].forEach(wk=>{
+      if(typeof m.weekly[wk].recurring !== 'boolean') m.weekly[wk].recurring = false;
+    });
+  });
+}
+
+// ---------------- Profiles (so more than one person can use this on the same browser) ----------------
+function loadProfilesMeta(){
+  try{
+    const raw = localStorage.getItem(PROFILES_META_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return null;
+}
+function saveProfilesMeta(){ localStorage.setItem(PROFILES_META_KEY, JSON.stringify(profilesMeta)); }
+function initProfiles(){
+  let meta = loadProfilesMeta();
+  if(meta && meta.profiles && meta.profiles.length) return meta;
+  // First run on this browser: migrate any pre-existing single-profile data untouched.
+  const legacyRaw = localStorage.getItem(DATA_KEY_BASE);
+  const id = uid();
+  meta = { profiles: [{id, name:'My Budget'}], activeId: id };
+  if(legacyRaw){
+    localStorage.setItem(dataKeyFor(id), legacyRaw);
+    localStorage.removeItem(DATA_KEY_BASE);
+  }
+  localStorage.setItem(PROFILES_META_KEY, JSON.stringify(meta));
+  return meta;
+}
+let profilesMeta = initProfiles();
+function switchProfile(id){
+  if(id===profilesMeta.activeId) return;
+  profilesMeta.activeId = id;
+  saveProfilesMeta();
+  state = load();
+  normalizeState();
+  currentView = 'month';
+  render();
+  const p = activeProfileMeta();
+  if(p && p.syncEnabled && p.syncCode) updateUrlHashForSyncCode(p.syncCode);
+  else if(location.hash) history.replaceState(null, '', location.pathname + location.search);
+  syncActiveProfileFromCloud();
+}
+function addProfile(name){
+  name = (name||'').trim();
+  if(!name) return;
+  const id = uid();
+  profilesMeta.profiles.push({id, name});
+  profilesMeta.activeId = id;
+  saveProfilesMeta();
+  state = defaultState();
+  save();
+  currentView = 'month';
+  render();
+}
+function renameProfile(id, name){
+  name = (name||'').trim();
+  if(!name) return;
+  const p = profilesMeta.profiles.find(x=>x.id===id);
+  if(p) p.name = name;
+  saveProfilesMeta();
+}
+function deleteProfile(id){
+  if(profilesMeta.profiles.length<=1) return;
+  profilesMeta.profiles = profilesMeta.profiles.filter(p=>p.id!==id);
+  localStorage.removeItem(dataKeyFor(id));
+  if(profilesMeta.activeId===id){
+    profilesMeta.activeId = profilesMeta.profiles[0].id;
+    state = load();
+    normalizeState();
+  }
+  saveProfilesMeta();
+}
+function activeProfileMeta(){ return profilesMeta.profiles.find(p=>p.id===profilesMeta.activeId); }
+
+// ---------------- Cloud Sync (optional — keeps data safe even if the browser is cleared) ----------------
+// Built into the app itself so nobody has to paste it in manually. Firebase web config
+// is not a secret — access is controlled by the Firestore security rule, not this key.
+const BUILT_IN_CLOUD_CONFIG = {
+  apiKey: "AIzaSyBEw3eF4uZeZbEXA9awROWbt2xa1RhbzTw",
+  authDomain: "budget-tracker-965d3.firebaseapp.com",
+  projectId: "budget-tracker-965d3",
+  storageBucket: "budget-tracker-965d3.firebasestorage.app",
+  messagingSenderId: "466291740935",
+  appId: "1:466291740935:web:206ae1901c3f2d822875a2"
+};
+const CLOUD_CONFIG_KEY = 'budgetTracker.cloudConfig';
+let cloudDb = null, cloudPushTimer = null;
+function getCloudConfig(){
+  try{
+    const raw = localStorage.getItem(CLOUD_CONFIG_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return BUILT_IN_CLOUD_CONFIG;
+}
+function saveCloudConfig(cfg){ localStorage.setItem(CLOUD_CONFIG_KEY, JSON.stringify(cfg)); cloudDb = null; }
+function clearCloudConfig(){ localStorage.removeItem(CLOUD_CONFIG_KEY); cloudDb = null; }
+// Keeps the sync code in the URL so a bookmarked link alone can restore data after a browser clear.
+function updateUrlHashForSyncCode(code){
+  if(code && location.hash !== '#sync='+code) history.replaceState(null, '', '#sync='+code);
+}
+function getHashSyncCode(){
+  const m = /sync=([a-z0-9]{20,})/i.exec(location.hash);
+  return m ? m[1] : null;
+}
+function bootstrapFromUrlIfNeeded(){
+  const code = getHashSyncCode();
+  if(!code) return false;
+  const p = activeProfileMeta();
+  if(!p || p.syncCode === code) return false;
+  p.syncEnabled = true;
+  p.syncCode = code;
+  saveProfilesMeta();
+  return true;
+}
+function initCloud(){
+  if(cloudDb) return cloudDb;
+  const cfg = getCloudConfig();
+  if(!cfg || typeof firebase === 'undefined') return null;
+  try{
+    const app = (firebase.apps && firebase.apps.length) ? firebase.app() : firebase.initializeApp(cfg);
+    cloudDb = firebase.firestore(app);
+    return cloudDb;
+  }catch(e){ console.error('Cloud sync init failed', e); return null; }
+}
+function genSyncCode(){
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  return Array.from({length:24}, ()=>chars[Math.floor(Math.random()*chars.length)]).join('');
+}
+function pushToCloud(){
+  const p = activeProfileMeta();
+  if(!p || !p.syncEnabled || !p.syncCode) return;
+  const db = initCloud();
+  if(!db) return;
+  clearTimeout(cloudPushTimer);
+  const snapshot = JSON.stringify(state);
+  cloudPushTimer = setTimeout(()=>{
+    db.collection('budgets').doc(p.syncCode).set({data: snapshot, updatedAt: Date.now()})
+      .catch(e=>console.error('Cloud push failed', e));
+  }, 800);
+}
+function pullFromCloud(syncCode){
+  const db = initCloud();
+  if(!db) return Promise.resolve(null);
+  return db.collection('budgets').doc(syncCode).get()
+    .then(doc=> doc.exists ? doc.data() : null)
+    .catch(e=>{ console.error('Cloud pull failed', e); return null; });
+}
+// Reconciles the CURRENT profile with its cloud copy: whichever was saved more recently wins.
+function syncActiveProfileFromCloud(){
+  const p = activeProfileMeta();
+  if(!p || !p.syncEnabled || !p.syncCode) return;
+  const startedForId = p.id;
+  const localUpdatedAt = state.__updatedAt || 0;
+  pullFromCloud(p.syncCode).then(cloudDoc=>{
+    if(profilesMeta.activeId !== startedForId) return; // user switched away while this was in flight
+    if(!cloudDoc){ pushToCloud(); return; }
+    if((cloudDoc.updatedAt||0) > localUpdatedAt){
+      try{
+        state = JSON.parse(cloudDoc.data);
+        normalizeState();
+        save();
+        render();
+      }catch(e){ console.error('Bad cloud data', e); }
+    } else if((cloudDoc.updatedAt||0) < localUpdatedAt){
+      pushToCloud();
+    }
+  });
+}
+
+let state = load();
+normalizeState();
+function load(){
+  try{
+    const raw = localStorage.getItem(dataKeyFor(profilesMeta.activeId));
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return defaultState();
+}
+// Keeps every month's Starting Balance in sync with the month before it, so any
+// change anywhere (an edit, a Quick Add, marking something Done) ripples forward
+// through every month that was already created after it.
+function cascadeForward(){
+  const keys = Object.keys(state.months).sort();
+  for(let i=0; i<keys.length-1; i++){
+    const cur = state.months[keys[i]], next = state.months[keys[i+1]];
+    const newStart = round2(monthTotals(cur).totalLeftOver);
+    if(next.startingBalance !== newStart) next.startingBalance = newStart;
+  }
+}
+function save(){
+  cascadeForward();
+  state.__updatedAt = Date.now();
+  localStorage.setItem(dataKeyFor(profilesMeta.activeId), JSON.stringify(state));
+  pushToCloud();
+}
+
+function ensureMonth(key){
+  if(!state.months[key]){
+    const keys = Object.keys(state.months).sort();
+    let prevKey = null;
+    for(const k of keys){ if(k < key) prevKey = k; }
+    if(prevKey){
+      const startBal = monthTotals(state.months[prevKey]).totalLeftOver;
+      state.months[key] = carryForwardMonth(state.months[prevKey], startBal);
+    } else {
+      state.months[key] = freshMonth(0);
+    }
+    save();
+  }
+  return state.months[key];
+}
+function monthTotals(m){
+  const allIncoming = m.incoming.reduce((s,i)=>s+(Number(i.amount)||0),0);
+  const doneIncoming = m.incoming.filter(i=>i.status==='done').reduce((s,i)=>s+(Number(i.amount)||0),0);
+  const allOutgoing = m.outgoings.reduce((s,o)=>s+(Number(o.amount)||0),0);
+  const doneOutgoing = m.outgoings.filter(o=>o.status==='done').reduce((s,o)=>s+(Number(o.amount)||0),0);
+  const weekKeys = ['week1','week2','week3','week4'];
+  const weeklyTotal = weekKeys.reduce((s,k)=>s+(Number(m.weekly[k].amount)||0),0);
+  const doneWeekly = weekKeys.reduce((s,k)=>s+(m.weekly[k].status==='done' ? (Number(m.weekly[k].amount)||0) : 0),0);
+  const savingsAmount = Number(m.savings.amount)||0;
+  const doneSavings = m.savings.status==='done' ? savingsAmount : 0;
+  const stocksAmount = Number(m.stocks.amount)||0;
+  const doneStocks = m.stocks.status==='done' ? stocksAmount : 0;
+  const adjustment = Number(m.adjustment)||0;
+
+  const liveBalance = (Number(m.startingBalance)||0) + doneIncoming - doneOutgoing - doneSavings - doneStocks - doneWeekly + adjustment;
+  const totalLeftOver = (Number(m.startingBalance)||0) + allIncoming - weeklyTotal - allOutgoing - savingsAmount - stocksAmount + adjustment;
+
+  return {allIncoming, doneIncoming, allOutgoing, doneOutgoing, weeklyTotal, doneWeekly, savingsAmount, doneSavings, stocksAmount, doneStocks, adjustment, liveBalance, totalLeftOver};
+}
+
+// ---------------- Pots (Savings / Stocks & Shares) ----------------
+function potBalance(potKey){
+  let auto = 0;
+  Object.values(state.months).forEach(m=>{
+    const item = potKey==='savings' ? m.savings : m.stocks;
+    if(item && item.status==='done') auto += Number(item.amount)||0;
+  });
+  let manual = 0;
+  (state.pots[potKey].manualLedger||[]).forEach(e=>{
+    manual += (e.type==='in' ? (Number(e.amount)||0) : -(Number(e.amount)||0));
+  });
+  return auto + manual;
+}
+function potRows(potKey){
+  const rows = [];
+  Object.keys(state.months).sort().forEach(k=>{
+    const m = state.months[k];
+    const item = potKey==='savings' ? m.savings : m.stocks;
+    if(item && item.status==='done' && Number(item.amount)>0){
+      rows.push({month:k, type:'in', source:'auto', note: potKey==='savings' ? 'Add to Savings' : 'Move to Stocks & Shares', amount:Number(item.amount)});
+    }
+  });
+  (state.pots[potKey].manualLedger||[]).forEach(e=>{
+    rows.push({month:e.monthKey, type:e.type, source:e.source||'manual', note:e.note || (e.type==='in' ? 'Manual transfer in' : 'Transfer to Current Balance'), amount:e.amount, id:e.id});
+  });
+  rows.sort((a,b)=> (a.month||'').localeCompare(b.month||''));
+  return rows;
+}
+// Running pot balance as of each month in monthKeys (chronological), for trend charts.
+function potBalanceSeries(potKey, monthKeys){
+  const monthDelta = {};
+  potRows(potKey).forEach(r=>{
+    monthDelta[r.month] = (monthDelta[r.month]||0) + (r.type==='in' ? r.amount : -r.amount);
+  });
+  let running = 0;
+  return monthKeys.map(k=>{
+    running += (monthDelta[k]||0);
+    return running;
+  });
+}
+// Planned/projected running pot balance: counts every month's Add-to-Savings /
+// Move-to-Stocks amount whether or not it's been marked Done yet (assumes you
+// stick to the budget), plus any manual transfers already made.
+function potBalanceSeriesPlanned(potKey, monthKeys){
+  const monthDelta = {};
+  monthKeys.forEach(k=>{
+    const m = state.months[k];
+    const item = potKey==='savings' ? m.savings : m.stocks;
+    const amt = Number(item.amount)||0;
+    if(amt) monthDelta[k] = (monthDelta[k]||0) + amt;
+  });
+  (state.pots[potKey].manualLedger||[]).forEach(e=>{
+    monthDelta[e.monthKey] = (monthDelta[e.monthKey]||0) + (e.type==='in' ? (Number(e.amount)||0) : -(Number(e.amount)||0));
+  });
+  let running = 0;
+  return monthKeys.map(k=>{
+    running += (monthDelta[k]||0);
+    return running;
+  });
+}
+function setPotBalance(potKey, newBalance){
+  const current = potBalance(potKey);
+  const delta = round2(newBalance - current);
+  if(!delta) return;
+  state.pots[potKey].manualLedger.push({
+    id:uid(), type: delta>0?'in':'out', amount: Math.abs(delta),
+    note:'Balance adjustment', monthKey: state.currentMonthKey, source:'adjustment'
+  });
+  save();
+}
+function addPotTransfer(potKey, type, amount, note){
+  amount = round2(amount);
+  if(!amount || amount<=0) return;
+  const potLabel = potKey==='savings' ? 'Savings Pot' : 'Stocks & Shares Pot';
+  const m = ensureMonth(state.currentMonthKey);
+  const linkedItemId = uid();
+  if(type==='out'){
+    m.incoming.push({id:linkedItemId, name:`From ${potLabel}`, amount, status:'done', recurring:false});
+  } else {
+    m.outgoings.push({id:linkedItemId, name:`To ${potLabel}`, amount, status:'done', recurring:false});
+  }
+  state.pots[potKey].manualLedger.push({id:uid(), type, amount, note: note||'', monthKey: state.currentMonthKey, linkedItemId, source:'manual'});
+  save();
+}
+function deletePotTransfer(potKey, entryId){
+  const ledger = state.pots[potKey].manualLedger;
+  const entry = ledger.find(e=>e.id===entryId);
+  if(!entry) return;
+  const m = state.months[entry.monthKey];
+  if(m){
+    if(entry.type==='out') m.incoming = m.incoming.filter(i=>i.id!==entry.linkedItemId);
+    else m.outgoings = m.outgoings.filter(o=>o.id!==entry.linkedItemId);
+  }
+  state.pots[potKey].manualLedger = ledger.filter(e=>e.id!==entryId);
+  save();
+}
+
+function fmt(n){
+  const v = Number(n)||0;
+  const sign = v<0 ? '-' : '';
+  return sign + state.currency + Math.abs(v).toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function statusSelectHtml(cls, value){
+  return `<select class="${cls} status-select status-${value}">
+    <option value="none" ${value==='none'?'selected':''}>None</option>
+    <option value="done" ${value==='done'?'selected':''}>Done</option>
+  </select>`;
+}
+function recurringSelectHtml(cls, isRecurring){
+  return `<select class="${cls} recur-select ${isRecurring?'recur-yes':'recur-no'}">
+    <option value="no" ${!isRecurring?'selected':''}>One-off</option>
+    <option value="yes" ${isRecurring?'selected':''}>Recurring</option>
+  </select>`;
+}
+
+// ---------- tiny SVG line chart (no external deps) ----------
+function svgEl(tag, attrs){
+  const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  for(const k in attrs) el.setAttribute(k, attrs[k]);
+  return el;
+}
+let chartTooltipEl = null;
+function ensureChartTooltip(){
+  if(chartTooltipEl) return chartTooltipEl;
+  chartTooltipEl = document.createElement('div');
+  chartTooltipEl.style.cssText = 'position:fixed;pointer-events:none;z-index:200;background:var(--panel2);border:1px solid var(--border);color:var(--text);font-size:12px;font-weight:600;padding:6px 10px;border-radius:8px;box-shadow:var(--shadow);display:none;white-space:nowrap;';
+  document.body.appendChild(chartTooltipEl);
+  return chartTooltipEl;
+}
+function showChartTooltip(evt, text){
+  const t = ensureChartTooltip();
+  t.textContent = text;
+  t.style.display = 'block';
+  const pad = 12;
+  let left = evt.clientX + pad, top = evt.clientY - 14;
+  const maxLeft = window.innerWidth - t.offsetWidth - pad;
+  if(left > maxLeft) left = evt.clientX - t.offsetWidth - pad;
+  t.style.left = Math.max(pad, left) + 'px';
+  t.style.top = Math.max(pad, top) + 'px';
+}
+function hideChartTooltip(){
+  if(chartTooltipEl) chartTooltipEl.style.display = 'none';
+}
+function lineChart(container, data, opts={}){
+  // Accepts either a flat array of {x,y,label} (single series, default color)
+  // or an array of series: {color, name, dashed, points:[{x,y,label}]}
+  const isMulti = Array.isArray(data) && data.length>0 && data[0].points !== undefined;
+  const series = isMulti ? data : [{color:'#5b8cff', points:data}];
+  const w = opts.width||container.clientWidth||600, h = opts.height||240;
+  const padL=54,padR=16,padT=16,padB=28;
+  const allVals = series.flatMap(s=>s.points.map(p=>p.y));
+  const maxV = Math.max(...allVals, 0), minV = Math.min(...allVals, 0);
+  const rawRange = maxV - minV;
+  const range = rawRange || 1;
+  const n = series[0].points.length;
+  const svg = svgEl('svg',{viewBox:`0 0 ${w} ${h}`, width:'100%', height:h, style:'display:block'});
+  const gridColor = getComputedStyle(document.body).getPropertyValue('--border').trim() || '#2a3552';
+  const mutedColor = getComputedStyle(document.body).getPropertyValue('--muted').trim() || '#8a93ab';
+  for(let i=0;i<=3;i++){
+    const y = padT + (h-padT-padB)*i/3;
+    svg.appendChild(svgEl('line',{x1:padL,y1:y,x2:w-padR,y2:y,stroke:gridColor,'stroke-width':1}));
+    const val = rawRange===0 ? maxV : maxV - (range*i/3);
+    const t = svgEl('text',{x:6,y:y+4,'font-size':10,fill:mutedColor}); t.textContent = state.currency+Math.round(val).toLocaleString();
+    svg.appendChild(t);
+  }
+  const xStep = n>1 ? (w-padL-padR)/(n-1) : 0;
+  const yFor = v => padT + (h-padT-padB)*(1-((v-minV)/range));
+
+  series.forEach(s=>{
+    let d='';
+    s.points.forEach((p,i)=>{
+      const x = padL + xStep*i;
+      const y = yFor(p.y);
+      d += (i===0?'M':'L')+x+','+y+' ';
+    });
+    const pathAttrs = {d, fill:'none', stroke:s.color||'#5b8cff', 'stroke-width':2.4, 'stroke-linejoin':'round','stroke-linecap':'round'};
+    if(s.dashed) pathAttrs['stroke-dasharray'] = '6,4';
+    svg.appendChild(svgEl('path', pathAttrs));
+    s.points.forEach((p,i)=>{
+      const x = padL + xStep*i;
+      const y = yFor(p.y);
+      const label = p.label || p.x;
+      const tipText = s.name ? `${label} — ${s.name}: ${fmt(p.y)}` : `${label}: ${fmt(p.y)}`;
+      const dot = svgEl('circle',{cx:x,cy:y,r:3,fill:s.color||'#5b8cff',style:'pointer-events:none;'});
+      const onHover = evt => { showChartTooltip(evt, tipText); dot.setAttribute('r',5); };
+      const onLeave = () => { hideChartTooltip(); dot.setAttribute('r',3); };
+      const hit = svgEl('circle',{cx:x,cy:y,r:10,fill:'transparent',style:'cursor:pointer;'});
+      hit.addEventListener('mouseenter', onHover);
+      hit.addEventListener('mousemove', onHover);
+      hit.addEventListener('mouseleave', onLeave);
+      svg.appendChild(hit);
+      svg.appendChild(dot);
+    });
+  });
+
+  const maxLabels = Math.min(n, Math.floor(w/80));
+  const step = Math.max(1, Math.round(n/maxLabels));
+  series[0].points.forEach((p,i)=>{
+    if(i%step!==0 && i!==n-1) return;
+    const x = padL + xStep*i;
+    const t = svgEl('text',{x, y:h-8, 'font-size':10, fill:mutedColor, 'text-anchor':'middle'});
+    t.textContent = p.x;
+    svg.appendChild(t);
+  });
+  container.innerHTML='';
+  container.appendChild(svg);
+}
+
+// ============================================================
+// VIEWS
+// ============================================================
+let currentView = 'month';
+let quickAddLogExpanded = false;
+let monthByMonthExpanded = false;
+
+function render(){
+  document.getElementById('monthLabel').textContent = monthLabelFromKey(state.currentMonthKey);
+  document.body.setAttribute('data-theme', state.theme);
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active', n.dataset.view===currentView));
+  const profileSel = document.getElementById('sidebarProfileSelect');
+  profileSel.innerHTML = profilesMeta.profiles.map(p=>`<option value="${p.id}" ${p.id===profilesMeta.activeId?'selected':''}>${escapeHtml(p.name)}</option>`).join('');
+  profileSel.onchange = e=>switchProfile(e.target.value);
+  const titles = {month:'Month Tracker', calendar:'Calendar', trend:'Trend', recurring:'Recurring', pots:'Pots', settings:'Settings'};
+  document.getElementById('viewTitle').textContent = titles[currentView];
+  document.querySelectorAll('.view').forEach(v=>v.classList.add('hidden'));
+  document.getElementById('view-'+currentView).classList.remove('hidden');
+  if(currentView==='month') renderMonth();
+  if(currentView==='calendar') renderCalendar();
+  if(currentView==='trend') renderTrend();
+  if(currentView==='recurring') renderRecurring();
+  if(currentView==='pots') renderPots();
+  if(currentView==='settings') renderSettings();
+}
+
+// ---------------- Month Tracker ----------------
+function renderMonth(){
+  const m = ensureMonth(state.currentMonthKey);
+  const t = monthTotals(m);
+  const el = document.getElementById('view-month');
+  el.innerHTML = `
+    <div class="panel quick-add-panel">
+      <div class="panel-head"><h2>Quick Add</h2><span class="hint">for one-off spends or money in — added as Done right away</span></div>
+      <div class="field-inline" style="flex-wrap:wrap;">
+        <select id="quickAddType">
+          <option value="out">I spent</option>
+          <option value="in">I received</option>
+        </select>
+        <input type="number" step="0.01" id="quickAddAmount" placeholder="Amount" style="max-width:120px;">
+        <input type="text" id="quickAddReason" placeholder="Reason (e.g. Bus, Pizza from Sam)" style="max-width:260px;flex:1;min-width:160px;">
+        <button class="btn small" id="quickAddBtn">+ Add</button>
+      </div>
+      <button class="btn secondary small" id="quickAddLogToggle" style="margin-top:12px;">Show log</button>
+      <div id="quickAddLogWrap" class="hidden" style="margin-top:10px;">
+        <table>
+          <thead><tr><th style="width:70px;">Type</th><th>Reason</th><th style="width:110px;">Amount</th><th style="width:36px;"></th></tr></thead>
+          <tbody id="quickAddLogBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card"><div class="k">Starting Balance</div><div class="v"><input type="number" step="0.01" id="startingBalanceInput" value="${m.startingBalance}" style="font-size:19px;font-weight:700;padding:4px 6px;"></div><div class="sub">carried from last month</div></div>
+      <div class="card highlight"><div class="k">Current Balance</div><div class="v"><input type="number" step="0.01" id="liveBalanceInput" value="${t.liveBalance}" style="font-size:19px;font-weight:700;padding:4px 6px;color:${t.liveBalance>=0?'var(--green)':'var(--red)'};"></div><div class="sub" id="liveBalanceSub">${t.adjustment ? `${fmt(t.adjustment)} manual adjustment · <a href="#" id="clearAdjustment" style="color:var(--red);text-decoration:underline;">clear</a>` : 'edit directly for deviations — updates as items are marked Done'}</div></div>
+      <div class="card"><div class="k">Total Left Over</div><div class="v ${t.totalLeftOver>=0?'pos':'neg'}" id="totalLeftOverVal">${fmt(t.totalLeftOver)}</div><div class="sub">→ next month's starting balance</div></div>
+      <div class="card"><div class="k">Incoming</div><div class="v pos" id="incomingVal">${fmt(t.allIncoming)}</div><div class="sub" id="incomingSub">${fmt(t.doneIncoming)} done</div></div>
+      <div class="card"><div class="k">Weekly Budget</div><div class="v neg" id="weeklyVal">${fmt(t.weeklyTotal)}</div><div class="sub" id="weeklySub">${fmt(t.doneWeekly)} done</div></div>
+      <div class="card"><div class="k">Outgoings</div><div class="v neg" id="outgoingVal">${fmt(t.allOutgoing)}</div><div class="sub" id="outgoingSub">${fmt(t.doneOutgoing)} done</div></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Weekly Budget</h2><span class="hint">amount for each week of the month</span></div>
+      <div class="weekly-grid">
+        ${['week1','week2','week3','week4'].map((wk,i)=>`
+          <div class="weekly-item">
+            <label>Week ${i+1}</label>
+            <input type="number" step="0.01" class="week-input" data-week="${wk}" value="${m.weekly[wk].amount}" style="margin-bottom:8px;">
+            <select class="week-status status-select status-${m.weekly[wk].status}" data-week="${wk}" style="margin-bottom:8px;">
+              <option value="none" ${m.weekly[wk].status==='none'?'selected':''}>None</option>
+              <option value="done" ${m.weekly[wk].status==='done'?'selected':''}>Done</option>
+            </select>
+            <select class="week-recur recur-select ${m.weekly[wk].recurring?'recur-yes':'recur-no'}" data-week="${wk}">
+              <option value="no" ${!m.weekly[wk].recurring?'selected':''}>One-off</option>
+              <option value="yes" ${m.weekly[wk].recurring?'selected':''}>Recurring</option>
+            </select>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Incoming</h2>
+        <button class="btn small" id="addIncomeBtn">+ Add incoming</button>
+      </div>
+      <table>
+        <thead><tr><th>Source</th><th style="width:120px;">Amount</th><th style="width:100px;">Status</th><th style="width:110px;">Recurring</th><th style="width:36px;"></th></tr></thead>
+        <tbody id="incomeBody"></tbody>
+      </table>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Add to Savings</h2></div>
+      <div class="field-inline">
+        <label style="font-size:12px;color:var(--muted);min-width:170px;">Moving into savings this month</label>
+        <input type="number" step="0.01" id="savingsInput" value="${m.savings.amount}" style="max-width:180px;">
+        ${statusSelectHtml('savings-status', m.savings.status)}
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Move to Stocks &amp; Shares</h2></div>
+      <div class="field-inline">
+        <label style="font-size:12px;color:var(--muted);min-width:170px;">Moving into stocks &amp; shares this month</label>
+        <input type="number" step="0.01" id="stocksInput" value="${m.stocks.amount}" style="max-width:180px;">
+        ${statusSelectHtml('stocks-status', m.stocks.status)}
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Outgoings</h2>
+        <button class="btn small" id="addOutgoingBtn">+ Add outgoing</button>
+      </div>
+      <table>
+        <thead><tr><th>Name</th><th style="width:120px;">Amount</th><th style="width:100px;">Status</th><th style="width:110px;">Recurring</th><th style="width:36px;"></th></tr></thead>
+        <tbody id="outgoingBody"></tbody>
+      </table>
+      <div class="formula-note">
+        <b>Current Balance</b> = Starting Balance + Incoming marked Done − Weekly Budget marked Done − Outgoings marked Done − Savings (if Done) − Stocks &amp; Shares (if Done).<br>
+        <b>Total Left Over</b> = Starting Balance + all Incoming − Weekly Budget − all Outgoings − Savings − Stocks &amp; Shares (regardless of status) — this becomes next month's Starting Balance.
+      </div>
+    </div>
+  `;
+
+  const quickAddAmount = document.getElementById('quickAddAmount');
+  const quickAddReason = document.getElementById('quickAddReason');
+  const quickAddType = document.getElementById('quickAddType');
+  const doQuickAdd = ()=>{
+    const amt = Number(quickAddAmount.value);
+    if(!amt || amt<=0) return;
+    const reason = quickAddReason.value.trim();
+    const type = quickAddType.value;
+    const entry = {id:uid(), name: reason || (type==='out'?'Spent':'Received'), amount: amt, status:'done', recurring:false, quickAdd:true, ts:Date.now()};
+    if(type==='out') m.outgoings.push(entry); else m.incoming.push(entry);
+    save();
+    quickAddLogExpanded = true;
+    renderMonth();
+  };
+  document.getElementById('quickAddBtn').onclick = doQuickAdd;
+  [quickAddAmount, quickAddReason].forEach(inp=>{
+    inp.addEventListener('keydown', e=>{ if(e.key==='Enter') doQuickAdd(); });
+  });
+
+  const quickAddLogToggle = document.getElementById('quickAddLogToggle');
+  const quickAddLogWrap = document.getElementById('quickAddLogWrap');
+  quickAddLogToggle.onclick = ()=>{
+    quickAddLogExpanded = !quickAddLogExpanded;
+    applyQuickAddLogState();
+  };
+  function applyQuickAddLogState(){
+    const count = m.incoming.filter(i=>i.quickAdd).length + m.outgoings.filter(o=>o.quickAdd).length;
+    quickAddLogWrap.classList.toggle('hidden', !quickAddLogExpanded);
+    quickAddLogToggle.textContent = (quickAddLogExpanded ? '▾ Hide log' : '▸ Show log') + (count ? ` (${count})` : '');
+  }
+  function drawQuickAddLog(){
+    applyQuickAddLogState();
+    const body = document.getElementById('quickAddLogBody');
+    const entries = [
+      ...m.incoming.filter(i=>i.quickAdd).map(i=>({...i, kind:'in'})),
+      ...m.outgoings.filter(o=>o.quickAdd).map(o=>({...o, kind:'out'}))
+    ].sort((a,b)=>(b.ts||0)-(a.ts||0));
+    body.innerHTML = entries.length ? entries.map(e=>`
+      <tr data-id="${e.id}" data-kind="${e.kind}">
+        <td>${e.kind==='in' ? '<span style="color:var(--green);">In</span>' : '<span style="color:var(--red);">Out</span>'}</td>
+        <td>${escapeHtml(e.name)}</td>
+        <td class="amt-cell">${fmt(e.amount)}</td>
+        <td><button class="del-btn quick-log-del">✕</button></td>
+      </tr>
+    `).join('') : `<tr><td colspan="4" class="empty">No quick adds yet this month</td></tr>`;
+    body.querySelectorAll('tr').forEach(tr=>{
+      const btn = tr.querySelector('.quick-log-del');
+      if(!btn) return;
+      btn.onclick = ()=>{
+        const id = tr.dataset.id, kind = tr.dataset.kind;
+        if(kind==='in') m.incoming = m.incoming.filter(x=>x.id!==id);
+        else m.outgoings = m.outgoings.filter(x=>x.id!==id);
+        save();
+        renderMonth();
+      };
+    });
+  }
+  drawQuickAddLog();
+
+  document.getElementById('startingBalanceInput').oninput = e=>{ m.startingBalance = Number(e.target.value); save(); refreshCards(); };
+  const liveBalanceInput = document.getElementById('liveBalanceInput');
+  const commitBalanceEdit = e=>{
+    const newVal = Number(e.target.value);
+    const currentLive = monthTotals(m).liveBalance;
+    const delta = round2(newVal - currentLive);
+    if(delta){ m.adjustment = round2((Number(m.adjustment)||0) + delta); save(); }
+    refreshCards();
+  };
+  liveBalanceInput.onchange = commitBalanceEdit;
+  liveBalanceInput.addEventListener('keydown', e=>{ if(e.key==='Enter') e.target.blur(); });
+  const clearAdjustmentLink = document.getElementById('clearAdjustment');
+  if(clearAdjustmentLink){
+    clearAdjustmentLink.onclick = e=>{
+      e.preventDefault();
+      m.adjustment = 0; save(); renderMonth();
+    };
+  }
+  el.querySelectorAll('.week-input').forEach(inp=>{
+    inp.oninput = e=>{ m.weekly[e.target.dataset.week].amount = Number(e.target.value); save(); refreshCards(); };
+  });
+  el.querySelectorAll('.week-status').forEach(sel=>{
+    sel.onchange = e=>{
+      const wk = e.target.dataset.week;
+      m.weekly[wk].status = e.target.value; save();
+      e.target.className = `week-status status-select status-${e.target.value}`;
+      refreshCards();
+    };
+  });
+  el.querySelectorAll('.week-recur').forEach(sel=>{
+    sel.onchange = e=>{
+      const wk = e.target.dataset.week;
+      m.weekly[wk].recurring = (e.target.value==='yes'); save();
+      e.target.className = `week-recur recur-select ${m.weekly[wk].recurring?'recur-yes':'recur-no'}`;
+    };
+  });
+  document.getElementById('savingsInput').oninput = e=>{ m.savings.amount = Number(e.target.value); save(); refreshCards(); };
+  const savingsStatusSel = el.querySelector('.savings-status');
+  savingsStatusSel.onchange = e=>{
+    m.savings.status = e.target.value; save();
+    e.target.className = `savings-status status-select status-${e.target.value}`;
+    refreshCards();
+  };
+  document.getElementById('stocksInput').oninput = e=>{ m.stocks.amount = Number(e.target.value); save(); refreshCards(); };
+  const stocksStatusSel = el.querySelector('.stocks-status');
+  stocksStatusSel.onchange = e=>{
+    m.stocks.status = e.target.value; save();
+    e.target.className = `stocks-status status-select status-${e.target.value}`;
+    refreshCards();
+  };
+
+  const incomeBody = document.getElementById('incomeBody');
+  function drawIncome(){
+    incomeBody.innerHTML = m.incoming.map(i=>`
+      <tr data-id="${i.id}">
+        <td><input class="row-input inc-name" type="text" value="${escapeHtml(i.name)}"></td>
+        <td><input class="row-input inc-amount amt-cell" type="number" step="0.01" value="${i.amount}"></td>
+        <td>${statusSelectHtml('inc-status', i.status)}</td>
+        <td>${recurringSelectHtml('inc-recur', i.recurring)}</td>
+        <td><button class="del-btn inc-del">✕</button></td>
+      </tr>
+    `).join('') || `<tr><td colspan="5" class="empty">No incoming added yet</td></tr>`;
+    incomeBody.querySelectorAll('tr').forEach(tr=>{
+      const id = tr.dataset.id;
+      const item = m.incoming.find(x=>x.id===id);
+      if(!item) return;
+      tr.querySelector('.inc-name').oninput = e=>{ item.name=e.target.value; save(); };
+      tr.querySelector('.inc-amount').oninput = e=>{ item.amount=Number(e.target.value); save(); refreshCards(); };
+      const sel = tr.querySelector('.inc-status');
+      sel.onchange = e=>{ item.status=e.target.value; save(); e.target.className = `inc-status status-select status-${e.target.value}`; refreshCards(); };
+      const recurSel = tr.querySelector('.inc-recur');
+      recurSel.onchange = e=>{ item.recurring = (e.target.value==='yes'); save(); e.target.className = `inc-recur recur-select ${item.recurring?'recur-yes':'recur-no'}`; };
+      tr.querySelector('.inc-del').onclick = ()=>{ m.incoming = m.incoming.filter(x=>x.id!==id); save(); drawIncome(); refreshCards(); };
+    });
+  }
+  drawIncome();
+  document.getElementById('addIncomeBtn').onclick = ()=>{
+    m.incoming.push({id:uid(), name:'New income', amount:0, status:'none', recurring:false});
+    save(); drawIncome(); refreshCards();
+  };
+
+  const outgoingBody = document.getElementById('outgoingBody');
+  function drawOutgoings(){
+    outgoingBody.innerHTML = m.outgoings.map(o=>`
+      <tr data-id="${o.id}">
+        <td><input class="row-input out-name" type="text" value="${escapeHtml(o.name)}"></td>
+        <td><input class="row-input out-amount amt-cell" type="number" step="0.01" value="${o.amount}"></td>
+        <td>${statusSelectHtml('out-status', o.status)}</td>
+        <td>${recurringSelectHtml('out-recur', o.recurring)}</td>
+        <td><button class="del-btn out-del">✕</button></td>
+      </tr>
+    `).join('') || `<tr><td colspan="5" class="empty">No outgoings added yet</td></tr>`;
+    outgoingBody.querySelectorAll('tr').forEach(tr=>{
+      const id = tr.dataset.id;
+      const item = m.outgoings.find(x=>x.id===id);
+      if(!item) return;
+      tr.querySelector('.out-name').oninput = e=>{ item.name=e.target.value; save(); };
+      tr.querySelector('.out-amount').oninput = e=>{ item.amount=Number(e.target.value); save(); refreshCards(); };
+      const sel = tr.querySelector('.out-status');
+      sel.onchange = e=>{ item.status=e.target.value; save(); e.target.className = `out-status status-select status-${e.target.value}`; refreshCards(); };
+      const recurSel = tr.querySelector('.out-recur');
+      recurSel.onchange = e=>{ item.recurring = (e.target.value==='yes'); save(); e.target.className = `out-recur recur-select ${item.recurring?'recur-yes':'recur-no'}`; };
+      tr.querySelector('.out-del').onclick = ()=>{ m.outgoings = m.outgoings.filter(x=>x.id!==id); save(); drawOutgoings(); refreshCards(); };
+    });
+  }
+  drawOutgoings();
+  document.getElementById('addOutgoingBtn').onclick = ()=>{
+    m.outgoings.push({id:uid(), name:'New outgoing', amount:0, status:'none', recurring:false});
+    save(); drawOutgoings(); refreshCards();
+  };
+
+  function refreshCards(){
+    const t2 = monthTotals(m);
+    const lbInput = document.getElementById('liveBalanceInput');
+    if(document.activeElement !== lbInput) lbInput.value = t2.liveBalance;
+    lbInput.style.color = t2.liveBalance>=0 ? 'var(--green)' : 'var(--red)';
+    const lbSub = document.getElementById('liveBalanceSub');
+    lbSub.innerHTML = t2.adjustment ? `${fmt(t2.adjustment)} manual adjustment · <a href="#" id="clearAdjustment" style="color:var(--red);text-decoration:underline;">clear</a>` : 'edit directly for deviations — updates as items are marked Done';
+    const clearLink = document.getElementById('clearAdjustment');
+    if(clearLink){
+      clearLink.onclick = e=>{ e.preventDefault(); m.adjustment = 0; save(); renderMonth(); };
+    }
+    const tlo = document.getElementById('totalLeftOverVal');
+    tlo.textContent = fmt(t2.totalLeftOver);
+    tlo.className = 'v ' + (t2.totalLeftOver>=0?'pos':'neg');
+    document.getElementById('incomingVal').textContent = fmt(t2.allIncoming);
+    document.getElementById('incomingSub').textContent = `${fmt(t2.doneIncoming)} done`;
+    document.getElementById('weeklyVal').textContent = fmt(t2.weeklyTotal);
+    document.getElementById('weeklySub').textContent = `${fmt(t2.doneWeekly)} done`;
+    document.getElementById('outgoingVal').textContent = fmt(t2.allOutgoing);
+    document.getElementById('outgoingSub').textContent = `${fmt(t2.doneOutgoing)} done`;
+  }
+}
+
+// ---------------- Calendar ----------------
+function renderCalendar(){
+  const el = document.getElementById('view-calendar');
+  const keys = Object.keys(state.months).sort();
+  if(!keys.length){
+    el.innerHTML = '<div class="panel"><div class="empty">No months tracked yet — head to Month Tracker to get started.</div></div>';
+    return;
+  }
+  const byYear = {};
+  keys.forEach(k=>{
+    const year = k.split('-')[0];
+    (byYear[year] = byYear[year]||[]).push(k);
+  });
+  const years = Object.keys(byYear).sort();
+  el.innerHTML = years.map(year=>`
+    <div class="panel">
+      <div class="panel-head"><h2>${year}</h2><span class="hint">${byYear[year].length} month${byYear[year].length!==1?'s':''} tracked</span></div>
+      <div class="month-grid">
+        ${byYear[year].map(k=>{
+          const m = state.months[k]; const t = monthTotals(m);
+          const monthName = monthLabelFromKey(k).split(' ')[0];
+          const isActive = k===state.currentMonthKey;
+          return `
+            <div class="month-tile ${isActive?'active':''}" data-key="${k}">
+              <div class="mt-name">${monthName}</div>
+              <div class="mt-year">${year}</div>
+              <div class="mt-label">Current Balance</div>
+              <div class="mt-balance" style="color:${t.liveBalance>=0?'var(--green)':'var(--red)'};">${fmt(t.liveBalance)}</div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    </div>
+  `).join('');
+  el.querySelectorAll('.month-tile').forEach(tile=>{
+    tile.onclick = ()=>{
+      state.currentMonthKey = tile.dataset.key;
+      currentView = 'month';
+      save();
+      render();
+    };
+  });
+}
+
+// ---------------- Trend ----------------
+function renderTrend(){
+  const el = document.getElementById('view-trend');
+  const keys = Object.keys(state.months).sort();
+  const savingsSeries = potBalanceSeries('savings', keys);
+  const stocksSeries = potBalanceSeries('stocks', keys);
+  const plannedSavingsSeries = potBalanceSeriesPlanned('savings', keys);
+  const plannedStocksSeries = potBalanceSeriesPlanned('stocks', keys);
+  const liveBalances = keys.map(k=>monthTotals(state.months[k]).liveBalance);
+  const totalLeftOvers = keys.map(k=>monthTotals(state.months[k]).totalLeftOver);
+  const monthLabels = keys.map(k=>monthLabelFromKey(k));
+  const shortLabels = monthLabels.map(l=>l.slice(0,6));
+
+  const actualNetWorth = keys.map((k,i)=>round2(liveBalances[i] + savingsSeries[i] + stocksSeries[i]));
+  const projectedNetWorth = keys.map((k,i)=>round2(totalLeftOvers[i] + plannedSavingsSeries[i] + plannedStocksSeries[i]));
+
+  el.innerHTML = `
+    <div class="panel">
+      <div class="panel-head"><h2>Net Worth: Actual vs Projected</h2><span class="hint">fill in future months in Month Tracker to project forward</span></div>
+      <div id="netWorthChart"></div>
+      <div class="legend">
+        <div class="legend-item"><span class="dot" style="background:#5b8cff;"></span>Actual — only what's marked Done</div>
+        <div class="legend-item"><span class="dash" style="border-color:#3ecf8e;"></span>Projected — assumes every month happens exactly as budgeted</div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h2>Total Left Over by month</h2><span class="hint">based on months you've tracked</span></div>
+      <div id="trendChart"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h2>Savings Pot: Actual vs Projected</h2><span class="hint">running balance</span></div>
+      <div id="savingsPotChart"></div>
+      <div class="legend">
+        <div class="legend-item"><span class="dot" style="background:#5b8cff;"></span>Actual — only what's marked Done</div>
+        <div class="legend-item"><span class="dash" style="border-color:#3ecf8e;"></span>Projected — assumes every month happens exactly as budgeted</div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h2>Stocks &amp; Shares Pot: Actual vs Projected</h2><span class="hint">running balance</span></div>
+      <div id="stocksPotChart"></div>
+      <div class="legend">
+        <div class="legend-item"><span class="dot" style="background:#5b8cff;"></span>Actual — only what's marked Done</div>
+        <div class="legend-item"><span class="dash" style="border-color:#3ecf8e;"></span>Projected — assumes every month happens exactly as budgeted</div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Month by month</h2>
+        <button class="btn secondary small" id="monthByMonthToggle">${monthByMonthExpanded ? '▾ Hide' : '▸ Show'} (${keys.length})</button>
+      </div>
+      <div id="monthByMonthWrap" class="${monthByMonthExpanded ? '' : 'hidden'}" style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Month</th><th class="amt-cell">Starting Balance</th><th class="amt-cell">Current (live)</th><th class="amt-cell">Incoming</th><th class="amt-cell">Weekly</th><th class="amt-cell">Outgoings</th><th class="amt-cell">Savings</th><th class="amt-cell">Left Over</th><th class="amt-cell">Savings Pot</th><th class="amt-cell">Stocks Pot</th><th class="amt-cell">Actual Total</th><th class="amt-cell">Projected Total</th></tr></thead>
+        <tbody>
+          ${keys.map((k,i)=>{
+            const mm = state.months[k]; const tt = monthTotals(mm);
+            return `<tr><td>${monthLabelFromKey(k)}</td><td class="amt-cell">${fmt(mm.startingBalance)}</td><td class="amt-cell">${fmt(tt.liveBalance)}</td><td class="amt-cell">${fmt(tt.allIncoming)}</td><td class="amt-cell">${fmt(tt.weeklyTotal)}</td><td class="amt-cell">${fmt(tt.allOutgoing)}</td><td class="amt-cell">${fmt(tt.savingsAmount)}</td><td class="amt-cell">${fmt(tt.totalLeftOver)}</td><td class="amt-cell">${fmt(savingsSeries[i])}</td><td class="amt-cell">${fmt(stocksSeries[i])}</td><td class="amt-cell">${fmt(actualNetWorth[i])}</td><td class="amt-cell"><b>${fmt(projectedNetWorth[i])}</b></td></tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+      </div>
+    </div>
+  `;
+  document.getElementById('monthByMonthToggle').onclick = ()=>{
+    monthByMonthExpanded = !monthByMonthExpanded;
+    document.getElementById('monthByMonthWrap').classList.toggle('hidden', !monthByMonthExpanded);
+    document.getElementById('monthByMonthToggle').textContent = `${monthByMonthExpanded ? '▾ Hide' : '▸ Show'} (${keys.length})`;
+  };
+  if(keys.length<2){
+    document.getElementById('trendChart').innerHTML = '<div class="empty">Track at least two months to see a trend line.</div>';
+    document.getElementById('netWorthChart').innerHTML = '<div class="empty">Track at least two months to see a trend line.</div>';
+    document.getElementById('savingsPotChart').innerHTML = '<div class="empty">Track at least two months to see a trend line.</div>';
+    document.getElementById('stocksPotChart').innerHTML = '<div class="empty">Track at least two months to see a trend line.</div>';
+  } else {
+    const points = keys.map((k,i)=>({x: shortLabels[i], label: monthLabels[i], y: totalLeftOvers[i]}));
+    lineChart(document.getElementById('trendChart'), points, {height:220});
+    lineChart(document.getElementById('netWorthChart'), [
+      {color:'#5b8cff', name:'Actual', points: keys.map((k,i)=>({x:shortLabels[i], label:monthLabels[i], y:actualNetWorth[i]}))},
+      {color:'#3ecf8e', name:'Projected', dashed:true, points: keys.map((k,i)=>({x:shortLabels[i], label:monthLabels[i], y:projectedNetWorth[i]}))}
+    ], {height:240});
+    lineChart(document.getElementById('savingsPotChart'), [
+      {color:'#5b8cff', name:'Actual', points: keys.map((k,i)=>({x:shortLabels[i], label:monthLabels[i], y:savingsSeries[i]}))},
+      {color:'#3ecf8e', name:'Projected', dashed:true, points: keys.map((k,i)=>({x:shortLabels[i], label:monthLabels[i], y:plannedSavingsSeries[i]}))}
+    ], {height:200});
+    lineChart(document.getElementById('stocksPotChart'), [
+      {color:'#5b8cff', name:'Actual', points: keys.map((k,i)=>({x:shortLabels[i], label:monthLabels[i], y:stocksSeries[i]}))},
+      {color:'#3ecf8e', name:'Projected', dashed:true, points: keys.map((k,i)=>({x:shortLabels[i], label:monthLabels[i], y:plannedStocksSeries[i]}))}
+    ], {height:200});
+  }
+}
+
+// ---------------- Recurring ----------------
+function recurringTableHtml(kind){
+  const label = kind==='incoming' ? 'Source' : 'Name';
+  return `
+    <table>
+      <thead><tr><th>${label}</th><th style="width:120px;">Amount</th><th style="width:100px;">Status</th><th style="width:36px;"></th></tr></thead>
+      <tbody class="recur-body-${kind}"></tbody>
+    </table>
+  `;
+}
+function drawRecurringTable(m, kind){
+  const list = kind==='incoming' ? m.incoming : m.outgoings;
+  const body = document.querySelector(`.recur-body-${kind}`);
+  const items = list.filter(x=>x.recurring);
+  body.innerHTML = items.map(x=>`
+    <tr data-id="${x.id}">
+      <td><input class="row-input recur-name-${kind}" type="text" value="${escapeHtml(x.name)}"></td>
+      <td><input class="row-input recur-amount-${kind} amt-cell" type="number" step="0.01" value="${x.amount}"></td>
+      <td>${statusSelectHtml(`recur-status-${kind}`, x.status)}</td>
+      <td><button class="del-btn recur-del-${kind}">✕</button></td>
+    </tr>
+  `).join('') || `<tr><td colspan="4" class="empty">No recurring ${kind==='incoming'?'incoming':'outgoings'} yet</td></tr>`;
+  body.querySelectorAll('tr').forEach(tr=>{
+    const id = tr.dataset.id;
+    const item = list.find(x=>x.id===id);
+    if(!item) return;
+    tr.querySelector(`.recur-name-${kind}`).oninput = e=>{ item.name=e.target.value; save(); };
+    tr.querySelector(`.recur-amount-${kind}`).oninput = e=>{ item.amount=Number(e.target.value); save(); };
+    const sel = tr.querySelector(`.recur-status-${kind}`);
+    sel.onchange = e=>{ item.status=e.target.value; save(); e.target.className = `recur-status-${kind} status-select status-${e.target.value}`; };
+    tr.querySelector(`.recur-del-${kind}`).onclick = ()=>{
+      if(kind==='incoming') m.incoming = m.incoming.filter(x=>x.id!==id);
+      else m.outgoings = m.outgoings.filter(x=>x.id!==id);
+      save(); renderRecurring();
+    };
+  });
+}
+function renderRecurring(){
+  const m = ensureMonth(state.currentMonthKey);
+  const el = document.getElementById('view-recurring');
+  el.innerHTML = `
+    <div class="formula-note" style="margin-bottom:18px;">
+      Anything marked <b>Recurring</b> carries into every new month automatically — same name and amount, Status reset to None — until you switch it to One-off or delete it. Editing an item here edits it directly in <b>${monthLabelFromKey(state.currentMonthKey)}</b>'s Month Tracker.
+    </div>
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Recurring Incoming</h2>
+        <button class="btn small" id="addRecurIncomeBtn">+ Add recurring incoming</button>
+      </div>
+      ${recurringTableHtml('incoming')}
+    </div>
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Recurring Outgoings</h2>
+        <button class="btn small" id="addRecurOutgoingBtn">+ Add recurring outgoing</button>
+      </div>
+      ${recurringTableHtml('outgoing')}
+    </div>
+  `;
+  drawRecurringTable(m, 'incoming');
+  drawRecurringTable(m, 'outgoing');
+  document.getElementById('addRecurIncomeBtn').onclick = ()=>{
+    m.incoming.push({id:uid(), name:'New recurring income', amount:0, status:'none', recurring:true});
+    save(); renderRecurring();
+  };
+  document.getElementById('addRecurOutgoingBtn').onclick = ()=>{
+    m.outgoings.push({id:uid(), name:'New recurring outgoing', amount:0, status:'none', recurring:true});
+    save(); renderRecurring();
+  };
+}
+
+// ---------------- Pots ----------------
+function potPanelHtml(potKey, label){
+  const rows = potRows(potKey);
+  return `
+    <div class="panel">
+      <div class="panel-head"><h2>${label}</h2><span class="hint">balance: ${fmt(potBalance(potKey))}</span></div>
+      <div class="field-inline" style="margin-bottom:10px;flex-wrap:wrap;">
+        <input type="number" step="0.01" class="pot-amount-${potKey}" placeholder="Amount" style="max-width:140px;">
+        <select class="pot-dir-${potKey}">
+          <option value="out">Transfer to Current Balance</option>
+          <option value="in">Transfer from Current Balance</option>
+        </select>
+        <input type="text" class="pot-note-${potKey}" placeholder="Note (optional)" style="max-width:200px;">
+        <button class="btn small pot-transfer-${potKey}">Transfer</button>
+      </div>
+      <div class="field-inline" style="margin-bottom:14px;flex-wrap:wrap;">
+        <label style="font-size:12px;color:var(--muted);">Manually set current balance to</label>
+        <input type="number" step="0.01" class="pot-setbal-${potKey}" placeholder="${round2(potBalance(potKey))}" style="max-width:140px;">
+        <button class="btn secondary small pot-setbal-btn-${potKey}">Set balance</button>
+        <span style="font-size:12px;color:var(--muted);">records the difference as an adjustment — doesn't touch Current Balance</span>
+      </div>
+      <table>
+        <thead><tr><th>Month</th><th style="width:60px;">Type</th><th style="width:70px;">Source</th><th>Note</th><th style="width:110px;">Amount</th><th style="width:36px;"></th></tr></thead>
+        <tbody class="pot-body-${potKey}">
+          ${rows.length ? rows.map(r=>`
+            <tr>
+              <td>${monthLabelFromKey(r.month)}</td>
+              <td>${r.type==='in' ? '<span style="color:var(--green);">In</span>' : '<span style="color:var(--red);">Out</span>'}</td>
+              <td>${r.source==='auto'?'Auto':(r.source==='adjustment'?'Adjust':'Manual')}</td>
+              <td>${escapeHtml(r.note)}</td>
+              <td class="amt-cell">${fmt(r.amount)}</td>
+              <td>${r.source!=='auto' ? `<button class="del-btn pot-del-${potKey}" data-id="${r.id}">✕</button>` : ''}</td>
+            </tr>
+          `).join('') : '<tr><td colspan="6" class="empty">No transfers yet</td></tr>'}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+function wirePotPanel(potKey){
+  const amountInp = document.querySelector(`.pot-amount-${potKey}`);
+  const dirSel = document.querySelector(`.pot-dir-${potKey}`);
+  const noteInp = document.querySelector(`.pot-note-${potKey}`);
+  const btn = document.querySelector(`.pot-transfer-${potKey}`);
+  btn.onclick = ()=>{
+    const amt = Number(amountInp.value);
+    if(!amt || amt<=0) return;
+    addPotTransfer(potKey, dirSel.value, amt, noteInp.value);
+    renderPots();
+  };
+  const setBalInp = document.querySelector(`.pot-setbal-${potKey}`);
+  const setBalBtn = document.querySelector(`.pot-setbal-btn-${potKey}`);
+  setBalBtn.onclick = ()=>{
+    if(setBalInp.value === '') return;
+    setPotBalance(potKey, Number(setBalInp.value));
+    renderPots();
+  };
+  document.querySelectorAll(`.pot-del-${potKey}`).forEach(b=>{
+    b.onclick = ()=>{ deletePotTransfer(potKey, b.dataset.id); renderPots(); };
+  });
+}
+function renderPots(){
+  const el = document.getElementById('view-pots');
+  el.innerHTML = `
+    <div class="grid" style="grid-template-columns:repeat(2,1fr);">
+      <div class="card highlight"><div class="k">Savings Pot</div><div class="v pos">${fmt(potBalance('savings'))}</div><div class="sub">total currently in savings</div></div>
+      <div class="card highlight"><div class="k">Stocks &amp; Shares Pot</div><div class="v pos">${fmt(potBalance('stocks'))}</div><div class="sub">total currently invested</div></div>
+    </div>
+    ${potPanelHtml('savings','Savings Pot')}
+    ${potPanelHtml('stocks','Stocks & Shares Pot')}
+  `;
+  wirePotPanel('savings');
+  wirePotPanel('stocks');
+}
+
+// ---------------- Settings ----------------
+function renderSettings(){
+  const el = document.getElementById('view-settings');
+  const p = activeProfileMeta();
+  el.innerHTML = `
+    <div class="panel">
+      <div class="panel-head"><h2>Profiles</h2><span class="hint">separate budgets on the same browser — e.g. you and a partner</span></div>
+      <table>
+        <thead><tr><th>Name</th><th style="width:100px;">Active</th><th style="width:36px;"></th></tr></thead>
+        <tbody id="profilesBody"></tbody>
+      </table>
+      <button class="btn small" id="addProfileBtn" style="margin-top:12px;">+ Add profile</button>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Cloud Sync</h2><span class="hint">optional — keeps data safe if this browser is cleared, and lets one profile follow you across devices</span></div>
+      <div class="field-inline">
+        <label style="font-size:12px;color:var(--muted);">Sync "${escapeHtml(p.name)}" to the cloud</label>
+        <select id="syncToggle">
+          <option value="off" ${!p.syncEnabled?'selected':''}>Off (local only)</option>
+          <option value="on" ${p.syncEnabled?'selected':''}>On</option>
+        </select>
+      </div>
+      <div id="syncCodeBlock" class="${p.syncEnabled?'':'hidden'}" style="margin-top:12px;">
+        <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;">Sync code — this browser's URL now has it built in, but save it separately too (a note, password manager) in case you ever lose this exact bookmark</label>
+        <div class="field-inline">
+          <input type="text" id="syncCodeDisplay" readonly value="${escapeHtml(p.syncCode||'')}" style="font-family:monospace;max-width:260px;">
+          <button class="btn secondary small" id="copySyncCodeBtn">Copy</button>
+        </div>
+      </div>
+      <div class="formula-note">To bring this profile's cloud data onto a new device: either open this browser's exact URL there (the sync code travels in the link), or make a fresh profile, turn Cloud Sync on for it, then paste this same code below and pull.</div>
+      <div class="field-inline" style="margin-top:10px;">
+        <input type="text" id="pullSyncCodeInput" placeholder="Paste a sync code" style="max-width:220px;">
+        <button class="btn secondary small" id="pullSyncBtn">Pull into this profile</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Preferences</h2></div>
+      <div class="field-inline">
+        <label style="min-width:170px;font-size:12px;color:var(--muted);">Currency symbol</label>
+        <input type="text" id="currencyInput" value="${escapeHtml(state.currency)}" style="max-width:80px;">
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Data</h2></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+        <button class="btn secondary small" id="exportJsonBtn">Export backup (JSON)</button>
+        <label class="btn secondary small" style="cursor:pointer;">
+          Import backup (JSON)
+          <input type="file" id="importInput" accept="application/json" style="display:none;">
+        </label>
+        <button class="btn danger small" id="resetBtn">Reset this profile's data</button>
+      </div>
+    </div>
+  `;
+  function drawProfilesTable(){
+    const body = document.getElementById('profilesBody');
+    body.innerHTML = profilesMeta.profiles.map(p=>`
+      <tr data-id="${p.id}">
+        <td><input class="row-input profile-name" type="text" value="${escapeHtml(p.name)}"></td>
+        <td>${p.id===profilesMeta.activeId ? '<span style="color:var(--green);font-weight:600;font-size:12px;">Current</span>' : `<button class="btn secondary small profile-switch">Switch</button>`}</td>
+        <td>${profilesMeta.profiles.length>1 ? `<button class="del-btn profile-del">✕</button>` : ''}</td>
+      </tr>
+    `).join('');
+    body.querySelectorAll('tr').forEach(tr=>{
+      const id = tr.dataset.id;
+      tr.querySelector('.profile-name').onchange = e=>renameProfile(id, e.target.value);
+      const switchBtn = tr.querySelector('.profile-switch');
+      if(switchBtn) switchBtn.onclick = ()=>switchProfile(id);
+      const delBtn = tr.querySelector('.profile-del');
+      if(delBtn) delBtn.onclick = ()=>{
+        const p = profilesMeta.profiles.find(x=>x.id===id);
+        openConfirmModal('Delete this profile?', `This permanently deletes "${escapeHtml(p.name)}" and all of its budget data. This cannot be undone.`, ()=>{
+          deleteProfile(id);
+          currentView='settings';
+          render();
+        });
+      };
+    });
+  }
+  drawProfilesTable();
+  document.getElementById('addProfileBtn').onclick = ()=>{
+    openInputModal('New profile', "e.g. Sam's Budget", name=>addProfile(name));
+  };
+
+  document.getElementById('syncToggle').onchange = e=>{
+    const on = e.target.value==='on';
+    p.syncEnabled = on;
+    if(on && !p.syncCode) p.syncCode = genSyncCode();
+    saveProfilesMeta();
+    if(on){ pushToCloud(); updateUrlHashForSyncCode(p.syncCode); }
+    renderSettings();
+  };
+  const copyBtn = document.getElementById('copySyncCodeBtn');
+  if(copyBtn) copyBtn.onclick = ()=>{
+    const inp = document.getElementById('syncCodeDisplay');
+    inp.select();
+    navigator.clipboard && navigator.clipboard.writeText(inp.value).catch(()=>{});
+    copyBtn.textContent = 'Copied!';
+    setTimeout(()=>{ copyBtn.textContent = 'Copy'; }, 1500);
+  };
+  document.getElementById('pullSyncBtn').onclick = ()=>{
+    const code = document.getElementById('pullSyncCodeInput').value.trim();
+    if(!code) return;
+    pullFromCloud(code).then(doc=>{
+      if(!doc){ alert('No cloud data found for that sync code.'); return; }
+      try{
+        state = JSON.parse(doc.data);
+        normalizeState();
+        p.syncEnabled = true;
+        p.syncCode = code;
+        saveProfilesMeta();
+        save();
+        updateUrlHashForSyncCode(code);
+        currentView = 'month';
+        render();
+      }catch(e){ alert('That sync code\'s data looked corrupted.'); }
+    });
+  };
+
+  document.getElementById('currencyInput').oninput = e=>{ state.currency = e.target.value||'£'; save(); };
+  document.getElementById('exportJsonBtn').onclick = exportJson;
+  document.getElementById('importInput').onchange = importJson;
+  document.getElementById('resetBtn').onclick = ()=>{
+    openConfirmModal('Reset this profile\'s data?', 'This clears every tracked month and setting for the current profile only. Other profiles are unaffected. This cannot be undone.', ()=>{
+      localStorage.removeItem(dataKeyFor(profilesMeta.activeId));
+      state = defaultState();
+      save();
+      currentView='month';
+      render();
+    });
+  };
+}
+
+function exportJson(){
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+  downloadBlob(blob, 'budget-tracker-backup.json');
+}
+function downloadBlob(blob, filename){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download=filename; document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 200);
+}
+function importJson(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const data = JSON.parse(reader.result);
+      if(!data.months) throw new Error('bad format');
+      state = data;
+      normalizeState();
+      save();
+      currentView='month';
+      render();
+    }catch(err){
+      alert('Could not import this file — it doesn\'t look like a Budget Tracker backup.');
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ---------------- modal ----------------
+function openConfirmModal(title, body, onConfirm){
+  const bg = document.getElementById('modalBg');
+  const box = document.getElementById('modalBox');
+  box.innerHTML = `<h3>${title}</h3><p style="font-size:13px;color:var(--muted);">${body}</p>
+    <div class="actions"><button class="btn secondary small" id="modalCancel">Cancel</button><button class="btn danger small" id="modalOk">Confirm</button></div>`;
+  bg.classList.add('open');
+  document.getElementById('modalCancel').onclick = ()=>bg.classList.remove('open');
+  document.getElementById('modalOk').onclick = ()=>{ bg.classList.remove('open'); onConfirm(); };
+}
+function openInputModal(title, placeholder, onConfirm){
+  const bg = document.getElementById('modalBg');
+  const box = document.getElementById('modalBox');
+  box.innerHTML = `<h3>${title}</h3>
+    <input type="text" id="modalInputField" placeholder="${escapeHtml(placeholder||'')}" style="width:100%;">
+    <div class="actions"><button class="btn secondary small" id="modalCancel">Cancel</button><button class="btn small" id="modalOk">Add</button></div>`;
+  bg.classList.add('open');
+  const inputEl = document.getElementById('modalInputField');
+  inputEl.focus();
+  const commit = ()=>{
+    const val = inputEl.value.trim();
+    bg.classList.remove('open');
+    if(val) onConfirm(val);
+  };
+  document.getElementById('modalCancel').onclick = ()=>bg.classList.remove('open');
+  document.getElementById('modalOk').onclick = commit;
+  inputEl.addEventListener('keydown', e=>{ if(e.key==='Enter') commit(); });
+}
+
+// ---------------- nav / events ----------------
+document.querySelectorAll('.nav-item').forEach(n=>{
+  n.addEventListener('click', ()=>{ currentView = n.dataset.view; render(); });
+});
+document.getElementById('prevMonth').onclick = ()=>{ state.currentMonthKey = shiftKey(state.currentMonthKey,-1); ensureMonth(state.currentMonthKey); save(); render(); };
+document.getElementById('nextMonth').onclick = ()=>{ state.currentMonthKey = shiftKey(state.currentMonthKey,1); ensureMonth(state.currentMonthKey); save(); render(); };
+document.getElementById('newMonthBtn').onclick = ()=>{
+  const current = ensureMonth(state.currentMonthKey);
+  const leftOver = monthTotals(current).totalLeftOver;
+  const nextKey = shiftKey(state.currentMonthKey, 1);
+  const nextAlreadyExisted = !!state.months[nextKey];
+  const next = ensureMonth(nextKey);
+  next.startingBalance = round2(leftOver);
+  if(nextAlreadyExisted) syncRecurringForward(current, next);
+  state.currentMonthKey = nextKey;
+  save();
+  render();
+};
+document.getElementById('themeToggle').onclick = ()=>{
+  state.theme = state.theme==='dark' ? 'light' : 'dark';
+  save(); render();
+};
+
+render();
+if(bootstrapFromUrlIfNeeded()) render();
+(function(){
+  const p = activeProfileMeta();
+  if(p && p.syncEnabled && p.syncCode) updateUrlHashForSyncCode(p.syncCode);
+})();
+syncActiveProfileFromCloud();
+</script>
+</body>
+</html>
