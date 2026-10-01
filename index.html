@@ -59,7 +59,8 @@
     --green:#4ade80; --red:#ff4d4d; --amber:#ffd166; --on-accent:#141414;
   }
   *{box-sizing:border-box;}
-  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);transition:background .2s,color .2s;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);transition:background .2s,color .2s;font-variant-numeric:tabular-nums;}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px;}
   ::-webkit-scrollbar{width:10px;height:10px;}
   ::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px;}
 
@@ -70,10 +71,11 @@
   .brand .logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:var(--on-accent);}
   .brand .name{font-weight:700;font-size:16px;}
   .brand .sub{font-size:11px;color:var(--muted);}
-  .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;color:var(--muted);font-size:14px;font-weight:500;user-select:none;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;color:var(--muted);font-size:14px;font-weight:500;user-select:none;transition:background .1s,transform .1s;}
+  .nav-item:active{transform:scale(.98);}
   .nav-item svg{width:18px;height:18px;flex-shrink:0;}
   .nav-item:hover{background:var(--panel2);color:var(--text);}
-  .nav-item.active{background:linear-gradient(135deg,color-mix(in srgb, var(--accent) 18%, transparent),color-mix(in srgb, var(--accent2) 18%, transparent));color:var(--text);}
+  .nav-item.active{background:linear-gradient(135deg,color-mix(in srgb, var(--accent) 18%, transparent),color-mix(in srgb, var(--accent2) 18%, transparent));color:var(--text);box-shadow:inset 3px 0 0 var(--accent);}
   .nav-item.active svg{color:var(--accent);}
   .sidebar-footer{margin-top:auto;padding:10px;font-size:11px;color:var(--muted);display:flex;flex-direction:column;gap:8px;}
 
@@ -84,7 +86,8 @@
   .month-switch button{background:var(--panel2);border:1px solid var(--border);color:var(--text);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:15px;}
   .month-switch button:hover{border-color:var(--accent);}
   .month-switch .label{font-weight:600;min-width:150px;text-align:center;font-size:14px;}
-  .btn{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:var(--on-accent);padding:9px 16px;border-radius:10px;cursor:pointer;font-weight:600;font-size:13px;display:inline-flex;align-items:center;gap:6px;}
+  .btn{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:var(--on-accent);padding:9px 16px;border-radius:10px;cursor:pointer;font-weight:600;font-size:13px;display:inline-flex;align-items:center;gap:6px;transition:transform .1s ease;}
+  .btn:active{transform:scale(.96);}
   .btn:hover{filter:brightness(1.08);}
   .btn.secondary{background:var(--panel2);color:var(--text);border:1px solid var(--border);}
   .btn.danger{background:color-mix(in srgb, var(--red) 15%, transparent);color:var(--red);border:1px solid color-mix(in srgb, var(--red) 30%, transparent);}
@@ -155,7 +158,8 @@
   .cat-bar-amt{width:120px;flex-shrink:0;text-align:right;font-size:13px;font-weight:600;}
   .cat-bar-pct{color:var(--muted);font-weight:400;font-size:11.5px;}
   .seg-toggle{display:flex;border:1px solid var(--border);border-radius:10px;overflow:hidden;}
-  .seg-btn{background:var(--panel2);border:none;color:var(--muted);padding:8px 14px;font-size:12.5px;font-weight:600;cursor:pointer;}
+  .seg-btn{background:var(--panel2);border:none;color:var(--muted);padding:8px 14px;font-size:12.5px;font-weight:600;cursor:pointer;transition:transform .1s ease;}
+  .seg-btn:active{transform:scale(.96);}
   .seg-btn.active{background:var(--accent);color:var(--on-accent);}
   @media (max-width:600px){
     .cat-bar-label{width:100%;}
@@ -202,6 +206,7 @@
   .quick-add-panel select{max-width:130px;}
   .month-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;}
   .month-tile{position:relative;background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;transition:border-color .15s,transform .1s;}
+  .month-tile:active{transform:scale(.98);}
   .mt-del-btn{position:absolute;top:8px;right:8px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:3px 6px;border-radius:6px;line-height:1;}
   .mt-del-btn:hover{color:var(--red);background:color-mix(in srgb, var(--red) 12%, transparent);}
   .month-tile:hover{border-color:var(--accent);transform:translateY(-1px);}
@@ -911,6 +916,31 @@ function fmt(n){
   const sign = v<0 ? '-' : '';
   return sign + state.currency + Math.abs(v).toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2});
 }
+// Tweens a display-only figure's text from whatever it currently reads to
+// the new value, instead of just snapping to it. Tracks the target on the
+// element itself so an animation already in flight yields to a newer call.
+function animateNumberText(el, toValue, duration=450){
+  const toKey = String(toValue);
+  if(el.dataset.animValue===undefined){
+    // First paint of this element (e.g. just switched months) — show the
+    // real value immediately rather than counting up from zero.
+    el.dataset.animValue = toKey;
+    el.textContent = fmt(toValue);
+    return;
+  }
+  const fromValue = parseFloat(el.dataset.animValue);
+  el.dataset.animValue = toKey;
+  if(Math.abs(fromValue-toValue) < 0.005){ el.textContent = fmt(toValue); return; }
+  const start = performance.now();
+  const easeOutCubic = t => 1 - Math.pow(1-t, 3);
+  function tick(now){
+    if(el.dataset.animValue !== toKey) return;
+    const t = Math.min(1, (now-start)/duration);
+    el.textContent = fmt(fromValue + (toValue-fromValue)*easeOutCubic(t));
+    if(t<1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
 function escapeHtml(s){
   return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
@@ -1113,7 +1143,24 @@ function lineChart(container, data, opts={}){
     });
     const pathAttrs = {d, fill:'none', stroke:s.color||cssVar('--accent','#5b8cff'), 'stroke-width':2.4, 'stroke-linejoin':'round','stroke-linecap':'round'};
     if(s.dashed) pathAttrs['stroke-dasharray'] = '6,4';
-    svg.appendChild(svgEl('path', pathAttrs));
+    const pathEl = svgEl('path', pathAttrs);
+    svg.appendChild(pathEl);
+    // Draw the line in on render rather than having it just appear. Dashed
+    // (projected) lines fade in instead, since the dash pattern is already
+    // using stroke-dasharray for its own purpose.
+    if(s.dashed){
+      pathEl.style.opacity = '0';
+      pathEl.style.transition = 'opacity .6s ease .15s';
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{ pathEl.style.opacity = '1'; }));
+    } else {
+      const len = pathEl.getTotalLength ? pathEl.getTotalLength() : 0;
+      if(len){
+        pathEl.style.strokeDasharray = len;
+        pathEl.style.strokeDashoffset = len;
+        pathEl.style.transition = 'stroke-dashoffset .8s ease';
+        requestAnimationFrame(()=>requestAnimationFrame(()=>{ pathEl.style.strokeDashoffset = '0'; }));
+      }
+    }
     s.points.forEach((p,i)=>{
       const x = padL + xStep*i;
       const y = yFor(p.y);
@@ -1657,6 +1704,7 @@ function renderMonth(){
     render();
   };
   renderUpcomingBills();
+  refreshCards(); // seeds animateNumberText's baseline so the first live edit animates too, not just the second
 
   function refreshCards(){
     const t2 = monthTotals(m);
@@ -1670,7 +1718,7 @@ function renderMonth(){
       clearLink.onclick = e=>{ e.preventDefault(); m.adjustment = 0; save(); renderMonth(); };
     }
     const tlo = document.getElementById('totalLeftOverVal');
-    tlo.textContent = fmt(t2.totalLeftOver);
+    animateNumberText(tlo, t2.totalLeftOver);
     tlo.className = 'v ' + (t2.totalLeftOver>=0?'pos':'neg');
     document.getElementById('incomingVal').textContent = fmt(t2.allIncoming);
     document.getElementById('incomingSub').textContent = `${fmt(t2.doneIncoming)} done`;
