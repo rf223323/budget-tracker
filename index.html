@@ -15,13 +15,42 @@
   :root{
     --bg:#0f1420; --panel:#161d2e; --panel2:#1d2740; --border:#2a3552;
     --text:#e8ecf7; --muted:#8a93ab; --accent:#5b8cff; --accent2:#7c5bff;
-    --green:#3ecf8e; --red:#ff5c7a; --amber:#ffb946;
+    --green:#3ecf8e; --red:#ff5c7a; --amber:#ffb946; --on-accent:#fff;
     --radius:14px; --shadow:0 8px 24px rgba(0,0,0,0.35);
     --font: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   }
-  [data-theme="light"]{
-    --bg:#f4f6fb; --panel:#ffffff; --panel2:#f0f2fa; --border:#e2e6f0;
-    --text:#1a2033; --muted:#6b7186; --shadow:0 8px 24px rgba(30,40,80,0.08);
+  /* Themes — each sets the same token set; --on-accent is the text color used
+     on top of the accent gradient (buttons, logo), only Slate needs it dark. */
+  [data-theme="emerald"]{
+    --bg:#0a1510; --panel:#0f1f17; --panel2:#15291e; --border:#20392a;
+    --text:#e8f5ee; --muted:#7fa693; --accent:#34d399; --accent2:#10b981;
+    --green:#6ee7b7; --red:#fb7185; --amber:#fbbf24;
+  }
+  [data-theme="sunset"]{
+    --bg:#1a1310; --panel:#241a15; --panel2:#2e221b; --border:#453526;
+    --text:#fbeee3; --muted:#b89a85; --accent:#fb923c; --accent2:#f43f5e;
+    --green:#4ade80; --red:#f43f5e; --amber:#fcd34d;
+  }
+  [data-theme="rose"]{
+    --bg:#180f16; --panel:#20151d; --panel2:#2a1b25; --border:#3d2434;
+    --text:#fbe8f3; --muted:#b88aa3; --accent:#f472b6; --accent2:#c026d3;
+    --green:#34d399; --red:#fb7185; --amber:#fbbf24;
+  }
+  [data-theme="ocean"]{
+    --bg:#081417; --panel:#0d1f23; --panel2:#122a30; --border:#1c3a42;
+    --text:#e3f6f8; --muted:#7fa8ae; --accent:#2dd4bf; --accent2:#06b6d4;
+    --green:#4ade80; --red:#fb7185; --amber:#fbbf24;
+  }
+  [data-theme="slate"]{
+    --bg:#121212; --panel:#1a1a1a; --panel2:#222222; --border:#2e2e2e;
+    --text:#f0f0f0; --muted:#8c8c8c; --accent:#d4d4d8; --accent2:#a1a1aa;
+    --green:#86efac; --red:#fca5a5; --amber:#fde68a; --on-accent:#18181b;
+  }
+  [data-theme="paper"]{
+    --bg:#f7f3ec; --panel:#ffffff; --panel2:#f1ece2; --border:#e4dcc9;
+    --text:#2b2620; --muted:#79705f; --accent:#c2410c; --accent2:#9a3412;
+    --green:#15803d; --red:#be123c; --amber:#b45309;
+    --shadow:0 8px 24px rgba(43,38,32,.08);
   }
   *{box-sizing:border-box;}
   body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);transition:background .2s,color .2s;}
@@ -32,13 +61,13 @@
 
   .sidebar{width:210px;flex-shrink:0;background:var(--panel);border-right:1px solid var(--border);padding:20px 14px;display:flex;flex-direction:column;gap:4px;}
   .brand{display:flex;align-items:center;gap:10px;padding:6px 10px 18px 10px;}
-  .brand .logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:white;}
+  .brand .logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:var(--on-accent);}
   .brand .name{font-weight:700;font-size:16px;}
   .brand .sub{font-size:11px;color:var(--muted);}
   .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;color:var(--muted);font-size:14px;font-weight:500;user-select:none;}
   .nav-item svg{width:18px;height:18px;flex-shrink:0;}
   .nav-item:hover{background:var(--panel2);color:var(--text);}
-  .nav-item.active{background:linear-gradient(135deg,rgba(91,140,255,.18),rgba(124,91,255,.18));color:var(--text);}
+  .nav-item.active{background:linear-gradient(135deg,color-mix(in srgb, var(--accent) 18%, transparent),color-mix(in srgb, var(--accent2) 18%, transparent));color:var(--text);}
   .nav-item.active svg{color:var(--accent);}
   .sidebar-footer{margin-top:auto;padding:10px;font-size:11px;color:var(--muted);display:flex;flex-direction:column;gap:8px;}
 
@@ -49,16 +78,16 @@
   .month-switch button{background:var(--panel2);border:1px solid var(--border);color:var(--text);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:15px;}
   .month-switch button:hover{border-color:var(--accent);}
   .month-switch .label{font-weight:600;min-width:150px;text-align:center;font-size:14px;}
-  .btn{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:white;padding:9px 16px;border-radius:10px;cursor:pointer;font-weight:600;font-size:13px;display:inline-flex;align-items:center;gap:6px;}
+  .btn{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:var(--on-accent);padding:9px 16px;border-radius:10px;cursor:pointer;font-weight:600;font-size:13px;display:inline-flex;align-items:center;gap:6px;}
   .btn:hover{filter:brightness(1.08);}
   .btn.secondary{background:var(--panel2);color:var(--text);border:1px solid var(--border);}
-  .btn.danger{background:rgba(255,92,122,.15);color:var(--red);border:1px solid rgba(255,92,122,.3);}
+  .btn.danger{background:color-mix(in srgb, var(--red) 15%, transparent);color:var(--red);border:1px solid color-mix(in srgb, var(--red) 30%, transparent);}
   .btn.small{padding:5px 10px;font-size:12px;border-radius:8px;}
 
   .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px;}
   @media (max-width:980px){.grid{grid-template-columns:repeat(2,1fr);}}
   .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);}
-  .card.highlight{border-color:rgba(91,140,255,.5);background:linear-gradient(180deg,rgba(91,140,255,.08),var(--panel));}
+  .card.highlight{border-color:color-mix(in srgb, var(--accent) 50%, transparent);background:linear-gradient(180deg,color-mix(in srgb, var(--accent) 8%, transparent),var(--panel));}
   .card .k{font-size:11.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;}
   .card .v{font-size:21px;font-weight:700;}
   .card .v.pos{color:var(--green);}
@@ -81,15 +110,15 @@
   select{
     background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:7px 9px;font-size:12.5px;font-family:inherit;font-weight:600;cursor:pointer;
   }
-  select.status-done{color:var(--green);border-color:rgba(62,207,142,.5);background:rgba(62,207,142,.08);}
-  select.status-none{color:var(--amber);border-color:rgba(255,185,70,.4);background:rgba(255,185,70,.06);}
-  select.recur-yes{color:var(--accent);border-color:rgba(91,140,255,.5);background:rgba(91,140,255,.08);}
+  select.status-done{color:var(--green);border-color:color-mix(in srgb, var(--green) 50%, transparent);background:color-mix(in srgb, var(--green) 8%, transparent);}
+  select.status-none{color:var(--amber);border-color:color-mix(in srgb, var(--amber) 40%, transparent);background:color-mix(in srgb, var(--amber) 6%, transparent);}
+  select.recur-yes{color:var(--accent);border-color:color-mix(in srgb, var(--accent) 50%, transparent);background:color-mix(in srgb, var(--accent) 8%, transparent);}
   select.recur-no{color:var(--muted);border-color:var(--border);background:var(--bg);}
   .row-input{border:none;background:transparent;padding:4px 6px;width:100%;}
   .row-input:focus{background:var(--panel2);border-radius:6px;}
   .amt-cell{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
   .del-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;padding:2px 6px;border-radius:6px;}
-  .del-btn:hover{color:var(--red);background:rgba(255,92,122,.1);}
+  .del-btn:hover{color:var(--red);background:color-mix(in srgb, var(--red) 10%, transparent);}
 
   .weekly-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
   @media (max-width:700px){.weekly-grid{grid-template-columns:repeat(2,1fr);}}
@@ -121,7 +150,7 @@
   .cat-bar-pct{color:var(--muted);font-weight:400;font-size:11.5px;}
   .seg-toggle{display:flex;border:1px solid var(--border);border-radius:10px;overflow:hidden;}
   .seg-btn{background:var(--panel2);border:none;color:var(--muted);padding:8px 14px;font-size:12.5px;font-weight:600;cursor:pointer;}
-  .seg-btn.active{background:var(--accent);color:white;}
+  .seg-btn.active{background:var(--accent);color:var(--on-accent);}
   @media (max-width:600px){
     .cat-bar-label{width:100%;}
     .cat-bar-amt{width:auto;margin-left:auto;}
@@ -160,14 +189,14 @@
   .hidden{display:none !important;}
   .formula-note{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.5;}
   .formula-note b{color:var(--text);}
-  .quick-add-panel{border-color:rgba(91,140,255,.4);background:linear-gradient(180deg,rgba(91,140,255,.06),var(--panel));}
+  .quick-add-panel{border-color:color-mix(in srgb, var(--accent) 40%, transparent);background:linear-gradient(180deg,color-mix(in srgb, var(--accent) 6%, transparent),var(--panel));}
   .quick-add-panel select{max-width:130px;}
   .month-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;}
   .month-tile{position:relative;background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;transition:border-color .15s,transform .1s;}
   .mt-del-btn{position:absolute;top:8px;right:8px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:3px 6px;border-radius:6px;line-height:1;}
-  .mt-del-btn:hover{color:var(--red);background:rgba(255,92,122,.12);}
+  .mt-del-btn:hover{color:var(--red);background:color-mix(in srgb, var(--red) 12%, transparent);}
   .month-tile:hover{border-color:var(--accent);transform:translateY(-1px);}
-  .month-tile.active{border-color:var(--accent);background:linear-gradient(180deg,rgba(91,140,255,.14),var(--panel2));}
+  .month-tile.active{border-color:var(--accent);background:linear-gradient(180deg,color-mix(in srgb, var(--accent) 14%, transparent),var(--panel2));}
   .month-tile .mt-name{font-weight:700;font-size:15px;}
   .month-tile .mt-year{font-size:11px;color:var(--muted);margin-bottom:10px;}
   .month-tile .mt-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;}
@@ -247,7 +276,7 @@
   }
 </style>
 </head>
-<body data-theme="dark">
+<body data-theme="midnight">
 <div class="app">
 
   <div class="sidebar">
@@ -290,7 +319,16 @@
       <label style="font-size:11px;color:var(--muted);">Profile</label>
       <select id="sidebarProfileSelect" style="width:100%;"></select>
       <div id="syncStatusLine"></div>
-      <button class="btn secondary small" id="themeToggle">Toggle theme</button>
+      <label style="font-size:11px;color:var(--muted);margin-top:4px;">Theme</label>
+      <select id="themeSelect" style="width:100%;">
+        <option value="midnight" style="background:#161d2e;color:#e8ecf7;">Midnight</option>
+        <option value="emerald" style="background:#0f1f17;color:#e8f5ee;">Emerald</option>
+        <option value="sunset" style="background:#241a15;color:#fbeee3;">Sunset</option>
+        <option value="rose" style="background:#20151d;color:#fbe8f3;">Rose</option>
+        <option value="ocean" style="background:#0d1f23;color:#e3f6f8;">Ocean Teal</option>
+        <option value="slate" style="background:#1a1a1a;color:#f0f0f0;">Slate Mono</option>
+        <option value="paper" style="background:#ffffff;color:#2b2620;">Paper</option>
+      </select>
     </div>
   </div>
 
@@ -464,7 +502,7 @@ function defaultState(){
   const key = monthKey(now);
   const state = {
     currency: '£',
-    theme: 'dark',
+    theme: 'midnight',
     currentMonthKey: key,
     months: {},
     pots: { savings:{manualLedger:[]}, stocks:{manualLedger:[]} }
@@ -472,7 +510,11 @@ function defaultState(){
   state.months[key] = freshMonth(0);
   return state;
 }
+const THEME_NAMES = ['midnight','emerald','sunset','rose','ocean','slate','paper'];
 function normalizeState(){
+  if(state.theme==='dark') state.theme = 'midnight';
+  if(state.theme==='light') state.theme = 'paper';
+  if(!THEME_NAMES.includes(state.theme)) state.theme = 'midnight';
   if(!state.pots) state.pots = {};
   if(!state.pots.savings) state.pots.savings = {manualLedger:[]};
   if(!state.pots.stocks) state.pots.stocks = {manualLedger:[]};
@@ -862,6 +904,12 @@ function fmt(n){
 function escapeHtml(s){
   return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
+// Reads a live theme CSS variable (e.g. '--accent') so chart colors follow
+// whichever theme is currently selected instead of a hardcoded hex.
+function cssVar(name, fallback){
+  const v = getComputedStyle(document.body).getPropertyValue(name).trim();
+  return v || fallback;
+}
 function statusSelectHtml(cls, value){
   return `<select class="${cls} status-select status-${value}">
     <option value="none" ${value==='none'?'selected':''}>None</option>
@@ -963,7 +1011,7 @@ function lineChart(container, data, opts={}){
   // Accepts either a flat array of {x,y,label} (single series, default color)
   // or an array of series: {color, name, dashed, points:[{x,y,label}]}
   const isMulti = Array.isArray(data) && data.length>0 && data[0].points !== undefined;
-  const series = isMulti ? data : [{color:'#5b8cff', points:data}];
+  const series = isMulti ? data : [{color:cssVar('--accent','#5b8cff'), points:data}];
   const w = opts.width||container.clientWidth||600, h = opts.height||240;
   const padL=54,padR=16,padT=16,padB=28;
   const allVals = series.flatMap(s=>s.points.map(p=>p.y));
@@ -991,7 +1039,7 @@ function lineChart(container, data, opts={}){
       const y = yFor(p.y);
       d += (i===0?'M':'L')+x+','+y+' ';
     });
-    const pathAttrs = {d, fill:'none', stroke:s.color||'#5b8cff', 'stroke-width':2.4, 'stroke-linejoin':'round','stroke-linecap':'round'};
+    const pathAttrs = {d, fill:'none', stroke:s.color||cssVar('--accent','#5b8cff'), 'stroke-width':2.4, 'stroke-linejoin':'round','stroke-linecap':'round'};
     if(s.dashed) pathAttrs['stroke-dasharray'] = '6,4';
     svg.appendChild(svgEl('path', pathAttrs));
     s.points.forEach((p,i)=>{
@@ -999,7 +1047,7 @@ function lineChart(container, data, opts={}){
       const y = yFor(p.y);
       const label = p.label || p.x;
       const tipText = s.name ? `${label} — ${s.name}: ${fmt(p.y)}` : `${label}: ${fmt(p.y)}`;
-      const dot = svgEl('circle',{cx:x,cy:y,r:3,fill:s.color||'#5b8cff',style:'pointer-events:none;'});
+      const dot = svgEl('circle',{cx:x,cy:y,r:3,fill:s.color||cssVar('--accent','#5b8cff'),style:'pointer-events:none;'});
       const onHover = evt => { showChartTooltip(evt, tipText); dot.setAttribute('r',5); };
       const onLeave = () => { hideChartTooltip(); dot.setAttribute('r',3); };
       const hit = svgEl('circle',{cx:x,cy:y,r:10,fill:'transparent',style:'cursor:pointer;'});
@@ -1117,6 +1165,9 @@ let upcomingBillsWindow = 14;
 function render(){
   document.getElementById('monthLabel').textContent = monthLabelFromKey(state.currentMonthKey);
   document.body.setAttribute('data-theme', state.theme);
+  document.getElementById('themeSelect').value = state.theme;
+  const themeMeta = document.querySelector('meta[name="theme-color"]');
+  if(themeMeta) themeMeta.setAttribute('content', cssVar('--accent', '#5b8cff'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active', n.dataset.view===currentView));
   const profileSel = document.getElementById('sidebarProfileSelect');
   profileSel.innerHTML = profilesMeta.profiles.map(p=>`<option value="${p.id}" ${p.id===profilesMeta.activeId?'selected':''}>${escapeHtml(p.name)}</option>`).join('');
@@ -1757,8 +1808,8 @@ function renderTrend(){
       <div class="panel-head"><h2>Net Worth: Actual vs Projected</h2><span class="hint">fill in future months in Month Tracker to project forward</span></div>
       <div id="netWorthChart"></div>
       <div class="legend">
-        <div class="legend-item"><span class="dot" style="background:#5b8cff;"></span>Actual — only what's marked Done</div>
-        <div class="legend-item"><span class="dash" style="border-color:#3ecf8e;"></span>Projected — assumes every month happens exactly as budgeted</div>
+        <div class="legend-item"><span class="dot" style="background:var(--accent);"></span>Actual — only what's marked Done</div>
+        <div class="legend-item"><span class="dash" style="border-color:var(--green);"></span>Projected — assumes every month happens exactly as budgeted</div>
       </div>
     </div>
     <div class="panel">
@@ -1788,16 +1839,16 @@ function renderTrend(){
       <div class="panel-head"><h2>Savings Pot: Actual vs Projected</h2><span class="hint">running balance</span></div>
       <div id="savingsPotChart"></div>
       <div class="legend">
-        <div class="legend-item"><span class="dot" style="background:#5b8cff;"></span>Actual — only what's marked Done</div>
-        <div class="legend-item"><span class="dash" style="border-color:#3ecf8e;"></span>Projected — assumes every month happens exactly as budgeted</div>
+        <div class="legend-item"><span class="dot" style="background:var(--accent);"></span>Actual — only what's marked Done</div>
+        <div class="legend-item"><span class="dash" style="border-color:var(--green);"></span>Projected — assumes every month happens exactly as budgeted</div>
       </div>
     </div>
     <div class="panel">
       <div class="panel-head"><h2>Stocks &amp; Shares Pot: Actual vs Projected</h2><span class="hint">running balance</span></div>
       <div id="stocksPotChart"></div>
       <div class="legend">
-        <div class="legend-item"><span class="dot" style="background:#5b8cff;"></span>Actual — only what's marked Done</div>
-        <div class="legend-item"><span class="dash" style="border-color:#3ecf8e;"></span>Projected — assumes every month happens exactly as budgeted</div>
+        <div class="legend-item"><span class="dot" style="background:var(--accent);"></span>Actual — only what's marked Done</div>
+        <div class="legend-item"><span class="dash" style="border-color:var(--green);"></span>Projected — assumes every month happens exactly as budgeted</div>
       </div>
     </div>
     <div class="panel">
@@ -1831,17 +1882,18 @@ function renderTrend(){
   } else {
     const points = keys.map((k,i)=>({x: shortLabels[i], label: monthLabels[i], y: totalLeftOvers[i]}));
     lineChart(document.getElementById('trendChart'), points, {height:220});
+    const actualColor = cssVar('--accent','#5b8cff'), projectedColor = cssVar('--green','#3ecf8e');
     lineChart(document.getElementById('netWorthChart'), [
-      {color:'#5b8cff', name:'Actual', points: keys.map((k,i)=>({x:shortLabels[i], label:monthLabels[i], y:actualNetWorth[i]}))},
-      {color:'#3ecf8e', name:'Projected', dashed:true, points: keys.map((k,i)=>({x:shortLabels[i], label:monthLabels[i], y:projectedNetWorth[i]}))}
+      {color:actualColor, name:'Actual', points: keys.map((k,i)=>({x:shortLabels[i], label:monthLabels[i], y:actualNetWorth[i]}))},
+      {color:projectedColor, name:'Projected', dashed:true, points: keys.map((k,i)=>({x:shortLabels[i], label:monthLabels[i], y:projectedNetWorth[i]}))}
     ], {height:240});
     lineChart(document.getElementById('savingsPotChart'), [
-      {color:'#5b8cff', name:'Actual', points: keys.map((k,i)=>({x:shortLabels[i], label:monthLabels[i], y:savingsSeries[i]}))},
-      {color:'#3ecf8e', name:'Projected', dashed:true, points: keys.map((k,i)=>({x:shortLabels[i], label:monthLabels[i], y:plannedSavingsSeries[i]}))}
+      {color:actualColor, name:'Actual', points: keys.map((k,i)=>({x:shortLabels[i], label:monthLabels[i], y:savingsSeries[i]}))},
+      {color:projectedColor, name:'Projected', dashed:true, points: keys.map((k,i)=>({x:shortLabels[i], label:monthLabels[i], y:plannedSavingsSeries[i]}))}
     ], {height:200});
     lineChart(document.getElementById('stocksPotChart'), [
-      {color:'#5b8cff', name:'Actual', points: keys.map((k,i)=>({x:shortLabels[i], label:monthLabels[i], y:stocksSeries[i]}))},
-      {color:'#3ecf8e', name:'Projected', dashed:true, points: keys.map((k,i)=>({x:shortLabels[i], label:monthLabels[i], y:plannedStocksSeries[i]}))}
+      {color:actualColor, name:'Actual', points: keys.map((k,i)=>({x:shortLabels[i], label:monthLabels[i], y:stocksSeries[i]}))},
+      {color:projectedColor, name:'Projected', dashed:true, points: keys.map((k,i)=>({x:shortLabels[i], label:monthLabels[i], y:plannedStocksSeries[i]}))}
     ], {height:200});
   }
   renderCategoryBreakdown();
@@ -2097,9 +2149,9 @@ function renderQuarterly(){
   if(quarterStats.length>=2){
     const labels = quarterStats.map(qs=>`Q${qs.q} '${String(qs.year).slice(2)}`);
     lineChart(document.getElementById('quarterlyChart'), [
-      {color:'#3ecf8e', name:'Income', points: quarterStats.map((qs,i)=>({x:labels[i], label:`Q${qs.q} ${qs.year}`, y:qs.income}))},
-      {color:'#ff5c7a', name:'Spending', points: quarterStats.map((qs,i)=>({x:labels[i], label:`Q${qs.q} ${qs.year}`, y:qs.spending}))},
-      {color:'#5b8cff', name:'Net', dashed:true, points: quarterStats.map((qs,i)=>({x:labels[i], label:`Q${qs.q} ${qs.year}`, y:qs.net}))}
+      {color:cssVar('--green','#3ecf8e'), name:'Income', points: quarterStats.map((qs,i)=>({x:labels[i], label:`Q${qs.q} ${qs.year}`, y:qs.income}))},
+      {color:cssVar('--red','#ff5c7a'), name:'Spending', points: quarterStats.map((qs,i)=>({x:labels[i], label:`Q${qs.q} ${qs.year}`, y:qs.spending}))},
+      {color:cssVar('--accent','#5b8cff'), name:'Net', dashed:true, points: quarterStats.map((qs,i)=>({x:labels[i], label:`Q${qs.q} ${qs.year}`, y:qs.net}))}
     ], {height:220});
   } else {
     document.getElementById('quarterlyChart').innerHTML = '<div class="empty">Track at least two quarters to see a trend line.</div>';
@@ -2548,8 +2600,8 @@ document.getElementById('newMonthBtn').onclick = ()=>{
   save();
   render();
 };
-document.getElementById('themeToggle').onclick = ()=>{
-  state.theme = state.theme==='dark' ? 'light' : 'dark';
+document.getElementById('themeSelect').onchange = e=>{
+  state.theme = e.target.value;
   save(); render();
 };
 
