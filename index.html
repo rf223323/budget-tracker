@@ -796,10 +796,10 @@ function monthTotals(m){
   const doneStocks = m.stocks.status==='done' ? stocksAmount : 0;
   const adjustment = Number(m.adjustment)||0;
 
-  const liveBalance = (Number(m.startingBalance)||0) + doneIncoming - doneOutgoing - doneSavings - doneStocks - doneWeekly + adjustment;
-  const totalLeftOver = (Number(m.startingBalance)||0) + allIncoming - weeklyTotal - allOutgoing - savingsAmount - stocksAmount + adjustment;
+  const liveBalance = round2((Number(m.startingBalance)||0) + doneIncoming - doneOutgoing - doneSavings - doneStocks - doneWeekly + adjustment);
+  const totalLeftOver = round2((Number(m.startingBalance)||0) + allIncoming - weeklyTotal - allOutgoing - savingsAmount - stocksAmount + adjustment);
 
-  return {allIncoming, doneIncoming, allOutgoing, doneOutgoing, weeklyTotal, doneWeekly, savingsAmount, doneSavings, stocksAmount, doneStocks, adjustment, liveBalance, totalLeftOver};
+  return {allIncoming:round2(allIncoming), doneIncoming:round2(doneIncoming), allOutgoing:round2(allOutgoing), doneOutgoing:round2(doneOutgoing), weeklyTotal:round2(weeklyTotal), doneWeekly:round2(doneWeekly), savingsAmount:round2(savingsAmount), doneSavings:round2(doneSavings), stocksAmount:round2(stocksAmount), doneStocks:round2(doneStocks), adjustment:round2(adjustment), liveBalance, totalLeftOver};
 }
 // mode: 'all' = every outgoing regardless of status, 'done' = only what's actually been spent.
 function categoryBreakdown(m, mode){
