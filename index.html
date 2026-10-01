@@ -2025,6 +2025,36 @@ function renderSpendingHeatmap(){
 
 // ---------------- Quarterly ----------------
 function quarterOfMonth(mm){ return Math.floor((mm-1)/3)+1; }
+const QUARTER_LABEL = q => ['Jan–Mar','Apr–Jun','Jul–Sep','Oct–Dec'][q-1];
+function quarterStatsFor(gk, groups){
+  const g = groups[gk];
+  const monthKeys = g.monthKeys.slice().sort();
+  let income=0, spending=0, saved=0;
+  const catTotals = {};
+  monthKeys.forEach(mk=>{
+    const m = state.months[mk];
+    const t = monthTotals(m);
+    income += t.doneIncoming;
+    spending += t.doneOutgoing + t.doneWeekly;
+    saved += t.doneSavings + t.doneStocks;
+    m.outgoings.forEach(o=>{
+      if(o.status!=='done') return;
+      const cat = o.category || 'Uncategorized';
+      catTotals[cat] = (catTotals[cat]||0) + (Number(o.amount)||0);
+    });
+  });
+  const firstM = state.months[monthKeys[0]];
+  const lastM = state.months[monthKeys[monthKeys.length-1]];
+  const startBalance = round2(firstM.startingBalance);
+  const endBalance = round2(monthTotals(lastM).liveBalance);
+  const net = round2(income - spending - saved);
+  const savingsRate = income>0 ? Math.round(saved/income*100) : 0;
+  const catRows = Object.entries(catTotals).filter(([,amt])=>amt>0)
+    .map(([category,amount])=>({category, amount:round2(amount)}))
+    .sort((a,b)=>b.amount-a.amount);
+  return {gk, year:g.year, q:g.q, monthKeys, income:round2(income), spending:round2(spending), saved:round2(saved), net, startBalance, endBalance, savingsRate, catRows};
+}
+let quarterlySelectedKey = null;
 function renderQuarterly(){
   const el = document.getElementById('view-quarterly');
   const keys = Object.keys(state.months).sort();
@@ -2040,68 +2070,29 @@ function renderQuarterly(){
     (groups[gk] = groups[gk] || {year:y, q, monthKeys:[]}).monthKeys.push(k);
   });
   const groupKeys = Object.keys(groups).sort();
-  const quarterLabel = q => ['Jan–Mar','Apr–Jun','Jul–Sep','Oct–Dec'][q-1];
-
-  const quarterStats = groupKeys.map(gk=>{
-    const g = groups[gk];
-    const monthKeys = g.monthKeys.slice().sort();
-    let income=0, spending=0, saved=0;
-    const catTotals = {};
-    monthKeys.forEach(mk=>{
-      const m = state.months[mk];
-      const t = monthTotals(m);
-      income += t.doneIncoming;
-      spending += t.doneOutgoing + t.doneWeekly;
-      saved += t.doneSavings + t.doneStocks;
-      m.outgoings.forEach(o=>{
-        if(o.status!=='done') return;
-        const cat = o.category || 'Uncategorized';
-        catTotals[cat] = (catTotals[cat]||0) + (Number(o.amount)||0);
-      });
-    });
-    const firstM = state.months[monthKeys[0]];
-    const lastM = state.months[monthKeys[monthKeys.length-1]];
-    const startBalance = round2(firstM.startingBalance);
-    const endBalance = round2(monthTotals(lastM).liveBalance);
-    const net = round2(income - spending - saved);
-    const savingsRate = income>0 ? Math.round(saved/income*100) : 0;
-    const catRows = Object.entries(catTotals).filter(([,amt])=>amt>0)
-      .map(([category,amount])=>({category, amount:round2(amount)}))
-      .sort((a,b)=>b.amount-a.amount);
-    return {gk, year:g.year, q:g.q, monthKeys, income:round2(income), spending:round2(spending), saved:round2(saved), net, startBalance, endBalance, savingsRate, catRows};
-  });
+  const quarterStats = groupKeys.map(gk=>quarterStatsFor(gk, groups));
+  if(!quarterlySelectedKey || !groupKeys.includes(quarterlySelectedKey)){
+    quarterlySelectedKey = groupKeys[groupKeys.length-1];
+  }
 
   el.innerHTML = `
     <div class="panel">
       <div class="panel-head"><h2>Income vs Spending by Quarter</h2><span class="hint">based on what's marked Done</span></div>
       <div id="quarterlyChart"></div>
     </div>
-    ${quarterStats.slice().reverse().map(qs=>`
-      <div class="panel">
-        <div class="panel-head">
-          <h2>Q${qs.q} ${qs.year} <span style="font-weight:400;color:var(--muted);font-size:13px;">(${quarterLabel(qs.q)})</span></h2>
-          <span class="hint">${qs.monthKeys.length} month${qs.monthKeys.length!==1?'s':''} tracked</span>
-        </div>
-        <div class="grid">
-          <div class="card"><div class="k">Income</div><div class="v pos">${fmt(qs.income)}</div><div class="sub">marked Done</div></div>
-          <div class="card"><div class="k">Spending</div><div class="v neg">${fmt(qs.spending)}</div><div class="sub">outgoings + weekly, Done</div></div>
-          <div class="card"><div class="k">Saved</div><div class="v pos">${fmt(qs.saved)}</div><div class="sub">savings + stocks, Done</div></div>
-          <div class="card highlight"><div class="k">Net Change</div><div class="v ${qs.net>=0?'pos':'neg'}">${fmt(qs.net)}</div><div class="sub">${qs.savingsRate}% savings rate</div></div>
-          <div class="card"><div class="k">Starting Balance</div><div class="v">${fmt(qs.startBalance)}</div><div class="sub">start of quarter</div></div>
-          <div class="card"><div class="k">Ending Balance</div><div class="v" style="color:${qs.endBalance>=0?'var(--green)':'var(--red)'};">${fmt(qs.endBalance)}</div><div class="sub">end of quarter (live)</div></div>
-        </div>
-        ${qs.catRows.length ? `
-          <div class="formula-note" style="margin-top:0;margin-bottom:8px;">Spending by category this quarter</div>
-          ${qs.catRows.slice(0,6).map(r=>`
-            <div class="cat-bar-row">
-              <div class="cat-bar-label"><span class="cat-dot" style="background:${categoryColor(r.category)};"></span><span style="margin-right:5px;">${categoryIcon(r.category)}</span>${escapeHtml(r.category)}</div>
-              <div class="cat-bar-track"><div class="cat-bar-fill" style="width:${qs.catRows[0].amount?(r.amount/qs.catRows[0].amount*100).toFixed(1):0}%;background:${categoryColor(r.category)};"></div></div>
-              <div class="cat-bar-amt">${fmt(r.amount)}</div>
-            </div>
-          `).join('')}
-        ` : ''}
+    <div class="panel">
+      <div class="month-switch" style="justify-content:center;margin:0 auto 14px;max-width:320px;">
+        <button id="quarterlyPrev">‹</button>
+        <select id="quarterlySelect" style="border:none;background:transparent;color:var(--text);font-weight:700;text-align:center;flex:1;">
+          ${groupKeys.map(gk=>{
+            const g = groups[gk];
+            return `<option value="${gk}" ${gk===quarterlySelectedKey?'selected':''}>Q${g.q} ${g.year}</option>`;
+          }).join('')}
+        </select>
+        <button id="quarterlyNext">›</button>
       </div>
-    `).join('')}
+      <div id="quarterlyDetail"></div>
+    </div>
   `;
   if(quarterStats.length>=2){
     const labels = quarterStats.map(qs=>`Q${qs.q} '${String(qs.year).slice(2)}`);
@@ -2113,6 +2104,44 @@ function renderQuarterly(){
   } else {
     document.getElementById('quarterlyChart').innerHTML = '<div class="empty">Track at least two quarters to see a trend line.</div>';
   }
+  const renderDetail = ()=>{
+    const qs = quarterStatsFor(quarterlySelectedKey, groups);
+    const detailEl = document.getElementById('quarterlyDetail');
+    detailEl.innerHTML = `
+      <div class="panel-head" style="margin-bottom:10px;">
+        <h2>Q${qs.q} ${qs.year} <span style="font-weight:400;color:var(--muted);font-size:13px;">(${QUARTER_LABEL(qs.q)})</span></h2>
+        <span class="hint">${qs.monthKeys.length} month${qs.monthKeys.length!==1?'s':''} tracked</span>
+      </div>
+      <div class="grid">
+        <div class="card"><div class="k">Income</div><div class="v pos">${fmt(qs.income)}</div><div class="sub">marked Done</div></div>
+        <div class="card"><div class="k">Spending</div><div class="v neg">${fmt(qs.spending)}</div><div class="sub">outgoings + weekly, Done</div></div>
+        <div class="card"><div class="k">Saved</div><div class="v pos">${fmt(qs.saved)}</div><div class="sub">savings + stocks, Done</div></div>
+        <div class="card highlight"><div class="k">Net Change</div><div class="v ${qs.net>=0?'pos':'neg'}">${fmt(qs.net)}</div><div class="sub">${qs.savingsRate}% savings rate</div></div>
+        <div class="card"><div class="k">Starting Balance</div><div class="v">${fmt(qs.startBalance)}</div><div class="sub">start of quarter</div></div>
+        <div class="card"><div class="k">Ending Balance</div><div class="v" style="color:${qs.endBalance>=0?'var(--green)':'var(--red)'};">${fmt(qs.endBalance)}</div><div class="sub">end of quarter (live)</div></div>
+      </div>
+      ${qs.catRows.length ? `
+        <div class="formula-note" style="margin-top:0;margin-bottom:8px;">Spending by category this quarter</div>
+        ${qs.catRows.slice(0,6).map(r=>`
+          <div class="cat-bar-row">
+            <div class="cat-bar-label"><span class="cat-dot" style="background:${categoryColor(r.category)};"></span><span style="margin-right:5px;">${categoryIcon(r.category)}</span>${escapeHtml(r.category)}</div>
+            <div class="cat-bar-track"><div class="cat-bar-fill" style="width:${qs.catRows[0].amount?(r.amount/qs.catRows[0].amount*100).toFixed(1):0}%;background:${categoryColor(r.category)};"></div></div>
+            <div class="cat-bar-amt">${fmt(r.amount)}</div>
+          </div>
+        `).join('')}
+      ` : ''}
+    `;
+  };
+  renderDetail();
+  document.getElementById('quarterlySelect').onchange = e=>{ quarterlySelectedKey = e.target.value; renderDetail(); };
+  document.getElementById('quarterlyPrev').onclick = ()=>{
+    const i = groupKeys.indexOf(quarterlySelectedKey);
+    if(i>0){ quarterlySelectedKey = groupKeys[i-1]; document.getElementById('quarterlySelect').value = quarterlySelectedKey; renderDetail(); }
+  };
+  document.getElementById('quarterlyNext').onclick = ()=>{
+    const i = groupKeys.indexOf(quarterlySelectedKey);
+    if(i<groupKeys.length-1){ quarterlySelectedKey = groupKeys[i+1]; document.getElementById('quarterlySelect').value = quarterlySelectedKey; renderDetail(); }
+  };
 }
 
 // ---------------- Recurring ----------------
