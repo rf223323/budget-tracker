@@ -512,6 +512,40 @@ function propagateScheduleForward(item, fromMonthKey, listKey){
     });
   });
 }
+// When an item is newly marked Recurring (just added that way, or switched from
+// One-off), drop a copy into every month that ALREADY exists after this one —
+// not just the next month created by "New Month". Each propagated copy is
+// tagged with syncSourceId so later edits to the item's name/amount (e.g. while
+// still filling it in on the Recurring tab) update that same copy instead of
+// leaving a stale placeholder and creating a duplicate under the new name.
+function syncNewRecurringForward(item, fromMonthKey, listKey){
+  if(!item.recurring) return;
+  const normName = s => (s||'').trim().toLowerCase();
+  const name = normName(item.name);
+  Object.keys(state.months).filter(k=>k>fromMonthKey).forEach(k=>{
+    const list = state.months[k][listKey];
+    let copy = list.find(x=>x.syncSourceId===item.id);
+    if(!copy) copy = list.find(x=>x.recurring && !x.syncSourceId && normName(x.name)===name);
+    if(copy){
+      copy.syncSourceId = item.id;
+      copy.name = item.name;
+      copy.amount = item.amount;
+      copy.day = item.day||null;
+      copy.lastWeekday = item.lastWeekday!=null?item.lastWeekday:null;
+      if(listKey==='outgoings') copy.category = item.category||'Uncategorized';
+    } else if(listKey==='incoming'){
+      list.push({id:uid(), name:item.name, amount:item.amount, status:'none', recurring:true, syncSourceId:item.id, day:item.day||null, lastWeekday: item.lastWeekday!=null?item.lastWeekday:null});
+    } else {
+      list.push({id:uid(), name:item.name, amount:item.amount, status:'none', recurring:true, syncSourceId:item.id, category:item.category||'Uncategorized', day:item.day||null, lastWeekday: item.lastWeekday!=null?item.lastWeekday:null});
+    }
+  });
+}
+function syncNewRecurringWeeklyForward(fromMonthKey, wk, amount){
+  Object.keys(state.months).filter(k=>k>fromMonthKey).forEach(k=>{
+    const w = state.months[k].weekly[wk];
+    if(!w.recurring) state.months[k].weekly[wk] = {amount, status:'none', recurring:true};
+  });
+}
 function defaultState(){
   const now = new Date();
   const key = monthKey(now);
@@ -1597,7 +1631,9 @@ function renderMonth(){
   el.querySelectorAll('.week-recur').forEach(sel=>{
     sel.onchange = e=>{
       const wk = e.target.dataset.week;
-      m.weekly[wk].recurring = (e.target.value==='yes'); save();
+      m.weekly[wk].recurring = (e.target.value==='yes');
+      if(m.weekly[wk].recurring) syncNewRecurringWeeklyForward(state.currentMonthKey, wk, m.weekly[wk].amount);
+      save();
       e.target.className = `week-recur recur-select ${m.weekly[wk].recurring?'recur-yes':'recur-no'}`;
     };
   });
@@ -1642,7 +1678,7 @@ function renderMonth(){
       const sel = tr.querySelector('.inc-status');
       sel.onchange = e=>{ item.status=e.target.value; save(); e.target.className = `inc-status status-select status-${e.target.value}`; refreshCards(); };
       const recurSel = tr.querySelector('.inc-recur');
-      recurSel.onchange = e=>{ item.recurring = (e.target.value==='yes'); save(); e.target.className = `inc-recur recur-select ${item.recurring?'recur-yes':'recur-no'}`; };
+      recurSel.onchange = e=>{ item.recurring = (e.target.value==='yes'); if(item.recurring) syncNewRecurringForward(item, state.currentMonthKey, 'incoming'); save(); e.target.className = `inc-recur recur-select ${item.recurring?'recur-yes':'recur-no'}`; };
       const schedSel = tr.querySelector('.inc-schedule');
       schedSel.onchange = e=>{
         applyScheduleValue(item, e.target.value);
@@ -1682,7 +1718,7 @@ function renderMonth(){
       const sel = tr.querySelector('.out-status');
       sel.onchange = e=>{ item.status=e.target.value; save(); e.target.className = `out-status status-select status-${e.target.value}`; refreshCards(); };
       const recurSel = tr.querySelector('.out-recur');
-      recurSel.onchange = e=>{ item.recurring = (e.target.value==='yes'); save(); e.target.className = `out-recur recur-select ${item.recurring?'recur-yes':'recur-no'}`; };
+      recurSel.onchange = e=>{ item.recurring = (e.target.value==='yes'); if(item.recurring) syncNewRecurringForward(item, state.currentMonthKey, 'outgoings'); save(); e.target.className = `out-recur recur-select ${item.recurring?'recur-yes':'recur-no'}`; };
       const catSel = tr.querySelector('.out-category');
       catSel.onchange = e=>{ item.category = e.target.value; propagateOutgoingFieldForward(item, state.currentMonthKey, 'category'); save(); e.target.style.borderLeftColor = categoryColor(item.category); refreshCards(); };
       const dayInp = tr.querySelector('.out-day');
@@ -2391,8 +2427,9 @@ function drawRecurringTable(m, kind){
     const id = tr.dataset.id;
     const item = list.find(x=>x.id===id);
     if(!item) return;
-    tr.querySelector(`.recur-name-${kind}`).oninput = e=>{ item.name=e.target.value; save(); };
-    tr.querySelector(`.recur-amount-${kind}`).oninput = e=>{ item.amount=Number(e.target.value); save(); };
+    const listKey = kind==='incoming' ? 'incoming' : 'outgoings';
+    tr.querySelector(`.recur-name-${kind}`).oninput = e=>{ item.name=e.target.value; syncNewRecurringForward(item, state.currentMonthKey, listKey); save(); };
+    tr.querySelector(`.recur-amount-${kind}`).oninput = e=>{ item.amount=Number(e.target.value); syncNewRecurringForward(item, state.currentMonthKey, listKey); save(); };
     const sel = tr.querySelector(`.recur-status-${kind}`);
     sel.onchange = e=>{ item.status=e.target.value; save(); e.target.className = `recur-status-${kind} status-select status-${e.target.value}`; };
     const catSel = tr.querySelector(`.recur-category-${kind}`);
@@ -2438,11 +2475,15 @@ function renderRecurring(){
   drawRecurringTable(m, 'incoming');
   drawRecurringTable(m, 'outgoing');
   document.getElementById('addRecurIncomeBtn').onclick = ()=>{
-    m.incoming.push({id:uid(), name:'New recurring income', amount:0, status:'none', recurring:true});
+    const item = {id:uid(), name:'New recurring income', amount:0, status:'none', recurring:true};
+    m.incoming.push(item);
+    syncNewRecurringForward(item, state.currentMonthKey, 'incoming');
     save(); renderRecurring();
   };
   document.getElementById('addRecurOutgoingBtn').onclick = ()=>{
-    m.outgoings.push({id:uid(), name:'New recurring outgoing', amount:0, status:'none', recurring:true, category:'Uncategorized'});
+    const item = {id:uid(), name:'New recurring outgoing', amount:0, status:'none', recurring:true, category:'Uncategorized'};
+    m.outgoings.push(item);
+    syncNewRecurringForward(item, state.currentMonthKey, 'outgoings');
     save(); renderRecurring();
   };
 }
