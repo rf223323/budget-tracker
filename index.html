@@ -80,7 +80,12 @@
   .sidebar-footer{margin-top:auto;padding:10px;font-size:11px;color:var(--muted);display:flex;flex-direction:column;gap:8px;}
 
   .main{flex:1;min-width:0;padding:26px 30px 60px;max-width:1150px;}
-  .topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:22px;flex-wrap:wrap;}
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
+    position:sticky;top:0;z-index:40;padding:14px 0;margin:-14px 0 22px;
+    background:color-mix(in srgb, var(--bg) 85%, transparent);
+    backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--border);
+  }
   .topbar h1{font-size:22px;margin:0;}
   .month-switch{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:6px 8px;}
   .month-switch button{background:var(--panel2);border:1px solid var(--border);color:var(--text);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:15px;}
@@ -96,12 +101,17 @@
   .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px;}
   @media (max-width:980px){.grid{grid-template-columns:repeat(2,1fr);}}
   .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);}
+  @keyframes cardReveal{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+  .stagger-card{animation:cardReveal .45s ease both;animation-delay:calc(var(--i, 0) * 60ms);}
   .card.highlight{border-color:color-mix(in srgb, var(--accent) 50%, transparent);background:linear-gradient(180deg,color-mix(in srgb, var(--accent) 8%, transparent),var(--panel));}
   .card .k{font-size:11.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;}
   .card .v{font-size:21px;font-weight:700;}
   .card .v.pos{color:var(--green);}
   .card .v.neg{color:var(--red);}
   .card .sub{font-size:11.5px;color:var(--muted);margin-top:4px;}
+  .trend-arrow{font-size:11.5px;font-weight:700;margin-top:6px;}
+  .trend-arrow.trend-good{color:var(--green);}
+  .trend-arrow.trend-bad{color:var(--red);}
 
   .panel{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;margin-bottom:20px;box-shadow:var(--shadow);}
   .panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
@@ -123,6 +133,20 @@
   select.status-none{color:var(--amber);border-color:color-mix(in srgb, var(--amber) 40%, transparent);background:color-mix(in srgb, var(--amber) 6%, transparent);}
   select.recur-yes{color:var(--accent);border-color:color-mix(in srgb, var(--accent) 50%, transparent);background:color-mix(in srgb, var(--accent) 8%, transparent);}
   select.recur-no{color:var(--muted);border-color:var(--border);background:var(--bg);}
+  /* Custom category dropdown (replaces a plain <select> with an icon-chip popover) */
+  .cat-dd{position:relative;display:inline-block;outline:none;}
+  .cat-dd-trigger{display:flex;align-items:center;gap:8px;padding:6px 9px;background:var(--bg);border:1px solid var(--border);border-radius:8px;cursor:pointer;user-select:none;transition:border-color .12s ease,box-shadow .12s ease;}
+  .cat-dd-trigger:hover{border-color:color-mix(in srgb, var(--accent) 45%, var(--border));}
+  .cat-dd.open .cat-dd-trigger,.cat-dd:focus-visible .cat-dd-trigger{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);}
+  .cat-dd-chip{width:22px;height:22px;border-radius:7px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;}
+  .cat-dd-label{font-size:12.5px;font-weight:600;color:var(--text);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .cat-dd-caret{font-size:9px;color:var(--muted);flex-shrink:0;transition:transform .15s ease;}
+  .cat-dd.open .cat-dd-caret{transform:rotate(180deg);}
+  .cat-dd-menu{position:absolute;top:calc(100% + 6px);left:0;min-width:210px;max-height:280px;overflow-y:auto;background:var(--panel2);border:1px solid var(--border);border-radius:10px;box-shadow:0 16px 40px rgba(0,0,0,.4);z-index:60;padding:5px;display:none;}
+  .cat-dd.open .cat-dd-menu{display:block;}
+  .cat-dd-opt{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:7px;font-size:13px;color:var(--text);cursor:pointer;}
+  .cat-dd-opt:hover{background:color-mix(in srgb, var(--accent) 12%, transparent);}
+  .cat-dd-opt.selected{background:color-mix(in srgb, var(--accent) 20%, transparent);font-weight:600;}
   .row-input{border:none;background:transparent;padding:4px 6px;width:100%;}
   .row-input:focus{background:var(--panel2);border-radius:6px;}
   .amt-cell{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
@@ -137,7 +161,19 @@
   .field-inline{display:flex;gap:10px;align-items:center;}
   .empty{color:var(--muted);font-size:13px;text-align:center;padding:22px 10px;}
 
-  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:50;}
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.35);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:50;}
+  .toast-stack{position:fixed;right:18px;bottom:18px;z-index:200;display:flex;flex-direction:column-reverse;gap:10px;pointer-events:none;}
+  .toast{pointer-events:auto;display:flex;align-items:center;gap:12px;background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;box-shadow:0 12px 32px rgba(0,0,0,.35);max-width:320px;
+    opacity:0;transform:translateY(10px) scale(.98);transition:opacity .25s ease,transform .25s ease;
+  }
+  .toast.show{opacity:1;transform:translateY(0) scale(1);}
+  .toast-icon{width:24px;height:24px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;}
+  .toast-icon.ok{background:var(--green);color:#06281a;}
+  .toast-body{display:flex;flex-direction:column;min-width:0;}
+  .toast-title{font-size:13px;font-weight:600;color:var(--text);}
+  .toast-sub{font-size:11.5px;color:var(--muted);}
+  .toast-close{margin-left:4px;color:var(--muted);cursor:pointer;font-size:14px;line-height:1;background:none;border:none;padding:4px;}
+  .toast-close:hover{color:var(--text);}
   .modal-bg.open{display:flex;}
   .modal{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:22px;width:340px;box-shadow:var(--shadow);}
   .modal h3{margin:0 0 14px;font-size:16px;}
@@ -204,6 +240,7 @@
   .formula-note b{color:var(--text);}
   .quick-add-panel{border-color:color-mix(in srgb, var(--accent) 40%, transparent);background:linear-gradient(180deg,color-mix(in srgb, var(--accent) 6%, transparent),var(--panel));}
   .quick-add-panel select{max-width:130px;}
+  .quick-add-panel .cat-dd{max-width:190px;}
   .month-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;}
   .month-tile{position:relative;background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;transition:border-color .15s,transform .1s;}
   .month-tile:active{transform:scale(.98);}
@@ -277,7 +314,7 @@
     .responsive-table td.cell-name{flex:1 1 100%;}
     .responsive-table td.cell-name input{font-size:15px;font-weight:600;}
     .responsive-table td.cell-category{flex:1 1 100%;}
-    .responsive-table td.cell-category select{width:100%;}
+    .responsive-table td.cell-category select,.responsive-table td.cell-category .cat-dd{width:100%;}
     .responsive-table td.cell-day{flex:0 0 72px;min-width:0;}
     .responsive-table td.cell-day input{width:100%;}
     .responsive-table td:not(.cell-name):not(.cell-category):not(.cell-day):not(.cell-del){flex:1 1 90px;min-width:90px;}
@@ -380,6 +417,8 @@
 <div class="modal-bg" id="modalBg">
   <div class="modal" id="modalBox"></div>
 </div>
+
+<div class="toast-stack" id="toastStack"></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -835,6 +874,27 @@ function monthTotals(m){
 
   return {allIncoming:round2(allIncoming), doneIncoming:round2(doneIncoming), allOutgoing:round2(allOutgoing), doneOutgoing:round2(doneOutgoing), weeklyTotal:round2(weeklyTotal), doneWeekly:round2(doneWeekly), savingsAmount:round2(savingsAmount), doneSavings:round2(doneSavings), stocksAmount:round2(stocksAmount), doneStocks:round2(doneStocks), adjustment:round2(adjustment), liveBalance, totalLeftOver};
 }
+// Totals for whichever tracked month comes right before forKey (chronologically,
+// not necessarily the previous calendar month) — null if there isn't one yet.
+function prevTrackedMonthTotals(forKey){
+  const keys = Object.keys(state.months).sort();
+  const idx = keys.indexOf(forKey);
+  if(idx<=0) return null;
+  return monthTotals(state.months[keys[idx-1]]);
+}
+// A small "▲ 8% vs last month" line for a summary card. goodDirection 'up' means
+// a rise is good news (colored green); 'down' means a rise is bad news (red).
+// Returns '' when there's no prior month to compare against, or the prior value
+// was ~0 (a percentage change would be meaningless).
+function trendArrowHtml(cur, prev, goodDirection){
+  if(prev==null || Math.abs(prev) < 0.01) return '';
+  const diffPct = ((cur-prev)/Math.abs(prev))*100;
+  if(Math.abs(diffPct) < 1) return '';
+  const up = diffPct > 0;
+  const good = goodDirection==='up' ? up : !up;
+  const arrow = up ? '▲' : '▼';
+  return `<div class="trend-arrow ${good?'trend-good':'trend-bad'}">${arrow} ${Math.abs(Math.round(diffPct))}% vs last month</div>`;
+}
 // mode: 'all' = every outgoing regardless of status, 'done' = only what's actually been spent.
 function categoryBreakdown(m, mode){
   const totals = {};
@@ -985,6 +1045,30 @@ function cssVar(name, fallback){
   return v || fallback;
 }
 
+// A small auto-dismissing confirmation toast, bottom-right of the screen.
+function showToast(title, sub){
+  const stack = document.getElementById('toastStack');
+  if(!stack) return;
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.innerHTML = `
+    <div class="toast-icon ok">✓</div>
+    <div class="toast-body">
+      <div class="toast-title">${escapeHtml(title)}</div>
+      ${sub ? `<div class="toast-sub">${escapeHtml(sub)}</div>` : ''}
+    </div>
+    <button class="toast-close" aria-label="Dismiss">×</button>
+  `;
+  stack.appendChild(el);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add('show')));
+  const dismiss = ()=>{
+    el.classList.remove('show');
+    setTimeout(()=>el.remove(), 250);
+  };
+  el.querySelector('.toast-close').onclick = dismiss;
+  setTimeout(dismiss, 3500);
+}
+
 // ---------------- Receipt scanning (client-side OCR via Tesseract.js) ----------------
 // Loaded lazily from a CDN on first use, never bundled, so a normal page load
 // doesn't pay for it. The photo itself never leaves the browser — Tesseract
@@ -1063,6 +1147,81 @@ function categorySelectHtml(cls, value){
   return `<select class="${cls}" style="border-left:3px solid ${categoryColor(v)};">
     ${OUTGOING_CATEGORIES.map(c=>`<option value="${escapeHtml(c)}" ${c===v?'selected':''}>${categoryIcon(c)} ${escapeHtml(c)}</option>`).join('')}
   </select>`;
+}
+// A custom category "select": a trigger button plus a popover listing every
+// category as a colored icon chip, instead of a plain native <select> (which
+// can't render anything but text in its open menu). cls still identifies the
+// control the same way a <select class="cls"> used to, so call sites that
+// look it up with a class selector keep working.
+function categoryDropdownHtml(cls, value){
+  const v = value || 'Uncategorized';
+  return `<div class="cat-dd ${cls}" data-value="${escapeHtml(v)}" tabindex="0">
+    <div class="cat-dd-trigger" style="border-left:3px solid ${categoryColor(v)};">
+      <span class="cat-dd-chip" style="background:${categoryColor(v)};">${categoryIcon(v)}</span>
+      <span class="cat-dd-label">${escapeHtml(v)}</span>
+      <span class="cat-dd-caret">▾</span>
+    </div>
+    <div class="cat-dd-menu" role="listbox">
+      ${OUTGOING_CATEGORIES.map(c=>`
+        <div class="cat-dd-opt${c===v?' selected':''}" role="option" data-value="${escapeHtml(c)}">
+          <span class="cat-dd-chip" style="background:${categoryColor(c)};">${categoryIcon(c)}</span>
+          <span>${escapeHtml(c)}</span>
+        </div>`).join('')}
+    </div>
+  </div>`;
+}
+// Wires up one categoryDropdownHtml() element's open/close and selection
+// behavior. onChange(newValue) fires after the dropdown's own display has
+// already been updated, mirroring a <select>.onchange handler.
+function initCategoryDropdown(dd, onChange){
+  if(!dd) return;
+  const trigger = dd.querySelector('.cat-dd-trigger');
+  const menu = dd.querySelector('.cat-dd-menu');
+  const close = ()=>dd.classList.remove('open');
+  trigger.onclick = e=>{
+    e.stopPropagation();
+    const willOpen = !dd.classList.contains('open');
+    document.querySelectorAll('.cat-dd.open').forEach(o=>o.classList.remove('open'));
+    if(willOpen) dd.classList.add('open');
+  };
+  dd.querySelectorAll('.cat-dd-opt').forEach(opt=>{
+    opt.onclick = e=>{
+      e.stopPropagation();
+      const val = opt.dataset.value;
+      dd.dataset.value = val;
+      trigger.style.borderLeftColor = categoryColor(val);
+      trigger.querySelector('.cat-dd-chip').style.background = categoryColor(val);
+      trigger.querySelector('.cat-dd-chip').textContent = categoryIcon(val);
+      trigger.querySelector('.cat-dd-label').textContent = val;
+      menu.querySelectorAll('.cat-dd-opt').forEach(o=>o.classList.toggle('selected', o===opt));
+      close();
+      onChange(val);
+    };
+  });
+  dd.onkeydown = e=>{
+    if(e.key==='Enter' || e.key===' '){ e.preventDefault(); trigger.click(); }
+    else if(e.key==='Escape'){ close(); }
+  };
+}
+// Programmatically sets a categoryDropdownHtml() element's value (used by the
+// receipt-scan autofill, which has no user click to drive initCategoryDropdown's
+// own option handler).
+function setCategoryDropdownValue(dd, val){
+  if(!dd) return;
+  const v = OUTGOING_CATEGORIES.includes(val) ? val : 'Uncategorized';
+  dd.dataset.value = v;
+  const trigger = dd.querySelector('.cat-dd-trigger');
+  trigger.style.borderLeftColor = categoryColor(v);
+  trigger.querySelector('.cat-dd-chip').style.background = categoryColor(v);
+  trigger.querySelector('.cat-dd-chip').textContent = categoryIcon(v);
+  trigger.querySelector('.cat-dd-label').textContent = v;
+  dd.querySelectorAll('.cat-dd-opt').forEach(o=>o.classList.toggle('selected', o.dataset.value===v));
+}
+if(!window.__catDdOutsideClickBound){
+  window.__catDdOutsideClickBound = true;
+  document.addEventListener('click', ()=>{
+    document.querySelectorAll('.cat-dd.open').forEach(d=>d.classList.remove('open'));
+  });
 }
 // Optional day-of-month (1-31) an outgoing posts on — powers the spending heatmap.
 // Left blank, an item just isn't placed on any specific day.
@@ -1369,6 +1528,7 @@ function renderSyncIndicator(){
 function renderMonth(){
   const m = ensureMonth(state.currentMonthKey);
   const t = monthTotals(m);
+  const pt = prevTrackedMonthTotals(state.currentMonthKey);
   const [curYear, curMonthNum] = state.currentMonthKey.split('-').map(Number);
   const el = document.getElementById('view-month');
   el.innerHTML = `
@@ -1392,9 +1552,7 @@ function renderMonth(){
         </select>
         <input type="number" step="0.01" id="quickAddAmount" placeholder="Amount" style="max-width:120px;">
         <input type="text" id="quickAddReason" placeholder="Reason (e.g. Bus, Pizza from Sam)" style="max-width:260px;flex:1;min-width:160px;">
-        <select id="quickAddCategory" style="max-width:170px;">
-          ${OUTGOING_CATEGORIES.map(c=>`<option value="${escapeHtml(c)}">${categoryIcon(c)} ${escapeHtml(c)}</option>`).join('')}
-        </select>
+        ${categoryDropdownHtml('quickAddCategory', 'Uncategorized')}
         <button class="btn small" id="quickAddBtn">+ Add</button>
       </div>
       <div class="field-inline" style="margin-top:12px;align-items:center;">
@@ -1414,12 +1572,12 @@ function renderMonth(){
     </div>
 
     <div class="grid">
-      <div class="card"><div class="k">Starting Balance</div><div class="v"><input type="number" step="0.01" id="startingBalanceInput" value="${m.startingBalance}" style="font-size:19px;font-weight:700;padding:4px 6px;"></div><div class="sub">carried from last month</div></div>
-      <div class="card highlight"><div class="k">Current Balance</div><div class="v"><input type="number" step="0.01" id="liveBalanceInput" value="${t.liveBalance}" style="font-size:19px;font-weight:700;padding:4px 6px;color:${t.liveBalance>=0?'var(--green)':'var(--red)'};"></div><div class="sub" id="liveBalanceSub">${t.adjustment ? `${fmt(t.adjustment)} manual adjustment · <a href="#" id="clearAdjustment" style="color:var(--red);text-decoration:underline;">clear</a>` : 'edit directly for deviations — updates as items are marked Done'}</div></div>
-      <div class="card"><div class="k">Total Left Over</div><div class="v ${t.totalLeftOver>=0?'pos':'neg'}" id="totalLeftOverVal">${fmt(t.totalLeftOver)}</div><div class="sub">→ next month's starting balance</div></div>
-      <div class="card"><div class="k">Incoming</div><div class="v pos" id="incomingVal">${fmt(t.allIncoming)}</div><div class="sub" id="incomingSub">${fmt(t.doneIncoming)} done</div></div>
-      <div class="card"><div class="k">Weekly Budget</div><div class="v neg" id="weeklyVal">${fmt(t.weeklyTotal)}</div><div class="sub" id="weeklySub">${fmt(t.doneWeekly)} done</div></div>
-      <div class="card"><div class="k">Outgoings</div><div class="v neg" id="outgoingVal">${fmt(t.allOutgoing)}</div><div class="sub" id="outgoingSub">${fmt(t.doneOutgoing)} done</div></div>
+      <div class="card stagger-card" style="--i:0;"><div class="k">Starting Balance</div><div class="v"><input type="number" step="0.01" id="startingBalanceInput" value="${m.startingBalance}" style="font-size:19px;font-weight:700;padding:4px 6px;"></div><div class="sub">carried from last month</div></div>
+      <div class="card highlight stagger-card" style="--i:1;"><div class="k">Current Balance</div><div class="v"><input type="number" step="0.01" id="liveBalanceInput" value="${t.liveBalance}" style="font-size:19px;font-weight:700;padding:4px 6px;color:${t.liveBalance>=0?'var(--green)':'var(--red)'};"></div><div class="sub" id="liveBalanceSub">${t.adjustment ? `${fmt(t.adjustment)} manual adjustment · <a href="#" id="clearAdjustment" style="color:var(--red);text-decoration:underline;">clear</a>` : 'edit directly for deviations — updates as items are marked Done'}</div><div id="liveBalanceTrend">${trendArrowHtml(t.liveBalance, pt&&pt.liveBalance, 'up')}</div></div>
+      <div class="card stagger-card" style="--i:2;"><div class="k">Total Left Over</div><div class="v ${t.totalLeftOver>=0?'pos':'neg'}" id="totalLeftOverVal">${fmt(t.totalLeftOver)}</div><div class="sub">→ next month's starting balance</div><div id="totalLeftOverTrend">${trendArrowHtml(t.totalLeftOver, pt&&pt.totalLeftOver, 'up')}</div></div>
+      <div class="card stagger-card" style="--i:3;"><div class="k">Incoming</div><div class="v pos" id="incomingVal">${fmt(t.allIncoming)}</div><div class="sub" id="incomingSub">${fmt(t.doneIncoming)} done</div><div id="incomingTrend">${trendArrowHtml(t.allIncoming, pt&&pt.allIncoming, 'up')}</div></div>
+      <div class="card stagger-card" style="--i:4;"><div class="k">Weekly Budget</div><div class="v neg" id="weeklyVal">${fmt(t.weeklyTotal)}</div><div class="sub" id="weeklySub">${fmt(t.doneWeekly)} done</div><div id="weeklyTrend">${trendArrowHtml(t.weeklyTotal, pt&&pt.weeklyTotal, 'down')}</div></div>
+      <div class="card stagger-card" style="--i:5;"><div class="k">Outgoings</div><div class="v neg" id="outgoingVal">${fmt(t.allOutgoing)}</div><div class="sub" id="outgoingSub">${fmt(t.doneOutgoing)} done</div><div id="outgoingTrend">${trendArrowHtml(t.allOutgoing, pt&&pt.allOutgoing, 'down')}</div></div>
     </div>
 
     <div class="panel">
@@ -1506,7 +1664,8 @@ function renderMonth(){
   const quickAddAmount = document.getElementById('quickAddAmount');
   const quickAddReason = document.getElementById('quickAddReason');
   const quickAddType = document.getElementById('quickAddType');
-  const quickAddCategory = document.getElementById('quickAddCategory');
+  const quickAddCategory = document.querySelector('.quickAddCategory');
+  initCategoryDropdown(quickAddCategory, ()=>{});
   const syncQuickAddCategoryVisibility = ()=>{
     quickAddCategory.style.display = quickAddType.value==='out' ? '' : 'none';
   };
@@ -1518,10 +1677,11 @@ function renderMonth(){
     const reason = quickAddReason.value.trim();
     const type = quickAddType.value;
     const entry = {id:uid(), name: reason || (type==='out'?'Spent':'Received'), amount: amt, status:'done', recurring:false, quickAdd:true, ts:Date.now()};
-    if(type==='out'){ entry.category = quickAddCategory.value; m.outgoings.push(entry); } else m.incoming.push(entry);
+    if(type==='out'){ entry.category = quickAddCategory.dataset.value; m.outgoings.push(entry); } else m.incoming.push(entry);
     save();
     quickAddLogExpanded = true;
     renderMonth();
+    showToast(`Added ${fmt(amt)}`, type==='out' ? (entry.category||entry.name) : entry.name);
   };
   document.getElementById('quickAddBtn').onclick = doQuickAdd;
   [quickAddAmount, quickAddReason].forEach(inp=>{
@@ -1548,7 +1708,7 @@ function renderMonth(){
       const parsed = parseReceiptText(text);
       if(parsed.amount) quickAddAmount.value = parsed.amount;
       if(parsed.reason) quickAddReason.value = parsed.reason;
-      if(parsed.category) quickAddCategory.value = parsed.category;
+      if(parsed.category) setCategoryDropdownValue(quickAddCategory, parsed.category);
       receiptStatus.className = 'quick-receipt-status ok';
       receiptStatus.textContent = parsed.amount ? 'Got a guess — check it before adding.' : "Couldn't find a total — fill it in manually.";
     }catch(err){
@@ -1701,7 +1861,7 @@ function renderMonth(){
     outgoingBody.innerHTML = m.outgoings.map(o=>`
       <tr data-id="${o.id}">
         <td class="cell-name"><input class="row-input out-name" type="text" value="${escapeHtml(o.name)}"></td>
-        <td class="cell-category" data-label="Category">${categorySelectHtml('out-category', o.category)}</td>
+        <td class="cell-category" data-label="Category">${categoryDropdownHtml('out-category', o.category)}</td>
         <td class="cell-day" data-label="Day">${dayInputHtml('out-day', o.day)}</td>
         <td data-label="Amount"><input class="row-input out-amount amt-cell" type="number" step="0.01" value="${o.amount}"></td>
         <td data-label="Status">${statusSelectHtml('out-status', o.status)}</td>
@@ -1719,8 +1879,7 @@ function renderMonth(){
       sel.onchange = e=>{ item.status=e.target.value; save(); e.target.className = `out-status status-select status-${e.target.value}`; refreshCards(); };
       const recurSel = tr.querySelector('.out-recur');
       recurSel.onchange = e=>{ item.recurring = (e.target.value==='yes'); if(item.recurring) syncNewRecurringForward(item, state.currentMonthKey, 'outgoings'); save(); e.target.className = `out-recur recur-select ${item.recurring?'recur-yes':'recur-no'}`; };
-      const catSel = tr.querySelector('.out-category');
-      catSel.onchange = e=>{ item.category = e.target.value; propagateOutgoingFieldForward(item, state.currentMonthKey, 'category'); save(); e.target.style.borderLeftColor = categoryColor(item.category); refreshCards(); };
+      initCategoryDropdown(tr.querySelector('.out-category'), val=>{ item.category = val; propagateOutgoingFieldForward(item, state.currentMonthKey, 'category'); save(); refreshCards(); });
       const dayInp = tr.querySelector('.out-day');
       dayInp.onchange = e=>{ item.day = clampDay(e.target.value); e.target.value = item.day||''; propagateOutgoingFieldForward(item, state.currentMonthKey, 'day'); save(); refreshCards(); };
       tr.querySelector('.out-del').onclick = ()=>{ m.outgoings = m.outgoings.filter(x=>x.id!==id); save(); drawOutgoings(); refreshCards(); };
@@ -1744,6 +1903,7 @@ function renderMonth(){
 
   function refreshCards(){
     const t2 = monthTotals(m);
+    const pt2 = prevTrackedMonthTotals(state.currentMonthKey);
     const lbInput = document.getElementById('liveBalanceInput');
     if(document.activeElement !== lbInput) lbInput.value = t2.liveBalance;
     lbInput.style.color = t2.liveBalance>=0 ? 'var(--green)' : 'var(--red)';
@@ -1753,15 +1913,20 @@ function renderMonth(){
     if(clearLink){
       clearLink.onclick = e=>{ e.preventDefault(); m.adjustment = 0; save(); renderMonth(); };
     }
+    document.getElementById('liveBalanceTrend').innerHTML = trendArrowHtml(t2.liveBalance, pt2&&pt2.liveBalance, 'up');
     const tlo = document.getElementById('totalLeftOverVal');
     animateNumberText(tlo, t2.totalLeftOver);
     tlo.className = 'v ' + (t2.totalLeftOver>=0?'pos':'neg');
+    document.getElementById('totalLeftOverTrend').innerHTML = trendArrowHtml(t2.totalLeftOver, pt2&&pt2.totalLeftOver, 'up');
     document.getElementById('incomingVal').textContent = fmt(t2.allIncoming);
     document.getElementById('incomingSub').textContent = `${fmt(t2.doneIncoming)} done`;
+    document.getElementById('incomingTrend').innerHTML = trendArrowHtml(t2.allIncoming, pt2&&pt2.allIncoming, 'up');
     document.getElementById('weeklyVal').textContent = fmt(t2.weeklyTotal);
     document.getElementById('weeklySub').textContent = `${fmt(t2.doneWeekly)} done`;
+    document.getElementById('weeklyTrend').innerHTML = trendArrowHtml(t2.weeklyTotal, pt2&&pt2.weeklyTotal, 'down');
     document.getElementById('outgoingVal').textContent = fmt(t2.allOutgoing);
     document.getElementById('outgoingSub').textContent = `${fmt(t2.doneOutgoing)} done`;
+    document.getElementById('outgoingTrend').innerHTML = trendArrowHtml(t2.allOutgoing, pt2&&pt2.allOutgoing, 'down');
     renderMonthCategoryBreakdown(m);
   }
 }
@@ -2416,7 +2581,7 @@ function drawRecurringTable(m, kind){
         </div>
       </td>
       ${kind==='outgoing'
-        ? `<td class="cell-category" data-label="Category">${categorySelectHtml(`recur-category-${kind}`, x.category)}</td><td class="cell-day" data-label="Day">${dayInputHtml(`recur-day-${kind}`, x.day)}</td>`
+        ? `<td class="cell-category" data-label="Category">${categoryDropdownHtml(`recur-category-${kind}`, x.category)}</td><td class="cell-day" data-label="Day">${dayInputHtml(`recur-day-${kind}`, x.day)}</td>`
         : `<td class="cell-category" data-label="Schedule">${scheduleSelectHtml(`recur-schedule-${kind}`, x)}</td>`}
       <td data-label="Amount"><input class="row-input recur-amount-${kind} amt-cell" type="number" step="0.01" value="${x.amount}"></td>
       <td data-label="Status">${statusSelectHtml(`recur-status-${kind}`, x.status)}</td>
@@ -2433,7 +2598,7 @@ function drawRecurringTable(m, kind){
     const sel = tr.querySelector(`.recur-status-${kind}`);
     sel.onchange = e=>{ item.status=e.target.value; save(); e.target.className = `recur-status-${kind} status-select status-${e.target.value}`; };
     const catSel = tr.querySelector(`.recur-category-${kind}`);
-    if(catSel) catSel.onchange = e=>{ item.category = e.target.value; propagateOutgoingFieldForward(item, state.currentMonthKey, 'category'); save(); e.target.style.borderLeftColor = categoryColor(item.category); };
+    if(catSel) initCategoryDropdown(catSel, val=>{ item.category = val; propagateOutgoingFieldForward(item, state.currentMonthKey, 'category'); save(); });
     const dayInp = tr.querySelector(`.recur-day-${kind}`);
     if(dayInp) dayInp.onchange = e=>{ item.day = clampDay(e.target.value); e.target.value = item.day||''; propagateOutgoingFieldForward(item, state.currentMonthKey, 'day'); save(); };
     const schedSel = tr.querySelector(`.recur-schedule-${kind}`);
