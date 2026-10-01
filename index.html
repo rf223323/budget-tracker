@@ -21,11 +21,6 @@
   }
   /* Themes — each sets the same token set; --on-accent is the text color used
      on top of the accent gradient (buttons, logo), only Slate needs it dark. */
-  [data-theme="emerald"]{
-    --bg:#0a1510; --panel:#0f1f17; --panel2:#15291e; --border:#20392a;
-    --text:#e8f5ee; --muted:#7fa693; --accent:#34d399; --accent2:#10b981;
-    --green:#6ee7b7; --red:#fb7185; --amber:#fbbf24;
-  }
   [data-theme="sunset"]{
     --bg:#1a1310; --panel:#241a15; --panel2:#2e221b; --border:#453526;
     --text:#fbeee3; --muted:#b89a85; --accent:#fb923c; --accent2:#f43f5e;
@@ -51,6 +46,17 @@
     --text:#2b2620; --muted:#79705f; --accent:#c2410c; --accent2:#9a3412;
     --green:#15803d; --red:#be123c; --amber:#b45309;
     --shadow:0 8px 24px rgba(43,38,32,.08);
+  }
+  [data-theme="soft"]{
+    --bg:#faf9fc; --panel:#ffffff; --panel2:#f4f2fa; --border:#e8e4f3;
+    --text:#1c1a22; --muted:#8a8594; --accent:#a78bfa; --accent2:#f0abfc;
+    --green:#16a34a; --red:#e11d48; --amber:#d97706; --on-accent:#1c1a22;
+    --shadow:0 8px 24px rgba(90,70,150,.08);
+  }
+  [data-theme="ignite"]{
+    --bg:#0a0a0a; --panel:#161616; --panel2:#1f1f1f; --border:#2e2e2e;
+    --text:#f5f5f0; --muted:#9a9a94; --accent:#ffb020; --accent2:#ff6a1a;
+    --green:#4ade80; --red:#ff4d4d; --amber:#ffd166; --on-accent:#141414;
   }
   *{box-sizing:border-box;}
   body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);transition:background .2s,color .2s;}
@@ -322,12 +328,13 @@
       <label style="font-size:11px;color:var(--muted);margin-top:4px;">Theme</label>
       <select id="themeSelect" style="width:100%;">
         <option value="midnight" style="background:#161d2e;color:#e8ecf7;">Midnight</option>
-        <option value="emerald" style="background:#0f1f17;color:#e8f5ee;">Emerald</option>
         <option value="sunset" style="background:#241a15;color:#fbeee3;">Sunset</option>
         <option value="rose" style="background:#20151d;color:#fbe8f3;">Rose</option>
         <option value="ocean" style="background:#0d1f23;color:#e3f6f8;">Ocean Teal</option>
         <option value="slate" style="background:#1a1a1a;color:#f0f0f0;">Slate Mono</option>
         <option value="paper" style="background:#ffffff;color:#2b2620;">Paper</option>
+        <option value="soft" style="background:#f4f2fa;color:#1c1a22;">Soft Gradient</option>
+        <option value="ignite" style="background:#161616;color:#f5f5f0;">Ignite</option>
       </select>
     </div>
   </div>
@@ -510,7 +517,7 @@ function defaultState(){
   state.months[key] = freshMonth(0);
   return state;
 }
-const THEME_NAMES = ['midnight','emerald','sunset','rose','ocean','slate','paper'];
+const THEME_NAMES = ['midnight','sunset','rose','ocean','slate','paper','soft','ignite'];
 function normalizeState(){
   if(state.theme==='dark') state.theme = 'midnight';
   if(state.theme==='light') state.theme = 'paper';
