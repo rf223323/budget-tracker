@@ -188,6 +188,9 @@
   .heatmap-legend{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);margin-top:14px;}
   .heatmap-legend-swatch{width:14px;height:14px;border-radius:4px;border:1px solid var(--border);}
   .schedule-hint{font-size:11px;color:var(--muted);margin-top:4px;}
+  .quick-receipt-status{font-size:12px;color:var(--muted);}
+  .quick-receipt-status.error{color:var(--red);}
+  .quick-receipt-status.ok{color:var(--green);}
   .cell-name-flex{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 10px;}
   .cell-name-flex .row-input{flex:1 1 140px;width:auto;}
   .cell-name-flex .schedule-hint{margin-top:0;white-space:nowrap;flex:0 0 auto;}
@@ -917,6 +920,68 @@ function cssVar(name, fallback){
   const v = getComputedStyle(document.body).getPropertyValue(name).trim();
   return v || fallback;
 }
+
+// ---------------- Receipt scanning (client-side OCR via Tesseract.js) ----------------
+// Loaded lazily from a CDN on first use, never bundled, so a normal page load
+// doesn't pay for it. The photo itself never leaves the browser — Tesseract
+// runs entirely client-side (WASM), only its own library/model files are
+// fetched over the network.
+let tesseractLoadPromise = null;
+function ensureTesseractLoaded(){
+  if(window.Tesseract) return Promise.resolve();
+  if(tesseractLoadPromise) return tesseractLoadPromise;
+  tesseractLoadPromise = new Promise((resolve, reject)=>{
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+    script.onload = resolve;
+    script.onerror = ()=>{ tesseractLoadPromise = null; reject(new Error('Failed to load Tesseract.js')); };
+    document.head.appendChild(script);
+  });
+  return tesseractLoadPromise;
+}
+// Keyword → category guesses from common UK merchant names on a receipt.
+const RECEIPT_CATEGORY_KEYWORDS = [
+  [['tesco','sainsbury','asda','morrisons','lidl','aldi','co-op','coop','waitrose','iceland'], 'Groceries'],
+  [['shell','bp ','esso','texaco','gulf','applegreen','petrol'], 'Transport'],
+  [['costa','starbucks','greggs','mcdonald','kfc','burger king','nando','pret','subway','deliveroo','just eat','uber eats','domino','pizza'], 'Eating Out'],
+  [['boots','superdrug','pharmacy'], 'Health & Fitness'],
+  [['primark','h&m','zara','next retail','asos','jd sports'], 'Shopping'],
+];
+function guessCategoryFromText(lowerText){
+  for(const [keywords, cat] of RECEIPT_CATEGORY_KEYWORDS){
+    if(keywords.some(k=>lowerText.includes(k))) return cat;
+  }
+  return null;
+}
+// Pulls a best-guess total and merchant name out of raw OCR text. Heuristic,
+// not exact — the caller always leaves the result editable before saving.
+function parseReceiptText(raw){
+  const lines = raw.split('\n').map(l=>l.trim()).filter(Boolean);
+  const lowerText = raw.toLowerCase();
+  const totalLineRe = /\b(total|amount due|balance due|to pay|grand total)\b/i;
+  let amount = null;
+  for(const line of lines){
+    if(totalLineRe.test(line)){
+      const m = line.match(/(\d{1,4}\.\d{2})/);
+      if(m){ amount = parseFloat(m[1]); break; }
+    }
+  }
+  if(amount==null){
+    const moneyRe = /(\d{1,4}\.\d{2})\b/g;
+    let max = null, m;
+    while((m = moneyRe.exec(raw))){
+      const v = parseFloat(m[1]);
+      if(!isNaN(v) && (max===null || v>max)) max = v;
+    }
+    amount = max;
+  }
+  let reason = '';
+  for(const line of lines.slice(0,6)){
+    const clean = line.replace(/[^a-zA-Z0-9&' .-]/g,'').trim();
+    if(clean.length>=3 && !/^\d+$/.test(clean)){ reason = clean; break; }
+  }
+  return {amount, reason, category: guessCategoryFromText(lowerText)};
+}
 function statusSelectHtml(cls, value){
   return `<select class="${cls} status-select status-${value}">
     <option value="none" ${value==='none'?'selected':''}>None</option>
@@ -1251,7 +1316,14 @@ function renderMonth(){
         </select>
         <button class="btn small" id="quickAddBtn">+ Add</button>
       </div>
-      <button class="btn secondary small" id="quickAddLogToggle" style="margin-top:12px;">Show log</button>
+      <div class="field-inline" style="margin-top:12px;align-items:center;">
+        <label class="btn secondary small" style="cursor:pointer;margin:0;">
+          📷 Scan Receipt
+          <input type="file" id="receiptInput" accept="image/*" capture="environment" style="display:none;">
+        </label>
+        <button class="btn secondary small" id="quickAddLogToggle">Show log</button>
+        <span class="quick-receipt-status" id="receiptStatus"></span>
+      </div>
       <div id="quickAddLogWrap" class="hidden" style="margin-top:10px;">
         <table>
           <thead><tr><th style="width:70px;">Type</th><th>Reason</th><th style="width:110px;">Amount</th><th style="width:36px;"></th></tr></thead>
@@ -1374,6 +1446,37 @@ function renderMonth(){
   [quickAddAmount, quickAddReason].forEach(inp=>{
     inp.addEventListener('keydown', e=>{ if(e.key==='Enter') doQuickAdd(); });
   });
+
+  const receiptInput = document.getElementById('receiptInput');
+  const receiptStatus = document.getElementById('receiptStatus');
+  receiptInput.onchange = async e=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    quickAddType.value = 'out';
+    syncQuickAddCategoryVisibility();
+    receiptStatus.className = 'quick-receipt-status';
+    receiptStatus.textContent = 'Loading scanner…';
+    try{
+      await ensureTesseractLoaded();
+      receiptStatus.textContent = 'Scanning… 0%';
+      const { data: { text } } = await Tesseract.recognize(file, 'eng', {
+        logger: info => {
+          if(info.status==='recognizing text') receiptStatus.textContent = `Scanning… ${Math.round(info.progress*100)}%`;
+        }
+      });
+      const parsed = parseReceiptText(text);
+      if(parsed.amount) quickAddAmount.value = parsed.amount;
+      if(parsed.reason) quickAddReason.value = parsed.reason;
+      if(parsed.category) quickAddCategory.value = parsed.category;
+      receiptStatus.className = 'quick-receipt-status ok';
+      receiptStatus.textContent = parsed.amount ? 'Got a guess — check it before adding.' : "Couldn't find a total — fill it in manually.";
+    }catch(err){
+      console.error('Receipt scan failed', err);
+      receiptStatus.className = 'quick-receipt-status error';
+      receiptStatus.textContent = 'Could not read that image — try a clearer photo, or enter it manually.';
+    }
+    receiptInput.value = '';
+  };
 
   const quickAddLogToggle = document.getElementById('quickAddLogToggle');
   const quickAddLogWrap = document.getElementById('quickAddLogWrap');
