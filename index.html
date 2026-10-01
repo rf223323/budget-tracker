@@ -270,6 +270,10 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>
       Trend
     </div>
+    <div class="nav-item" data-view="quarterly">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="8" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/><rect x="13" y="13" width="8" height="8" rx="1"/></svg>
+      Quarterly
+    </div>
     <div class="nav-item" data-view="recurring">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
       Recurring
@@ -312,6 +316,7 @@
     <div id="view-month" class="view"></div>
     <div id="view-calendar" class="view hidden"></div>
     <div id="view-trend" class="view hidden"></div>
+    <div id="view-quarterly" class="view hidden"></div>
     <div id="view-recurring" class="view hidden"></div>
     <div id="view-pots" class="view hidden"></div>
     <div id="view-settings" class="view hidden"></div>
@@ -1117,13 +1122,14 @@ function render(){
   profileSel.innerHTML = profilesMeta.profiles.map(p=>`<option value="${p.id}" ${p.id===profilesMeta.activeId?'selected':''}>${escapeHtml(p.name)}</option>`).join('');
   profileSel.onchange = e=>switchProfile(e.target.value);
   renderSyncIndicator();
-  const titles = {month:'Month Tracker', calendar:'Calendar', trend:'Trend', recurring:'Recurring', pots:'Pots', settings:'Settings'};
+  const titles = {month:'Month Tracker', calendar:'Calendar', trend:'Trend', quarterly:'Quarterly', recurring:'Recurring', pots:'Pots', settings:'Settings'};
   document.getElementById('viewTitle').textContent = titles[currentView];
   document.querySelectorAll('.view').forEach(v=>v.classList.add('hidden'));
   document.getElementById('view-'+currentView).classList.remove('hidden');
   if(currentView==='month') renderMonth();
   if(currentView==='calendar') renderCalendar();
   if(currentView==='trend') renderTrend();
+  if(currentView==='quarterly') renderQuarterly();
   if(currentView==='recurring') renderRecurring();
   if(currentView==='pots') renderPots();
   if(currentView==='settings') renderSettings();
@@ -2015,6 +2021,98 @@ function renderSpendingHeatmap(){
     c.addEventListener('mousemove', evt=>showChartTooltip(evt, c.dataset.tip));
     c.addEventListener('mouseleave', hideChartTooltip);
   });
+}
+
+// ---------------- Quarterly ----------------
+function quarterOfMonth(mm){ return Math.floor((mm-1)/3)+1; }
+function renderQuarterly(){
+  const el = document.getElementById('view-quarterly');
+  const keys = Object.keys(state.months).sort();
+  if(!keys.length){
+    el.innerHTML = '<div class="panel"><div class="empty">No months tracked yet — head to Month Tracker to get started.</div></div>';
+    return;
+  }
+  const groups = {};
+  keys.forEach(k=>{
+    const [y, mo] = k.split('-').map(Number);
+    const q = quarterOfMonth(mo);
+    const gk = `${y}-Q${q}`;
+    (groups[gk] = groups[gk] || {year:y, q, monthKeys:[]}).monthKeys.push(k);
+  });
+  const groupKeys = Object.keys(groups).sort();
+  const quarterLabel = q => ['Jan–Mar','Apr–Jun','Jul–Sep','Oct–Dec'][q-1];
+
+  const quarterStats = groupKeys.map(gk=>{
+    const g = groups[gk];
+    const monthKeys = g.monthKeys.slice().sort();
+    let income=0, spending=0, saved=0;
+    const catTotals = {};
+    monthKeys.forEach(mk=>{
+      const m = state.months[mk];
+      const t = monthTotals(m);
+      income += t.doneIncoming;
+      spending += t.doneOutgoing + t.doneWeekly;
+      saved += t.doneSavings + t.doneStocks;
+      m.outgoings.forEach(o=>{
+        if(o.status!=='done') return;
+        const cat = o.category || 'Uncategorized';
+        catTotals[cat] = (catTotals[cat]||0) + (Number(o.amount)||0);
+      });
+    });
+    const firstM = state.months[monthKeys[0]];
+    const lastM = state.months[monthKeys[monthKeys.length-1]];
+    const startBalance = round2(firstM.startingBalance);
+    const endBalance = round2(monthTotals(lastM).liveBalance);
+    const net = round2(income - spending - saved);
+    const savingsRate = income>0 ? Math.round(saved/income*100) : 0;
+    const catRows = Object.entries(catTotals).filter(([,amt])=>amt>0)
+      .map(([category,amount])=>({category, amount:round2(amount)}))
+      .sort((a,b)=>b.amount-a.amount);
+    return {gk, year:g.year, q:g.q, monthKeys, income:round2(income), spending:round2(spending), saved:round2(saved), net, startBalance, endBalance, savingsRate, catRows};
+  });
+
+  el.innerHTML = `
+    <div class="panel">
+      <div class="panel-head"><h2>Income vs Spending by Quarter</h2><span class="hint">based on what's marked Done</span></div>
+      <div id="quarterlyChart"></div>
+    </div>
+    ${quarterStats.slice().reverse().map(qs=>`
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Q${qs.q} ${qs.year} <span style="font-weight:400;color:var(--muted);font-size:13px;">(${quarterLabel(qs.q)})</span></h2>
+          <span class="hint">${qs.monthKeys.length} month${qs.monthKeys.length!==1?'s':''} tracked</span>
+        </div>
+        <div class="grid">
+          <div class="card"><div class="k">Income</div><div class="v pos">${fmt(qs.income)}</div><div class="sub">marked Done</div></div>
+          <div class="card"><div class="k">Spending</div><div class="v neg">${fmt(qs.spending)}</div><div class="sub">outgoings + weekly, Done</div></div>
+          <div class="card"><div class="k">Saved</div><div class="v pos">${fmt(qs.saved)}</div><div class="sub">savings + stocks, Done</div></div>
+          <div class="card highlight"><div class="k">Net Change</div><div class="v ${qs.net>=0?'pos':'neg'}">${fmt(qs.net)}</div><div class="sub">${qs.savingsRate}% savings rate</div></div>
+          <div class="card"><div class="k">Starting Balance</div><div class="v">${fmt(qs.startBalance)}</div><div class="sub">start of quarter</div></div>
+          <div class="card"><div class="k">Ending Balance</div><div class="v" style="color:${qs.endBalance>=0?'var(--green)':'var(--red)'};">${fmt(qs.endBalance)}</div><div class="sub">end of quarter (live)</div></div>
+        </div>
+        ${qs.catRows.length ? `
+          <div class="formula-note" style="margin-top:0;margin-bottom:8px;">Spending by category this quarter</div>
+          ${qs.catRows.slice(0,6).map(r=>`
+            <div class="cat-bar-row">
+              <div class="cat-bar-label"><span class="cat-dot" style="background:${categoryColor(r.category)};"></span><span style="margin-right:5px;">${categoryIcon(r.category)}</span>${escapeHtml(r.category)}</div>
+              <div class="cat-bar-track"><div class="cat-bar-fill" style="width:${qs.catRows[0].amount?(r.amount/qs.catRows[0].amount*100).toFixed(1):0}%;background:${categoryColor(r.category)};"></div></div>
+              <div class="cat-bar-amt">${fmt(r.amount)}</div>
+            </div>
+          `).join('')}
+        ` : ''}
+      </div>
+    `).join('')}
+  `;
+  if(quarterStats.length>=2){
+    const labels = quarterStats.map(qs=>`Q${qs.q} '${String(qs.year).slice(2)}`);
+    lineChart(document.getElementById('quarterlyChart'), [
+      {color:'#3ecf8e', name:'Income', points: quarterStats.map((qs,i)=>({x:labels[i], label:`Q${qs.q} ${qs.year}`, y:qs.income}))},
+      {color:'#ff5c7a', name:'Spending', points: quarterStats.map((qs,i)=>({x:labels[i], label:`Q${qs.q} ${qs.year}`, y:qs.spending}))},
+      {color:'#5b8cff', name:'Net', dashed:true, points: quarterStats.map((qs,i)=>({x:labels[i], label:`Q${qs.q} ${qs.year}`, y:qs.net}))}
+    ], {height:220});
+  } else {
+    document.getElementById('quarterlyChart').innerHTML = '<div class="empty">Track at least two quarters to see a trend line.</div>';
+  }
 }
 
 // ---------------- Recurring ----------------
