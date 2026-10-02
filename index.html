@@ -165,6 +165,8 @@
   .cat-dd-opt{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:7px;font-size:13px;color:var(--text);cursor:pointer;}
   .cat-dd-opt:hover{background:color-mix(in srgb, var(--accent) 12%, transparent);}
   .cat-dd-opt.selected{background:color-mix(in srgb, var(--accent) 20%, transparent);font-weight:600;}
+  .cell-summary{display:none;}
+  td.cell-category .cat-dd{display:block;width:140px;}
   .row-input{border:none;background:transparent;padding:4px 6px;width:100%;}
   .row-input:focus{background:var(--panel2);border-radius:6px;}
   .amt-cell{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
@@ -464,6 +466,27 @@
     .responsive-table td.cell-del{flex:0 0 auto;margin-left:auto;}
     .responsive-table td[data-label]::before{content:attr(data-label);display:block;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin-bottom:3px;}
     .responsive-table .empty{padding:14px 4px;}
+
+    /* Outgoings: one-line summary per row, tap to expand into a compact editor. */
+    .out-row{gap:8px 6px;}
+    .out-row td.cell-summary{display:flex;align-items:center;gap:10px;order:0;flex:1 1 0;min-width:0;cursor:pointer;}
+    .out-row td.cell-del{order:1;flex:0 0 auto;margin-left:0;}
+    .out-row td.cell-name{order:2;flex:1 1 100%;}
+    .out-row td.cell-category{order:3;flex:1 1 calc(100% - 82px);min-width:0;}
+    .out-row td.cell-day{order:3;flex:0 0 74px;}
+    .out-row td:not(.cell-summary):not(.cell-name):not(.cell-category):not(.cell-day):not(.cell-del){order:4;flex:1 1 84px;min-width:84px;}
+    .out-row td:not(.cell-summary)[data-label] select,.out-row td:not(.cell-summary)[data-label] input.amt-cell{width:100%;}
+    .out-row td:not(.cell-summary)[data-label] select{padding:7px 4px;font-size:12px;}
+    .out-row.collapsed{padding:9px 10px;}
+    .out-row.collapsed td:not(.cell-summary){display:none;}
+    .cs-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;}
+    .cs-name{font-size:14.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .cs-sub{font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .cs-amt{font-size:14px;font-weight:700;white-space:nowrap;}
+    .cs-status{width:18px;height:18px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;border:2px solid color-mix(in srgb, var(--amber) 70%, transparent);}
+    .cs-status.done{background:var(--green);border-color:var(--green);color:#06281a;}
+    .cs-caret{font-size:10px;color:var(--muted);transition:transform .15s ease;flex-shrink:0;}
+    .out-row:not(.collapsed) .cs-caret{transform:rotate(180deg);}
   }
   @media (max-width:420px){
     .grid{grid-template-columns:1fr;}
@@ -2038,6 +2061,20 @@ function renderSyncIndicator(){
   }
 }
 
+// Phone layout collapses each outgoing to a one-line summary; ids here are the
+// ones currently expanded for editing.
+const expandedOutRows = new Set();
+function outgoingSummaryHtml(o){
+  const cat = o.category || 'Uncategorized';
+  const bits = [escapeHtml(cat)];
+  if(o.day) bits.push(`day ${o.day}`);
+  if(o.recurring) bits.push('↻');
+  return `<span class="cat-dd-chip" style="background:${categoryColor(cat)};">${categoryIcon(cat)}</span>
+    <span class="cs-main"><span class="cs-name">${escapeHtml(o.name||'Unnamed')}</span><span class="cs-sub">${bits.join(' · ')}</span></span>
+    <span class="cs-amt">${escapeHtml(fmt(Number(o.amount)||0))}</span>
+    <span class="cs-status ${o.status==='done'?'done':'none'}" title="${o.status==='done'?'Done':'Not done yet'}">${o.status==='done'?'✓':''}</span>
+    <span class="cs-caret">▾</span>`;
+}
 function refreshSafeSpend(){
   const panel = document.getElementById('safeSpend');
   if(!panel) return;
@@ -2411,7 +2448,8 @@ function renderMonth(){
   const outgoingBody = document.getElementById('outgoingBody');
   function drawOutgoings(){
     outgoingBody.innerHTML = m.outgoings.map(o=>`
-      <tr data-id="${o.id}">
+      <tr data-id="${o.id}" class="out-row${expandedOutRows.has(o.id)?'':' collapsed'}">
+        <td class="cell-summary" role="button" tabindex="0" aria-label="Show or hide details">${outgoingSummaryHtml(o)}</td>
         <td class="cell-name"><input class="row-input out-name" type="text" value="${escapeHtml(o.name)}"></td>
         <td class="cell-category" data-label="Category">${categoryDropdownHtml('out-category', o.category)}</td>
         <td class="cell-day" data-label="Day">${dayInputHtml('out-day', o.day)}</td>
@@ -2425,21 +2463,32 @@ function renderMonth(){
       const id = tr.dataset.id;
       const item = m.outgoings.find(x=>x.id===id);
       if(!item) return;
-      tr.querySelector('.out-name').oninput = e=>{ item.name=e.target.value; save(); };
-      tr.querySelector('.out-amount').oninput = e=>{ item.amount=Number(e.target.value); save(); refreshCards(); };
+      const summary = tr.querySelector('.cell-summary');
+      const refreshSummary = ()=>{ summary.innerHTML = outgoingSummaryHtml(item); };
+      const toggleRow = ()=>{
+        const open = tr.classList.contains('collapsed');
+        tr.classList.toggle('collapsed', !open);
+        if(open) expandedOutRows.add(id); else expandedOutRows.delete(id);
+      };
+      summary.onclick = toggleRow;
+      summary.onkeydown = e=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); toggleRow(); } };
+      tr.querySelector('.out-name').oninput = e=>{ item.name=e.target.value; save(); refreshSummary(); };
+      tr.querySelector('.out-amount').oninput = e=>{ item.amount=Number(e.target.value); save(); refreshCards(); refreshSummary(); };
       const sel = tr.querySelector('.out-status');
-      sel.onchange = e=>{ item.status=e.target.value; save(); e.target.className = `out-status status-select status-${e.target.value}`; refreshCards(); };
+      sel.onchange = e=>{ item.status=e.target.value; save(); e.target.className = `out-status status-select status-${e.target.value}`; refreshCards(); refreshSummary(); };
       const recurSel = tr.querySelector('.out-recur');
-      recurSel.onchange = e=>{ item.recurring = (e.target.value==='yes'); if(item.recurring) syncNewRecurringForward(item, state.currentMonthKey, 'outgoings'); save(); e.target.className = `out-recur recur-select ${item.recurring?'recur-yes':'recur-no'}`; };
-      initCategoryDropdown(tr.querySelector('.out-category'), val=>{ item.category = val; propagateOutgoingFieldForward(item, state.currentMonthKey, 'category'); save(); refreshCards(); });
+      recurSel.onchange = e=>{ item.recurring = (e.target.value==='yes'); if(item.recurring) syncNewRecurringForward(item, state.currentMonthKey, 'outgoings'); save(); e.target.className = `out-recur recur-select ${item.recurring?'recur-yes':'recur-no'}`; refreshSummary(); };
+      initCategoryDropdown(tr.querySelector('.out-category'), val=>{ item.category = val; propagateOutgoingFieldForward(item, state.currentMonthKey, 'category'); save(); refreshCards(); refreshSummary(); });
       const dayInp = tr.querySelector('.out-day');
-      dayInp.onchange = e=>{ item.day = clampDay(e.target.value); e.target.value = item.day||''; propagateOutgoingFieldForward(item, state.currentMonthKey, 'day'); save(); refreshCards(); };
-      tr.querySelector('.out-del').onclick = ()=>{ m.outgoings = m.outgoings.filter(x=>x.id!==id); save(); drawOutgoings(); refreshCards(); };
+      dayInp.onchange = e=>{ item.day = clampDay(e.target.value); e.target.value = item.day||''; propagateOutgoingFieldForward(item, state.currentMonthKey, 'day'); save(); refreshCards(); refreshSummary(); };
+      tr.querySelector('.out-del').onclick = ()=>{ m.outgoings = m.outgoings.filter(x=>x.id!==id); expandedOutRows.delete(id); save(); drawOutgoings(); refreshCards(); };
     });
   }
   drawOutgoings();
   document.getElementById('addOutgoingBtn').onclick = ()=>{
-    m.outgoings.push({id:uid(), name:'New outgoing', amount:0, status:'none', recurring:false, category:'Uncategorized'});
+    const newItem = {id:uid(), name:'New outgoing', amount:0, status:'none', recurring:false, category:'Uncategorized'};
+    m.outgoings.push(newItem);
+    expandedOutRows.add(newItem.id);
     save(); drawOutgoings(); refreshCards();
   };
 
