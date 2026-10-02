@@ -326,8 +326,71 @@
   .score-row .sr-bar{height:6px;border-radius:999px;background:color-mix(in srgb, var(--text) 10%, transparent);margin:7px 0 6px;}
   .score-row .sr-bar i{display:block;height:100%;min-width:4px;border-radius:999px;background:var(--c);box-shadow:0 0 10px color-mix(in srgb, var(--c) 70%, transparent);transition:width .9s ease;}
   .score-row .sr-note{font-size:11.5px;color:var(--muted);}
+  /* Search */
+  .search-overlay{position:fixed;inset:0;z-index:130;display:none;align-items:flex-start;justify-content:center;padding-top:7vh;background:rgba(0,0,0,.55);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);}
+  .search-overlay.open{display:flex;}
+  .so-panel{width:min(760px,94vw);max-height:84vh;display:flex;flex-direction:column;border-radius:24px;background:var(--panel);border:1px solid var(--border);box-shadow:0 30px 80px rgba(0,0,0,.6);overflow:hidden;}
+  .so-input{display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid var(--border);}
+  .so-input input{flex:1;min-width:0;border:none;background:none;outline:none;box-shadow:none;padding:0;font:inherit;font-size:19px;font-weight:700;color:var(--text);-webkit-appearance:none;appearance:none;}
+  .so-input input::-webkit-search-cancel-button{display:none;}
+  .so-esc{padding:4px 9px;border-radius:8px;border:1px solid var(--border);font-size:11px;font-weight:700;color:var(--muted);}
+  .so-clear{display:none;width:20px;height:20px;border-radius:50%;border:none;background:var(--border);color:var(--text);align-items:center;justify-content:center;cursor:pointer;padding:0;}
+  .so-clear.show{display:flex;}
+  .so-cancel{display:none;border:none;background:none;color:var(--accent);font:inherit;font-size:14px;font-weight:700;cursor:pointer;padding:0;}
+  .so-filters{display:flex;align-items:center;gap:8px;padding:12px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+  .so-filters:empty{display:none;}
+  .so-chip{display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border-radius:999px;border:1px solid var(--border);background:var(--panel2);color:var(--text);font:inherit;font-size:12.5px;font-weight:700;cursor:pointer;}
+  .so-chip small{font-size:11px;opacity:.75;font-weight:700;}
+  .so-chip.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent);}
+  .so-spacer{flex:1;}
+  .so-sel{padding:6px 10px;border-radius:10px;border:1px solid var(--border);background:var(--panel2);color:var(--text);font:inherit;font-size:12px;font-weight:600;cursor:pointer;max-width:170px;}
+  .so-body{flex:1;overflow-y:auto;padding:6px 12px 12px;min-height:120px;}
+  .so-sum{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 8px 4px;font-size:12.5px;color:var(--muted);}
+  .so-sum b{color:var(--text);font-size:14px;margin-left:4px;}
+  .so-month{padding:12px 8px 6px;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
+  .so-row{display:flex;align-items:center;gap:13px;padding:10px;border-radius:14px;border:1px solid transparent;cursor:pointer;}
+  .so-row:hover,.so-row.sel{background:color-mix(in srgb, var(--accent) 9%, var(--panel2));border-color:color-mix(in srgb, var(--accent) 30%, var(--border));}
+  .so-row.cur{border-color:color-mix(in srgb, var(--accent) 35%, var(--border));}
+  .so-info{flex:1;min-width:0;}
+  .so-name{font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .so-name mark{background:color-mix(in srgb, var(--accent) 30%, transparent);color:inherit;border-radius:4px;padding:0 2px;}
+  .so-meta{font-size:12px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .so-st{padding:4px 11px;border-radius:999px;font-size:11.5px;font-weight:800;white-space:nowrap;}
+  .so-st.done{background:color-mix(in srgb, var(--green) 14%, transparent);color:var(--green);}
+  .so-st.none{background:color-mix(in srgb, var(--amber) 14%, transparent);color:var(--amber);}
+  .so-amt{min-width:84px;text-align:right;font-size:14px;font-weight:800;white-space:nowrap;}
+  .so-amt.in{color:var(--green);}
+  .so-empty{padding:34px 10px;text-align:center;color:var(--muted);font-size:13px;}
+  .so-h{padding:12px 8px 8px;font-size:11px;font-weight:800;letter-spacing:.08em;color:var(--muted);}
+  .so-recents{display:flex;flex-wrap:wrap;gap:8px;padding:0 8px;}
+  .so-quick{display:flex;flex-direction:column;gap:8px;padding:0 4px;}
+  .so-quick .so-row{background:var(--panel2);border-color:var(--border);}
+  .so-qn{font-size:12px;font-weight:800;color:var(--muted);}
+  .so-foot{display:flex;align-items:center;gap:16px;padding:11px 20px;border-top:1px solid var(--border);font-size:11.5px;color:var(--muted);}
+  .so-foot b{color:var(--text);}
+  .so-foot-r{margin-left:auto;}
+  @keyframes rowFlash{0%{box-shadow:0 0 0 0 color-mix(in srgb, var(--accent) 80%, transparent);background:color-mix(in srgb, var(--accent) 22%, transparent);}100%{box-shadow:0 0 0 14px transparent;background:transparent;}}
+  .row-flash{animation:rowFlash 1.6s ease-out 1;}
+  @media (max-width:700px){
+    .search-overlay{padding-top:0;align-items:stretch;background:var(--bg);-webkit-backdrop-filter:none;backdrop-filter:none;}
+    .so-panel{width:100%;max-height:none;height:100%;border-radius:0;border:none;box-shadow:none;background:var(--bg);}
+    .so-input{padding:calc(14px + env(safe-area-inset-top)) 16px 12px;border-bottom:none;}
+    .so-input input{font-size:16px;background:var(--panel);border:1px solid color-mix(in srgb, var(--accent) 55%, var(--border));border-radius:16px;height:46px;padding:0 14px;flex:1;}
+    .so-esc,.so-foot{display:none;}
+    .so-cancel{display:block;}
+    .so-clear.show{position:absolute;right:76px;}
+    .so-filters{padding:0 16px 10px;border-bottom:none;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;}
+    .so-filters::-webkit-scrollbar{display:none;}
+    .so-chip,.so-sel{flex-shrink:0;}
+    .so-body{padding:0 12px calc(16px + env(safe-area-inset-bottom));}
+    .so-st{display:none;}
+    .so-amt{min-width:0;}
+    .so-row{background:var(--panel);border-color:var(--border);margin-bottom:7px;}
+    .so-spacer{display:none;}
+  }
   .recap-empty{text-align:center;color:var(--muted);font-size:13px;padding:18px 0 6px;}
   #newMonthBtn{white-space:nowrap;}
+  @media (max-width:520px){.topbar > div:last-child{gap:6px !important;}.topbar .btn{padding:8px 9px;}}
   @media (max-width:520px){.nm-text{display:none;}.recap-btn-text{display:none;}.recap-tile{padding:10px 9px;}.recap-tile .v{font-size:13px;}}
   .toast-stack{position:fixed;right:18px;bottom:18px;z-index:200;display:flex;flex-direction:column-reverse;gap:10px;pointer-events:none;}
   .toast{pointer-events:auto;display:flex;align-items:center;gap:12px;background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;box-shadow:0 12px 32px rgba(0,0,0,.35);max-width:320px;
@@ -948,6 +1011,7 @@
         </div>
         <button class="btn secondary" id="recapBtn" title="Recap of this month"><svg class="hero-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg><span class="recap-btn-text"> Recap</span></button>
         <button class="btn secondary" id="scoreBtn" title="Monthly score"><svg class="hero-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg><span class="recap-btn-text"> Score</span></button>
+        <button class="btn secondary" id="searchBtn" title="Search (Ctrl/⌘ K)" aria-label="Search"><svg class="hero-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
         <button class="btn" id="newMonthBtn">+ New<span class="nm-text"> Month</span></button>
       </div>
     </div>
@@ -975,6 +1039,21 @@
   <button class="bn-item" data-view="trend"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></svg>Trend</button>
   <button class="bn-item" data-view="pots"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16v12H4zM4 7l2-3h12l2 3M15 13h2"/></svg>Pots</button>
 </nav>
+
+<div class="search-overlay" id="searchOverlay" aria-hidden="true">
+  <div class="so-panel" role="dialog" aria-label="Search">
+    <div class="so-input">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input type="search" id="searchInput" placeholder="Search your budget" autocomplete="off" spellcheck="false" aria-label="Search">
+      <button type="button" class="so-clear" id="searchClear" aria-label="Clear"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      <span class="so-esc">Esc</span>
+      <button type="button" class="so-cancel" id="searchCancel">Cancel</button>
+    </div>
+    <div class="so-filters" id="searchFilters"></div>
+    <div class="so-body" id="searchBody"></div>
+    <div class="so-foot"><span><b>↑ ↓</b> move</span><span><b>↵</b> open in month</span><span><b>Esc</b> close</span><span class="so-foot-r">Searches names, categories and amounts</span></div>
+  </div>
+</div>
 
 <div class="toast-stack" id="toastStack"></div>
 
@@ -5484,6 +5563,206 @@ function monthRecapData(key){
   const spendChangePct = prevSpent>=0.01 ? Math.round((spent-prevSpent)/prevSpent*100) : null;
   return {key, prevKey, spent, earned, saved, net, topCat, topIncome, biggest, spendChangePct, active: spent>0 || earned>0};
 }
+// ---------------- Search ----------------
+const SEARCH_RECENT_KEY = 'embalance.recentSearches';
+let searchState = {q:'', type:'all', month:'any', status:'any', min:0, cat:'', overdue:false, sel:0};
+function searchRecents(){
+  try{ const a = JSON.parse(localStorage.getItem(SEARCH_RECENT_KEY)||'[]'); return Array.isArray(a) ? a.slice(0,5) : []; }catch(e){ return []; }
+}
+function searchRemember(q){
+  q = (q||'').trim(); if(!q) return;
+  try{ const a = [q, ...searchRecents().filter(x=>x.toLowerCase()!==q.toLowerCase())].slice(0,5); localStorage.setItem(SEARCH_RECENT_KEY, JSON.stringify(a)); }catch(e){}
+}
+// Every outgoing and incoming item across all months, flattened.
+function searchEntries(){
+  const out = [];
+  Object.keys(state.months).forEach(k=>{
+    const m = state.months[k];
+    const [y, mo] = k.split('-').map(Number);
+    const label = monthLabelFromKey(k);
+    const push = (item, kind)=>{
+      if(item.transfer) return;
+      let date = null;
+      if(item.quickAdd && item.ts) date = new Date(item.ts);
+      else { const d = resolveScheduledDay(item, y, mo); if(d) date = new Date(y, mo-1, d); }
+      const amount = Number(item.amount)||0;
+      const cat = item.category || (kind==='in' ? 'Uncategorized' : 'Uncategorized');
+      out.push({kind, quick:!!item.quickAdd, monthKey:k, monthLabel:label, item, id:item.id, name:item.name||'Unnamed', cat, amount, done:item.status==='done', recurring:!!item.recurring, date,
+        hay: `${item.name||''} ${cat} ${label} ${kind==='in'?'incoming received':'outgoing spend'} ${item.status==='done'?'paid done':'unpaid not paid pending'} ${item.quickAdd?'quick add':''}`.toLowerCase(), amountStr: amount.toFixed(2)});
+    };
+    m.incoming.forEach(i=>push(i,'in'));
+    m.outgoings.forEach(o=>push(o,'out'));
+  });
+  return out;
+}
+function searchTokens(q){ return (q||'').toLowerCase().split(/\s+/).map(t=>t.replace(/^£/,'')).filter(Boolean); }
+function searchMatch(e, st, ignoreType){
+  const today = new Date(); today.setHours(0,0,0,0);
+  const curKey = monthKey(today);
+  if(!ignoreType){
+    if(st.type==='out' && !(e.kind==='out' && !e.quick)) return false;
+    if(st.type==='in' && !(e.kind==='in' && !e.quick)) return false;
+    if(st.type==='quick' && !e.quick) return false;
+  }
+  if(st.month!=='any' && e.monthKey!==st.month) return false;
+  if(st.status==='paid' && !e.done) return false;
+  if(st.status==='unpaid' && e.done) return false;
+  if(st.min && e.amount < st.min) return false;
+  if(st.cat && e.cat!==st.cat) return false;
+  if(st.overdue){
+    if(e.kind!=='out' || e.done || e.quick) return false;
+    const past = e.monthKey<curKey || (e.date && e.date<today);
+    if(!past) return false;
+  }
+  return searchTokens(st.q).every(t=> e.hay.includes(t) || (/^[0-9.]+$/.test(t) && e.amountStr.includes(t)));
+}
+function searchHasCriteria(st){ return !!(st.q.trim() || st.type!=='all' || st.month!=='any' || st.status!=='any' || st.min || st.cat || st.overdue); }
+function searchSorted(list){
+  return list.slice().sort((a,b)=> a.monthKey<b.monthKey ? 1 : a.monthKey>b.monthKey ? -1 : ((a.date?a.date.getTime():9e15)-(b.date?b.date.getTime():9e15)));
+}
+function searchHighlight(name, q){
+  const tokens = searchTokens(q).filter(t=>!/^[0-9.]+$/.test(t) || name.toLowerCase().includes(t));
+  let html = escapeHtml(name);
+  tokens.forEach(t=>{
+    const safe = escapeHtml(t).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    try{ html = html.replace(new RegExp('('+safe+')(?![^<]*>)','ig'), '<mark>$1</mark>'); }catch(e){}
+  });
+  return html;
+}
+function searchResultRowHtml(e, idx, curKey){
+  const cat = e.kind==='in' ? (e.cat==='Uncategorized' ? 'Salary' : e.cat) : e.cat;
+  const dateTxt = e.date ? e.date.toLocaleDateString('en-GB',{weekday:'short', day:'numeric', month:'short'}) : 'No date';
+  const bits = [e.quick ? 'Quick add' : e.cat, dateTxt];
+  if(e.recurring) bits.push('Recurring');
+  const stLabel = e.kind==='in' ? (e.done?'Received':'Not received') : (e.done?'Paid':'Not paid');
+  return `<div class="so-row${idx===searchState.sel?' sel':''}${e.monthKey===curKey?' cur':''}" data-idx="${idx}">
+    ${catTile(cat,'md')}
+    <div class="so-info"><div class="so-name">${searchHighlight(e.name, searchState.q)}</div><div class="so-meta">${escapeHtml(bits.join(' · '))}</div></div>
+    <span class="so-st ${e.done?'done':'none'}">${stLabel}</span>
+    <div class="so-amt${e.kind==='in'?' in':''}">${e.kind==='in'?'+':''}${escapeHtml(fmt(e.amount))}</div>
+  </div>`;
+}
+let searchResultsFlat = [];
+function renderSearch(){
+  const filtersEl = document.getElementById('searchFilters');
+  const bodyEl = document.getElementById('searchBody');
+  const entries = searchEntries();
+  const st = searchState;
+  document.getElementById('searchClear').classList.toggle('show', !!st.q);
+  const active = searchHasCriteria(st);
+  if(!active){
+    filtersEl.innerHTML = '';
+    const recents = searchRecents();
+    const count = f => entries.filter(e=>searchMatch(e, {...searchState, q:'', type:'all', month:'any', status:'any', min:0, cat:'', overdue:false, ...f}, true)).length;
+    const curKey = monthKey(new Date());
+    const quick = [
+      {name:'Overdue bills', sub:'Due already, still unpaid', n:count({overdue:true}), set:{overdue:true}, path:'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4M12 13v3M12 18h.01', color:'var(--amber)'},
+      {name:'Over £100', sub:'Your biggest items, all months', n:count({min:100}), set:{min:100}, path:CATEGORY_ICON_PATHS['Bills & Utilities'], color:'var(--red)'},
+      {name:'Subscriptions', sub:'Everything tagged Subscriptions', n:count({cat:'Subscriptions'}), set:{cat:'Subscriptions'}, path:CATEGORY_ICON_PATHS['Subscriptions'], color:'var(--amber)'},
+      {name:'Quick Adds this month', sub:'One-off spends you logged', n:entries.filter(e=>e.quick && e.monthKey===curKey).length, set:{type:'quick', month:curKey}, path:'M13 2L4 14h7l-1 8 9-12h-7l1-8z', color:'var(--green)'}
+    ];
+    searchResultsFlat = [];
+    bodyEl.innerHTML = `
+      ${recents.length ? `<div class="so-h">RECENT</div><div class="so-recents">${recents.map(r=>`<button type="button" class="so-chip so-recent" data-q="${escapeHtml(r)}"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>${escapeHtml(r)}</button>`).join('')}</div>` : ''}
+      <div class="so-h">QUICK SEARCHES</div>
+      <div class="so-quick">${quick.map((q,i)=>`<div class="so-row so-qs" data-q="${i}">${iconTile(q.path, q.color, 'md')}<div class="so-info"><div class="so-name">${q.name}</div><div class="so-meta">${q.sub}</div></div><div class="so-qn">${q.n}</div></div>`).join('')}</div>`;
+    bodyEl.querySelectorAll('.so-recent').forEach(b=>b.onclick = ()=>{ searchState.q = b.dataset.q; document.getElementById('searchInput').value = b.dataset.q; searchState.sel = 0; renderSearch(); });
+    bodyEl.querySelectorAll('.so-qs').forEach(r=>r.onclick = ()=>{ Object.assign(searchState, quick[Number(r.dataset.q)].set, {sel:0}); renderSearch(); });
+    return;
+  }
+  // filters row
+  const forCounts = entries.filter(e=>searchMatch(e, st, true));
+  const n = f => forCounts.filter(f).length;
+  const chip = (id, label, count)=>`<button type="button" class="so-chip${st.type===id?' on':''}" data-type="${id}">${label}<small>${count}</small></button>`;
+  const months = [...new Set(entries.map(e=>e.monthKey))].sort().reverse();
+  filtersEl.innerHTML = chip('all','All',forCounts.length) + chip('out','Outgoings',n(e=>e.kind==='out'&&!e.quick)) + chip('in','Incoming',n(e=>e.kind==='in'&&!e.quick)) + chip('quick','Quick Add',n(e=>e.quick))
+    + `<span class="so-spacer"></span>
+    <select class="so-sel" id="soMonth" aria-label="Month"><option value="any">Any month</option>${months.map(k=>`<option value="${k}"${st.month===k?' selected':''}>${escapeHtml(monthLabelFromKey(k))}</option>`).join('')}</select>
+    <select class="so-sel" id="soStatus" aria-label="Status"><option value="any"${st.status==='any'?' selected':''}>Paid &amp; unpaid</option><option value="paid"${st.status==='paid'?' selected':''}>Paid</option><option value="unpaid"${st.status==='unpaid'?' selected':''}>Not paid</option></select>`;
+  filtersEl.querySelectorAll('.so-chip').forEach(b=>b.onclick = ()=>{ searchState.type = b.dataset.type; searchState.sel = 0; renderSearch(); });
+  filtersEl.querySelector('#soMonth').onchange = e=>{ searchState.month = e.target.value; searchState.sel = 0; renderSearch(); };
+  filtersEl.querySelector('#soStatus').onchange = e=>{ searchState.status = e.target.value; searchState.sel = 0; renderSearch(); };
+  // results
+  const res = searchSorted(entries.filter(e=>searchMatch(e, st)));
+  searchResultsFlat = res;
+  if(searchState.sel >= res.length) searchState.sel = Math.max(0, res.length-1);
+  if(!res.length){
+    bodyEl.innerHTML = `<div class="so-empty">No matches — try a name, a category or an amount.</div>`;
+    return;
+  }
+  const monthsShown = new Set(res.map(e=>e.monthKey)).size;
+  const spent = round2(res.filter(e=>e.kind==='out'&&!e.quick || e.kind==='out'&&e.quick).reduce((a,e)=>a+e.amount,0));
+  const got = round2(res.filter(e=>e.kind==='in').reduce((a,e)=>a+e.amount,0));
+  const label = st.q.trim() ? `“${escapeHtml(st.q.trim())}”` : 'these results';
+  const curKey = monthKey(new Date());
+  let html = `<div class="so-sum"><div>${res.length} result${res.length!==1?'s':''} across ${monthsShown} month${monthsShown!==1?'s':''}</div><div>${spent>0?`Spent on ${label}<b>${escapeHtml(fmt(spent))}</b>`:`Received<b>${escapeHtml(fmt(got))}</b>`}</div></div>`;
+  let lastMonth = null;
+  res.forEach((e,i)=>{
+    if(e.monthKey!==lastMonth){ html += `<div class="so-month">${escapeHtml(e.monthLabel)}</div>`; lastMonth = e.monthKey; }
+    html += searchResultRowHtml(e, i, curKey);
+  });
+  bodyEl.innerHTML = html;
+  bodyEl.querySelectorAll('.so-row').forEach(r=>{
+    r.onclick = ()=>openSearchResult(searchResultsFlat[Number(r.dataset.idx)]);
+  });
+}
+function openSearchOverlay(){
+  const ov = document.getElementById('searchOverlay');
+  searchState = {q:'', type:'all', month:'any', status:'any', min:0, cat:'', overdue:false, sel:0};
+  const input = document.getElementById('searchInput');
+  input.value = '';
+  ov.classList.add('open'); ov.setAttribute('aria-hidden','false');
+  renderSearch();
+  setTimeout(()=>input.focus(), 30);
+}
+function closeSearchOverlay(){
+  const ov = document.getElementById('searchOverlay');
+  ov.classList.remove('open'); ov.setAttribute('aria-hidden','true');
+  document.getElementById('searchInput').blur();
+}
+// Jump to the item's month and light it up.
+function openSearchResult(e){
+  if(!e) return;
+  searchRemember(searchState.q);
+  closeSearchOverlay();
+  state.currentMonthKey = e.monthKey;
+  ensureMonth(e.monthKey);
+  currentView = 'month';
+  if(e.quick) quickAddLogExpanded = true;
+  else if(e.kind==='in') expandedIncRows.add(e.id); else expandedOutRows.add(e.id);
+  save(); render();
+  setTimeout(()=>{
+    const sel = e.quick ? `#quickAddLogBody tr[data-id="${e.id}"]` : (e.kind==='in' ? `#incomeBody tr[data-id="${e.id}"]` : `#outgoingBody tr[data-id="${e.id}"]`);
+    const row = document.querySelector(sel);
+    if(!row) return;
+    row.scrollIntoView({behavior:'smooth', block:'center'});
+    row.classList.remove('row-flash'); void row.offsetWidth; row.classList.add('row-flash');
+  }, 120);
+}
+(function wireSearch(){
+  const input = document.getElementById('searchInput');
+  input.addEventListener('input', ()=>{ searchState.q = input.value; searchState.sel = 0; renderSearch(); });
+  input.addEventListener('keydown', ev=>{
+    if(ev.key==='ArrowDown' || ev.key==='ArrowUp'){
+      if(!searchResultsFlat.length) return;
+      ev.preventDefault();
+      searchState.sel = (searchState.sel + (ev.key==='ArrowDown'?1:-1) + searchResultsFlat.length) % searchResultsFlat.length;
+      document.querySelectorAll('#searchBody .so-row').forEach(r=>r.classList.toggle('sel', Number(r.dataset.idx)===searchState.sel));
+      const cur = document.querySelector(`#searchBody .so-row[data-idx="${searchState.sel}"]`); if(cur) cur.scrollIntoView({block:'nearest'});
+    } else if(ev.key==='Enter'){
+      ev.preventDefault();
+      if(searchResultsFlat.length) openSearchResult(searchResultsFlat[searchState.sel]);
+    }
+  });
+  document.getElementById('searchClear').onclick = ()=>{ input.value=''; searchState.q=''; searchState.sel=0; renderSearch(); input.focus(); };
+  document.getElementById('searchCancel').onclick = closeSearchOverlay;
+  document.getElementById('searchOverlay').addEventListener('mousedown', ev=>{ if(ev.target.id==='searchOverlay') closeSearchOverlay(); });
+  document.getElementById('searchBtn').onclick = openSearchOverlay;
+  document.addEventListener('keydown', ev=>{
+    if((ev.metaKey||ev.ctrlKey) && ev.key.toLowerCase()==='k'){ ev.preventDefault(); openSearchOverlay(); }
+    else if(ev.key==='Escape' && document.getElementById('searchOverlay').classList.contains('open')){ closeSearchOverlay(); }
+  });
+})();
 // Monthly score out of 100, from four parts: spending vs income (30), saving rate (25),
 // leftover cushion (25) and bills on track (20).
 function monthScoreData(key){
