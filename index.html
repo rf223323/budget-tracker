@@ -177,6 +177,7 @@
   .status-toggle{display:inline-flex;align-items:center;gap:7px;width:100%;justify-content:center;padding:7px 10px;border-radius:999px;border:1px solid color-mix(in srgb, var(--amber) 45%, transparent);background:color-mix(in srgb, var(--amber) 8%, transparent);color:var(--amber);font:inherit;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap;transition:background .15s ease,color .15s ease,border-color .15s ease,transform .1s ease;}
   .status-toggle:active{transform:scale(.96);}
   .status-toggle.paid{border-color:color-mix(in srgb, var(--green) 50%, transparent);background:color-mix(in srgb, var(--green) 14%, transparent);color:var(--green);}
+  .rc-from{font-weight:500;color:var(--muted);font-size:11px;margin-left:4px;}
   .rc-else{margin-top:16px;}
   .rc-else-title{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
   .rc-else-title small{text-transform:none;letter-spacing:0;font-weight:500;}
@@ -4659,10 +4660,7 @@ function recurringTableHtml(kind){
 // Recurring items that exist in later (already generated) months but not in the
 // month being viewed — e.g. something added as recurring in November while you're
 // looking at October. Each gets a button that jumps to that month to edit it.
-function drawRecurringElsewhere(m, kind){
-  const box = document.getElementById(`recurElse-${kind}`);
-  if(!box) return;
-  const listKey = kind==='incoming' ? 'incoming' : 'outgoings';
+function recurringElsewhere(m, listKey){
   const norm = n => String(n||'').trim().toLowerCase();
   const have = new Set(m[listKey].filter(x=>x.recurring && !x.transfer).map(x=>norm(x.name)));
   const found = new Map();
@@ -4674,6 +4672,13 @@ function drawRecurringElsewhere(m, kind){
       found.set(key, {x, k});
     });
   });
+  return found;
+}
+function drawRecurringElsewhere(m, kind){
+  const box = document.getElementById(`recurElse-${kind}`);
+  if(!box) return;
+  const listKey = kind==='incoming' ? 'incoming' : 'outgoings';
+  const found = recurringElsewhere(m, listKey);
   if(!found.size){ box.innerHTML = ''; return; }
   box.innerHTML = `<div class="rc-else-title">Added in later months <small>— not in ${escapeHtml(monthLabelFromKey(state.currentMonthKey))} yet</small></div><div class="rw-list">` +
     [...found.values()].map(({x,k})=>`
@@ -5386,8 +5391,14 @@ function renderPay3(){
 
 // ---------------- Recurring costs summary (subscriptions overview) ----------------
 const recurWhatIf = new Set();
+// Recurring outgoings for the summary: this month's, plus any that only exist in later months.
+function recurringSummaryItems(m){
+  const own = m.outgoings.filter(o=>o.recurring && (Number(o.amount)||0)>0).map(o=>({...o, _from:null}));
+  const other = [...recurringElsewhere(m, 'outgoings').values()].filter(({x})=>(Number(x.amount)||0)>0).map(({x,k})=>({...x, _from:k}));
+  return [...own, ...other].sort((a,b)=>b.amount-a.amount);
+}
 function recurringSummaryHtml(m){
-  const items = m.outgoings.filter(o=>o.recurring && (Number(o.amount)||0)>0).sort((a,b)=>b.amount-a.amount);
+  const items = recurringSummaryItems(m);
   if(!items.length) return '';
   const monthly = round2(items.reduce((a,o)=>a+Number(o.amount),0));
   const subs = items.filter(o=>o.category==='Subscriptions');
@@ -5406,7 +5417,7 @@ function recurringSummaryHtml(m){
         ${items.map(o=>`<label class="rc-row">
           <input type="checkbox" class="rc-check" data-id="${o.id}" ${recurWhatIf.has(o.id)?'checked':''}>
           ${catTile(o.category||'Uncategorized','sm')}
-          <span class="rc-main"><span class="rc-name">${escapeHtml(o.name||'Unnamed')}</span><span class="rc-bar"><span class="rc-bar-fill" style="width:${(o.amount/max*100).toFixed(1)}%;background:${categoryColor(o.category||'Uncategorized')};"></span></span></span>
+          <span class="rc-main"><span class="rc-name">${escapeHtml(o.name||'Unnamed')}${o._from?` <small class="rc-from">from ${escapeHtml(monthLabelFromKey(o._from).split(' ')[0])}</small>`:''}</span><span class="rc-bar"><span class="rc-bar-fill" style="width:${(o.amount/max*100).toFixed(1)}%;background:${categoryColor(o.category||'Uncategorized')};"></span></span></span>
           <span class="rc-amts"><b>${escapeHtml(fmt(o.amount))}</b><small>${escapeHtml(fmt(o.amount*12))} / yr</small></span>
         </label>`).join('')}
       </div>
@@ -5416,7 +5427,7 @@ function recurringSummaryHtml(m){
 function updateRecurWhatIf(m){
   const el = document.getElementById('rcWhatIf');
   if(!el) return;
-  const items = m.outgoings.filter(o=>o.recurring && recurWhatIf.has(o.id));
+  const items = recurringSummaryItems(m).filter(o=>recurWhatIf.has(o.id));
   const monthly = round2(items.reduce((a,o)=>a+(Number(o.amount)||0),0));
   el.innerHTML = items.length
     ? `Cancel ${items.length} and you'd save <b>${fmt(monthly)}</b> a month — <b>${fmt(monthly*12)}</b> a year.`
@@ -5428,7 +5439,7 @@ function refreshRecurringSummary(){
   const m = state.months[state.currentMonthKey];
   if(!m) return;
   // Forget ticks for items that no longer exist
-  const ids = new Set(m.outgoings.map(o=>o.id));
+  const ids = new Set(recurringSummaryItems(m).map(o=>o.id));
   [...recurWhatIf].forEach(id=>{ if(!ids.has(id)) recurWhatIf.delete(id); });
   box.innerHTML = recurringSummaryHtml(m);
   box.querySelectorAll('.rc-check').forEach(c=>c.onchange = ()=>{
