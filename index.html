@@ -58,6 +58,15 @@
     --text:#f5f5f0; --muted:#9a9a94; --accent:#ffb020; --accent2:#ff6a1a;
     --green:#4ade80; --red:#ff4d4d; --amber:#ffd166; --on-accent:#141414;
   }
+  /* Ember: warm black, one hot red accent, and a red glow behind the headline cards. */
+  [data-theme="ember"]{
+    --bg:#0b0b0c; --panel:#161617; --panel2:#1e1e20; --border:#2a2a2d;
+    --text:#f4f1ef; --muted:#9a9494; --accent:#f0453a; --accent2:#ff7a59;
+    --green:#3dd68c; --red:#ff5c5c; --amber:#f5b546; --on-accent:#fff;
+    --radius:20px; --shadow:0 10px 30px rgba(0,0,0,.45);
+  }
+  [data-theme="ember"] body, body[data-theme="ember"]{background:radial-gradient(900px 420px at 15% -120px, color-mix(in srgb, var(--accent) 20%, transparent), transparent 70%) fixed, var(--bg);}
+  [data-theme="ember"] .card, body[data-theme="ember"] .card{background:linear-gradient(150deg, color-mix(in srgb, var(--accent) 17%, var(--panel)) 0%, var(--panel) 62%);border-color:color-mix(in srgb, var(--accent) 24%, var(--border));}
   *{box-sizing:border-box;}
   body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);transition:background .2s,color .2s;font-variant-numeric:tabular-nums;}
   :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px;}
@@ -784,6 +793,7 @@
         <option value="paper" style="background:#ffffff;color:#2b2620;">Paper</option>
         <option value="soft" style="background:#f4f2fa;color:#1c1a22;">Soft Gradient</option>
         <option value="ignite" style="background:#161616;color:#f5f5f0;">Ignite</option>
+        <option value="ember" style="background:#161617;color:#f4f1ef;">Ember</option>
       </select>
           </div>
         </div>
@@ -1017,7 +1027,7 @@ function defaultState(){
   state.months[key] = freshMonth(0);
   return state;
 }
-const THEME_NAMES = ['midnight','sunset','rose','ocean','slate','paper','soft','ignite'];
+const THEME_NAMES = ['midnight','sunset','rose','ocean','slate','paper','soft','ignite','ember'];
 function normalizeState(){
   if(state.theme==='dark') state.theme = 'midnight';
   if(state.theme==='light') state.theme = 'paper';
