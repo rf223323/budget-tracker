@@ -900,6 +900,7 @@
   .p3-custom select{margin-left:6px;}
   .p3-check{grid-column:1 / -1;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer;}
   .p3-check input{width:auto;}
+  .p3-check-hint{color:var(--muted);font-size:12px;}
   .p3-preview{grid-column:1 / -1;font-size:12.5px;color:var(--muted);line-height:1.5;}
   .p3-form .btn{grid-column:1 / -1;justify-self:start;}
   .p3-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:22px 0 10px;}
@@ -6560,7 +6561,7 @@ function renderPay3(){
           <label>Instalments <input type="number" id="p3N" min="2" max="12" value="3"></label>
           <label>Every <select id="p3Every"><option value="14d">2 weeks</option><option value="28d">4 weeks</option><option value="month" selected>Month</option></select></label>
         </div>
-        <label class="p3-check"><input type="checkbox" id="p3FirstPaid" checked> First payment already taken</label>
+        <label class="p3-check"><input type="checkbox" id="p3FirstPaid"> I've already paid the first instalment <span class="p3-check-hint">(leave off to fight the boss from full health)</span></label>
         <div class="p3-preview" id="p3Preview"></div>
         <button class="btn" id="p3Add">Add plan</button>
       </div>
@@ -6590,7 +6591,6 @@ function renderPay3(){
       : 'Enter the total and first payment date to see the schedule.';
   };
   ['p3Provider','p3Total','p3Date','p3N','p3Every','p3FirstPaid'].forEach(id=>{ $(id).addEventListener('input', updatePreview); $(id).addEventListener('change', updatePreview); });
-  $('p3Date').addEventListener('change', ()=>{ $('p3FirstPaid').checked = $('p3Date').value <= today; updatePreview(); });
   updatePreview();
   $('p3FormToggle').onclick = ()=>{ p3FormOpen = !p3FormOpen; renderPay3(); };
   $('p3Add').onclick = ()=>{
