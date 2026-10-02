@@ -96,32 +96,42 @@ async function readDoc(id){
   return res.json();
 }
 
-async function main(){
-  if(!SYNC_CODE){ console.log('SYNC_CODE is not set — nothing to do.'); return; }
-  if(!VAPID_PRIVATE || !VAPID_PUBLIC){ console.log('VAPID keys missing — nothing to do.'); return; }
-  webpush.setVapidDetails('https://github.com/rf223323/budget-tracker', VAPID_PUBLIC, VAPID_PRIVATE);
-  const budgetDoc = await readDoc(SYNC_CODE);
-  if(!budgetDoc){ console.log('No synced budget found for this code.'); return; }
-  const pushDoc = await readDoc(`${SYNC_CODE}__push`);
+// One budget: read it, work out what's due, and push to every device registered for it.
+async function runOne(code, label){
+  const budgetDoc = await readDoc(code);
+  if(!budgetDoc){ console.log(`${label}: no synced budget found for this code.`); return; }
+  const pushDoc = await readDoc(`${code}__push`);
   const subs = pushDoc && pushDoc.fields && pushDoc.fields.subs ? JSON.parse(pushDoc.fields.subs.stringValue || '[]') : [];
-  if(!subs.length){ console.log('No devices have turned reminders on.'); return; }
+  if(!subs.length){ console.log(`${label}: no devices have turned reminders on.`); return; }
   const state = JSON.parse(budgetDoc.fields.data.stringValue);
   const reminder = composeReminder(state, today());
-  if(!reminder){ console.log('Nothing due — no notification sent.'); return; }
+  if(!reminder){ console.log(`${label}: nothing due — no notification sent.`); return; }
   const payload = JSON.stringify(reminder);
-  let sent = 0, gone = [];
+  let sent = 0; const gone = [];
   for(const sub of subs){
     try{ await webpush.sendNotification(sub, payload, {TTL: 6 * 3600}); sent++; }
-    catch(e){ if(e.statusCode === 404 || e.statusCode === 410) gone.push(sub.endpoint); else console.log(`Push failed (${e.statusCode || 'error'})`); }
+    catch(e){ if(e.statusCode === 404 || e.statusCode === 410) gone.push(sub.endpoint); else console.log(`${label}: push failed (${e.statusCode || 'error'})`); }
   }
   if(gone.length){
     const keep = subs.filter(s => !gone.includes(s.endpoint));
-    await fetch(`${base()}/${encodeURIComponent(`${SYNC_CODE}__push`)}?updateMask.fieldPaths=subs&key=${FIREBASE_API_KEY}`, {
+    await fetch(`${base()}/${encodeURIComponent(`${code}__push`)}?updateMask.fieldPaths=subs&key=${FIREBASE_API_KEY}`, {
       method: 'PATCH', headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({fields: {subs: {stringValue: JSON.stringify(keep)}}})
     });
   }
-  console.log(`Reminders sent to ${sent} device(s); removed ${gone.length} expired.`);
+  console.log(`${label}: reminders sent to ${sent} device(s); removed ${gone.length} expired.`);
+}
+
+// SYNC_CODE can hold several budgets' sync codes, separated by commas or spaces.
+async function main(){
+  const codes = (SYNC_CODE || '').split(/[\s,]+/).filter(Boolean);
+  if(!codes.length){ console.log('SYNC_CODE is not set — nothing to do.'); return; }
+  if(!VAPID_PRIVATE || !VAPID_PUBLIC){ console.log('VAPID keys missing — nothing to do.'); return; }
+  webpush.setVapidDetails('https://github.com/rf223323/budget-tracker', VAPID_PUBLIC, VAPID_PRIVATE);
+  for(let i = 0; i < codes.length; i++){
+    try{ await runOne(codes[i], `Budget ${i + 1} of ${codes.length}`); }
+    catch(e){ console.log(`Budget ${i + 1} of ${codes.length}: failed (${e.message})`); process.exitCode = 1; }
+  }
 }
 
 if(process.argv.includes('--selftest')) selfTest();
