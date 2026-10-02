@@ -252,6 +252,10 @@
   .toast-body{display:flex;flex-direction:column;min-width:0;}
   .toast-title{font-size:13px;font-weight:600;color:var(--text);}
   .toast-sub{font-size:11.5px;color:var(--muted);}
+  .toast-icon.del{background:var(--panel);border:1px solid var(--border);font-size:12px;}
+  .toast-undo{margin-left:6px;background:color-mix(in srgb, var(--accent) 18%, transparent);color:var(--accent);border:none;border-radius:8px;padding:6px 12px;font:inherit;font-size:12.5px;font-weight:700;cursor:pointer;}
+  .toast-undo:hover{background:color-mix(in srgb, var(--accent) 30%, transparent);}
+  @media (max-width:700px){.toast-stack{left:12px;right:12px;bottom:12px;}.toast{max-width:none;}.toast-body{flex:1;}}
   .toast-close{margin-left:4px;color:var(--muted);cursor:pointer;font-size:14px;line-height:1;background:none;border:none;padding:4px;}
   .toast-close:hover{color:var(--text);}
   .modal-bg.open{display:flex;}
@@ -1381,17 +1385,35 @@ function addPotTransfer(potKey, type, amount, note){
   state.pots[potKey].manualLedger.push({id:uid(), type, amount, note: note||'', monthKey: state.currentMonthKey, linkedItemId, source:'manual'});
   save();
 }
+// Returns a function that restores the deleted transfer (ledger entry plus its
+// linked incoming/outgoing item), or undefined if nothing was deleted.
 function deletePotTransfer(potKey, entryId){
   const ledger = state.pots[potKey].manualLedger;
-  const entry = ledger.find(e=>e.id===entryId);
-  if(!entry) return;
+  const ledgerIdx = ledger.findIndex(e=>e.id===entryId);
+  if(ledgerIdx<0) return;
+  const entry = ledger[ledgerIdx];
   const m = state.months[entry.monthKey];
+  const listKey = entry.type==='out' ? 'incoming' : 'outgoings';
+  let linked = null, linkedIdx = -1;
   if(m){
-    if(entry.type==='out') m.incoming = m.incoming.filter(i=>i.id!==entry.linkedItemId);
-    else m.outgoings = m.outgoings.filter(o=>o.id!==entry.linkedItemId);
+    linkedIdx = m[listKey].findIndex(i=>i.id===entry.linkedItemId);
+    if(linkedIdx>=0) linked = m[listKey][linkedIdx];
+    m[listKey] = m[listKey].filter(i=>i.id!==entry.linkedItemId);
   }
   state.pots[potKey].manualLedger = ledger.filter(e=>e.id!==entryId);
   save();
+  return ()=>{
+    const l = state.pots[potKey].manualLedger.slice();
+    l.splice(Math.min(ledgerIdx, l.length), 0, entry);
+    state.pots[potKey].manualLedger = l;
+    const mm = state.months[entry.monthKey];
+    if(mm && linked){
+      const arr = mm[listKey].slice();
+      arr.splice(Math.min(linkedIdx, arr.length), 0, linked);
+      mm[listKey] = arr;
+    }
+    save();
+  };
 }
 
 function fmt(n){
@@ -1456,6 +1478,72 @@ function showToast(title, sub){
   };
   el.querySelector('.toast-close').onclick = dismiss;
   setTimeout(dismiss, 3500);
+}
+
+// ---------------- Undo for deletes ----------------
+// A deletion removes the item straight away and shows a toast with an Undo
+// button; Ctrl/Cmd+Z undoes the most recent one too.
+const undoStack = [];
+function showUndoToast(label, onUndo, duration){
+  const stack = document.getElementById('toastStack');
+  if(!stack) return;
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.innerHTML = `
+    <div class="toast-icon del">🗑</div>
+    <div class="toast-body">
+      <div class="toast-title">Deleted ${escapeHtml(label)}</div>
+    </div>
+    <button class="toast-undo" type="button">Undo</button>
+    <button class="toast-close" aria-label="Dismiss">×</button>
+  `;
+  stack.appendChild(el);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add('show')));
+  let done = false;
+  const entry = {};
+  const dismiss = ()=>{
+    if(done) return;
+    done = true;
+    const i = undoStack.indexOf(entry); if(i>=0) undoStack.splice(i,1);
+    el.classList.remove('show');
+    setTimeout(()=>el.remove(), 250);
+  };
+  const undo = ()=>{
+    if(done) return;
+    dismiss();
+    onUndo();
+    showToast('Restored', label);
+  };
+  entry.run = undo;
+  undoStack.push(entry);
+  el.querySelector('.toast-undo').onclick = undo;
+  el.querySelector('.toast-close').onclick = dismiss;
+  setTimeout(dismiss, duration || 7000);
+}
+document.addEventListener('keydown', e=>{
+  if(!((e.metaKey||e.ctrlKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase()==='z')) return;
+  const t = e.target;
+  if(t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+  const last = undoStack[undoStack.length-1];
+  if(last){ e.preventDefault(); last.run(); }
+});
+// Removes an item from m[listKey] by id, then offers to put it back in the same
+// position. afterChange redraws whatever was showing; afterUndo (default: a
+// full render) redraws after a restore.
+function removeWithUndo(m, listKey, id, label, afterChange, afterUndo){
+  const idx = m[listKey].findIndex(x=>x.id===id);
+  if(idx<0) return;
+  const removed = m[listKey][idx];
+  m[listKey] = m[listKey].filter(x=>x.id!==id);
+  save();
+  if(afterChange) afterChange();
+  showUndoToast(label || removed.name || 'item', ()=>{
+    const next = m[listKey].slice();
+    next.splice(Math.min(idx, next.length), 0, removed);
+    m[listKey] = next;
+    save();
+    (afterUndo || render)();
+  });
 }
 
 // ---------------- Receipt scanning (client-side OCR via Tesseract.js) ----------------
@@ -2492,10 +2580,7 @@ function renderMonth(){
       if(!btn) return;
       btn.onclick = ()=>{
         const id = tr.dataset.id, kind = tr.dataset.kind;
-        if(kind==='in') m.incoming = m.incoming.filter(x=>x.id!==id);
-        else m.outgoings = m.outgoings.filter(x=>x.id!==id);
-        save();
-        renderMonth();
+        removeWithUndo(m, kind==='in' ? 'incoming' : 'outgoings', id, null, ()=>renderMonth());
       };
     });
   }
@@ -2619,9 +2704,7 @@ function renderMonth(){
         renderUpcomingBills();
       };
       tr.querySelector('.inc-del').onclick = ()=>{
-        const doDelete = ()=>{ m.incoming = m.incoming.filter(x=>x.id!==id); expandedIncRows.delete(id); save(); drawIncome(); refreshCards(); };
-        if(window.matchMedia('(max-width:860px)').matches) openConfirmModal(`Delete ${escapeHtml(item.name||'this income')}?`, 'This removes it from this month.', doDelete);
-        else doDelete();
+        removeWithUndo(m, 'incoming', id, item.name || 'income', ()=>{ expandedIncRows.delete(id); drawIncome(); refreshCards(); });
       };
     });
   }
@@ -2670,10 +2753,7 @@ function renderMonth(){
       const dayInp = tr.querySelector('.out-day');
       dayInp.onchange = e=>{ item.day = clampDay(e.target.value); e.target.value = item.day||''; propagateOutgoingFieldForward(item, state.currentMonthKey, 'day'); save(); refreshCards(); refreshSummary(); };
       tr.querySelector('.out-del').onclick = ()=>{
-        const doDelete = ()=>{ m.outgoings = m.outgoings.filter(x=>x.id!==id); expandedOutRows.delete(id); save(); drawOutgoings(); refreshCards(); };
-        // On phones the button is large and easy to hit, so ask first.
-        if(window.matchMedia('(max-width:860px)').matches) openConfirmModal(`Delete ${escapeHtml(item.name||'this outgoing')}?`, 'This removes it from this month.', doDelete);
-        else doDelete();
+        removeWithUndo(m, 'outgoings', id, item.name || 'outgoing', ()=>{ expandedOutRows.delete(id); drawOutgoings(); refreshCards(); });
       };
     });
   }
@@ -2936,8 +3016,22 @@ function renderCalendar(){
       const key = btn.dataset.key;
       openConfirmModal(
         `Delete ${monthLabelFromKey(key)}?`,
-        `This permanently removes all outgoings, incoming, weekly budget, and balance data tracked for ${monthLabelFromKey(key)}. Later months' starting balances will be recalculated automatically. This cannot be undone.`,
-        ()=>{ deleteMonth(key); render(); }
+        `This removes all outgoings, incoming, weekly budget, and balance data tracked for ${monthLabelFromKey(key)}. Later months' starting balances will be recalculated automatically. You'll have a few seconds to undo it.`,
+        ()=>{
+          const snapshot = state.months[key];
+          const previousCurrent = state.currentMonthKey;
+          const keysBefore = new Set(Object.keys(state.months));
+          deleteMonth(key);
+          const createdKeys = Object.keys(state.months).filter(k=>!keysBefore.has(k));
+          render();
+          showUndoToast(monthLabelFromKey(key), ()=>{
+            createdKeys.forEach(k=>{ delete state.months[k]; });
+            state.months[key] = snapshot;
+            state.currentMonthKey = previousCurrent;
+            save();
+            render();
+          }, 10000);
+        }
       );
     };
   });
@@ -3629,8 +3723,9 @@ function openDayModal(mk, day){
   bg.onclick = e=>{ if(e.target===bg) closeRecapModal(); };
   document.getElementById('dmClose').onclick = closeRecapModal;
   box.querySelectorAll('.dm-del').forEach(b=>b.onclick = ()=>{
-    m.outgoings = m.outgoings.filter(o=>o.id!==b.dataset.id);
-    save(); renderSpendingHeatmap(); openDayModal(mk, day);
+    removeWithUndo(m, 'outgoings', b.dataset.id, null,
+      ()=>{ renderSpendingHeatmap(); openDayModal(mk, day); },
+      ()=>{ renderSpendingHeatmap(); if(document.getElementById('modalBg').classList.contains('open') && document.getElementById('dmClose')) openDayModal(mk, day); });
   });
   if(canAdd){
     const cat = box.querySelector('.dmCategory');
@@ -3825,9 +3920,7 @@ function drawRecurringTable(m, kind){
       tr.querySelector('.schedule-hint').textContent = scheduleHint(item, curYear, curMonthNum);
     };
     tr.querySelector(`.recur-del-${kind}`).onclick = ()=>{
-      if(kind==='incoming') m.incoming = m.incoming.filter(x=>x.id!==id);
-      else m.outgoings = m.outgoings.filter(x=>x.id!==id);
-      save(); renderRecurring();
+      removeWithUndo(m, kind==='incoming' ? 'incoming' : 'outgoings', id, item.name || 'recurring item', ()=>renderRecurring());
     };
   });
 }
@@ -3927,7 +4020,11 @@ function wirePotPanel(potKey){
     renderPots();
   };
   document.querySelectorAll(`.pot-del-${potKey}`).forEach(b=>{
-    b.onclick = ()=>{ deletePotTransfer(potKey, b.dataset.id); renderPots(); };
+    b.onclick = ()=>{
+      const restore = deletePotTransfer(potKey, b.dataset.id);
+      renderPots();
+      if(restore) showUndoToast('pot transfer', ()=>{ restore(); render(); });
+    };
   });
 }
 function renderPots(){
