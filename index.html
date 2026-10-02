@@ -479,6 +479,11 @@
   .quick-add-panel .qa-amount input{flex:1;min-width:0;max-width:none;width:100%;padding:0;border:none;background:none;outline:none;box-shadow:none;font:inherit;font-size:18px;font-weight:800;color:var(--text);}
   .quick-add-panel .qa-fields > input{height:48px;max-width:none;border-radius:14px;padding:0 14px;font-size:13.5px;}
   .qa-foot{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:14px;}
+  .qa-cat{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .qa-repeat{display:inline-flex;align-items:center;gap:7px;height:40px;padding:0 14px;border-radius:12px;border:1px solid var(--border);background:var(--panel2);color:var(--muted);font:inherit;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap;transition:background .15s,color .15s,border-color .15s;}
+  .qa-repeat svg{width:15px;height:15px;}
+  .qa-repeat:hover{color:var(--text);}
+  .qa-repeat.on{background:color-mix(in srgb, var(--accent) 16%, transparent);border-color:color-mix(in srgb, var(--accent) 55%, var(--border));color:var(--accent);}
   .qa-btns{display:flex;align-items:center;gap:8px;}
   .qa-scan{display:inline-flex;align-items:center;gap:7px;cursor:pointer;margin:0;}
   .qa-scan svg{width:15px;height:15px;}
@@ -869,7 +874,7 @@
     .quick-add-panel .panel-head .hint{display:none;}
     .qa-fields{grid-template-columns:128px minmax(0,1fr);gap:8px;}
     .qa-foot{display:grid;grid-template-columns:1fr;gap:10px;}
-    .quick-add-panel .cat-dd{max-width:none;width:100%;}
+    .quick-add-panel .cat-dd{max-width:none;width:auto;flex:1 1 0;min-width:0;}
     .qa-btns{display:grid;grid-template-columns:1fr 1fr;}
     .qa-btns .btn{justify-content:center;text-align:center;}
     .ss-toggle{display:inline-flex;align-items:center;gap:6px;margin-top:10px;background:none;border:none;padding:0;font:inherit;font-size:12px;font-weight:600;color:var(--accent);cursor:pointer;}
@@ -3293,6 +3298,7 @@ function renderMonth(){
         <div class="qa-cat">
           ${categoryDropdownHtml('quickAddCategory', 'Uncategorized')}
           ${categoryDropdownHtml('quickAddIncomeCategory', 'Uncategorized', INCOME_CATEGORIES)}
+          <button type="button" class="qa-repeat" id="quickAddRepeat" aria-pressed="false" title="Repeat this every month">${iconSvg('M17 2l4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3')}<span>Repeat monthly</span></button>
         </div>
         <div class="qa-btns">
           <label class="btn secondary qa-scan">
@@ -3418,14 +3424,32 @@ function renderMonth(){
     if(!amt || amt<=0) return;
     const reason = quickAddReason.value.trim();
     const type = quickAddType.value;
+    const repeat = document.getElementById('quickAddRepeat').getAttribute('aria-pressed')==='true';
     const entry = {id:uid(), name: reason || (type==='out'?'Spent':'Received'), amount: amt, status:'done', recurring:false, quickAdd:true, ts:Date.now()};
-    if(type==='out'){ entry.category = quickAddCategory.dataset.value; m.outgoings.push(entry); } else { entry.category = quickAddIncomeCategory.dataset.value; m.incoming.push(entry); }
+    if(repeat){
+      // A repeating Quick Add is a regular recurring item: it lands in Outgoings/Incoming (not just the log),
+      // is dated today, counts as done this month, and appears in every later month.
+      delete entry.quickAdd; delete entry.ts;
+      entry.recurring = true;
+      const [ky, kmo] = state.currentMonthKey.split('-').map(Number);
+      entry.day = Math.min(new Date().getDate(), new Date(ky, kmo, 0).getDate());
+    }
+    const listKey = type==='out' ? 'outgoings' : 'incoming';
+    entry.category = (type==='out' ? quickAddCategory : quickAddIncomeCategory).dataset.value;
+    m[listKey].push(entry);
+    if(repeat) syncNewRecurringForward(entry, state.currentMonthKey, listKey);
     save();
-    quickAddLogExpanded = true;
+    quickAddLogExpanded = !repeat || quickAddLogExpanded;
     renderMonth();
-    showToast(`Added ${fmt(amt)}`, type==='out' ? (entry.category||entry.name) : entry.name);
+    showToast(`Added ${fmt(amt)}${repeat?' · repeats monthly':''}`, type==='out' ? (entry.category||entry.name) : entry.name);
   };
   document.getElementById('quickAddBtn').onclick = doQuickAdd;
+  const repeatBtn = document.getElementById('quickAddRepeat');
+  repeatBtn.onclick = ()=>{
+    const on = repeatBtn.getAttribute('aria-pressed')!=='true';
+    repeatBtn.setAttribute('aria-pressed', on);
+    repeatBtn.classList.toggle('on', on);
+  };
   [quickAddAmount, quickAddReason].forEach(inp=>{
     inp.addEventListener('keydown', e=>{ if(e.key==='Enter') doQuickAdd(); });
   });
