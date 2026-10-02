@@ -177,6 +177,16 @@
   .status-toggle{display:inline-flex;align-items:center;gap:7px;width:100%;justify-content:center;padding:7px 10px;border-radius:999px;border:1px solid color-mix(in srgb, var(--amber) 45%, transparent);background:color-mix(in srgb, var(--amber) 8%, transparent);color:var(--amber);font:inherit;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap;transition:background .15s ease,color .15s ease,border-color .15s ease,transform .1s ease;}
   .status-toggle:active{transform:scale(.96);}
   .status-toggle.paid{border-color:color-mix(in srgb, var(--green) 50%, transparent);background:color-mix(in srgb, var(--green) 14%, transparent);color:var(--green);}
+  .rc-else{margin-top:16px;}
+  .rc-else-title{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+  .rc-else-title small{text-transform:none;letter-spacing:0;font-weight:500;}
+  .rw-list{display:flex;flex-direction:column;gap:8px;}
+  .rw-row{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;background:var(--panel2);border:1px solid var(--border);}
+  .rw-main{flex:1;min-width:0;}
+  .rw-name{font-size:14px;font-weight:700;}
+  .rw-sub{font-size:11.5px;color:var(--muted);margin-top:2px;}
+  .rw-row .sv-amt{width:130px;flex-shrink:0;}
+  @media (max-width:700px){.rw-row{flex-wrap:wrap;}.rw-main{flex:1 1 40%;}.rw-row .sv-amt{flex:1 1 90px;}}
   .weekly-item .stog{margin-bottom:8px;}
   .weekly-item .status-toggle{padding:5px 10px;font-size:12px;}
   .cs-status{position:relative;cursor:pointer;}
@@ -4642,7 +4652,60 @@ function recurringTableHtml(kind){
       <thead><tr><th>${label}</th>${catTh}<th style="width:120px;">Amount</th><th style="width:130px;">Status</th><th style="width:36px;"></th></tr></thead>
       <tbody class="recur-body-${kind}"></tbody>
     </table>
+    <div class="rc-else" id="recurElse-${kind}"></div>
   `;
+}
+// Recurring items that exist in later (already generated) months but not in the
+// month being viewed — e.g. something added as recurring in November while you're
+// looking at October. Each gets a button that jumps to that month to edit it.
+function drawRecurringElsewhere(m, kind){
+  const box = document.getElementById(`recurElse-${kind}`);
+  if(!box) return;
+  const listKey = kind==='incoming' ? 'incoming' : 'outgoings';
+  const norm = n => String(n||'').trim().toLowerCase();
+  const have = new Set(m[listKey].filter(x=>x.recurring && !x.transfer).map(x=>norm(x.name)));
+  const found = new Map();
+  Object.keys(state.months).sort().filter(k=>k>state.currentMonthKey).forEach(k=>{
+    state.months[k][listKey].forEach(x=>{
+      if(!x.recurring || x.transfer) return;
+      const key = norm(x.name);
+      if(have.has(key) || found.has(key)) return;
+      found.set(key, {x, k});
+    });
+  });
+  if(!found.size){ box.innerHTML = ''; return; }
+  box.innerHTML = `<div class="rc-else-title">Added in later months <small>— not in ${escapeHtml(monthLabelFromKey(state.currentMonthKey))} yet</small></div><div class="rw-list">` +
+    [...found.values()].map(({x,k})=>`
+      <div class="rw-row">
+        ${catTile(x.category||(kind==='incoming'?'Salary':'Uncategorized'),'md')}
+        <div class="rw-main"><div class="rw-name">${escapeHtml(x.name||'Unnamed')}</div><div class="rw-sub">Recurring from ${escapeHtml(monthLabelFromKey(k))} · ${escapeHtml(fmt(Number(x.amount)||0))}</div></div>
+        <button type="button" class="btn secondary small rc-open" data-month="${k}">Open ${escapeHtml(monthLabelFromKey(k).split(' ')[0])}</button>
+      </div>`).join('') + `</div>`;
+  box.querySelectorAll('.rc-open').forEach(b=>{
+    b.onclick = ()=>{ state.currentMonthKey = b.dataset.month; ensureMonth(state.currentMonthKey); save(); render(); };
+  });
+}
+// Weeks of the Weekly Budget that are set to Recurring.
+function drawRecurringWeekly(m){
+  const box = document.getElementById('recurWeeklyList');
+  if(!box) return;
+  const keys = ['week1','week2','week3','week4'].filter(k=>m.weekly[k].recurring);
+  box.innerHTML = keys.length ? keys.map(k=>`
+    <div class="rw-row" data-week="${k}">
+      ${iconTile(CALENDAR_ICON_PATH, 'var(--accent)', 'md')}
+      <div class="rw-main"><div class="rw-name">Week ${k.slice(4)}</div><div class="rw-sub">Recurring ↻ · carries into each new month</div></div>
+      <label class="sv-amt"><span class="sv-cur">${escapeHtml(state.currency)}</span><input type="number" step="0.01" class="rw-amount" value="${m.weekly[k].amount}" aria-label="Week ${k.slice(4)} amount"></label>
+      <button type="button" class="btn secondary small rw-stop">Stop</button>
+    </div>`).join('') : `<div class="empty">No recurring weeks yet — set a week to Recurring in the Month Tracker's Weekly Budget and it will appear here.</div>`;
+  box.querySelectorAll('.rw-row').forEach(row=>{
+    const k = row.dataset.week;
+    row.querySelector('.rw-amount').oninput = e=>{ m.weekly[k].amount = Number(e.target.value); save(); };
+    row.querySelector('.rw-stop').onclick = ()=>{
+      m.weekly[k].recurring = false;
+      stopRecurringWeekInLaterMonths(m, k);
+      save(); renderRecurring();
+    };
+  });
 }
 function drawRecurringTable(m, kind){
   const list = kind==='incoming' ? m.incoming : m.outgoings;
@@ -5392,6 +5455,7 @@ function renderRecurring(){
     <div class="seg-toggle wide" id="recurTabs" role="tablist">
       <button class="seg-btn${recurTab==='outgoing'?' active':''}" role="tab" data-tab="outgoing">Outgoings · ${m.outgoings.filter(o=>o.recurring).length}</button>
       <button class="seg-btn${recurTab==='incoming'?' active':''}" role="tab" data-tab="incoming">Incoming · ${m.incoming.filter(i=>i.recurring && !i.transfer).length}</button>
+      <button class="seg-btn${recurTab==='weekly'?' active':''}" role="tab" data-tab="weekly">Weekly · ${['week1','week2','week3','week4'].filter(k=>m.weekly[k].recurring).length}</button>
     </div>
     <div class="panel${recurTab==='incoming'?'':' hidden'}" id="recurPanelIncoming">
       <div class="panel-head">
@@ -5407,15 +5471,26 @@ function renderRecurring(){
       </div>
       ${recurringTableHtml('outgoing')}
     </div>
+    <div class="panel${recurTab==='weekly'?'':' hidden'}" id="recurPanelWeekly">
+      <div class="panel-head">
+        <h2>Recurring Weekly Budget</h2>
+        <span class="hint">weeks set to Recurring carry into every new month</span>
+      </div>
+      <div class="rw-list" id="recurWeeklyList"></div>
+    </div>
   `;
   drawRecurringTable(m, 'incoming');
   drawRecurringTable(m, 'outgoing');
   refreshRecurringSummary();
+  drawRecurringWeekly(m);
+  drawRecurringElsewhere(m, 'incoming');
+  drawRecurringElsewhere(m, 'outgoing');
   wirePillTabs(document.getElementById('recurTabs'), recurTab, tab=>{
     recurTab = tab;
     document.querySelectorAll('#recurTabs .seg-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
     document.getElementById('recurPanelIncoming').classList.toggle('hidden', tab!=='incoming');
     document.getElementById('recurPanelOutgoing').classList.toggle('hidden', tab!=='outgoing');
+    document.getElementById('recurPanelWeekly').classList.toggle('hidden', tab!=='weekly');
   });
   // Keep the summary in step as rows are edited (the summary's own ticks are left alone).
   const afterEdit = e=>{ if(!e.target.closest('#recurSummary')) setTimeout(refreshRecurringSummary, 0); };
