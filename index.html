@@ -4307,29 +4307,30 @@ function cashflowSettings(){
   if(typeof state.cashflow.buffer!=='number') state.cashflow.buffer = 100;
   return state.cashflow;
 }
-// Average daily Quick Add spend over the last ~60 days; falls back to what's
-// left of the weekly budget, then to zero.
+// The default everyday-spending figure: your own plan first (the unpaid weeks of
+// the Weekly Budget spread over the days left), then your recent Quick Add
+// average if there's no plan. quickAvg is returned too so the page can compare.
 function cashflowDefaultDaily(key){
   const now = Date.now(), cutoff = now - 60*86400000;
   let total = 0, first = null;
   Object.values(state.months).forEach(m=>m.outgoings.forEach(o=>{
     if(o.quickAdd && o.ts && o.ts>=cutoff && o.ts<=now){ total += Number(o.amount)||0; if(first===null || o.ts<first) first = o.ts; }
   }));
-  if(total>0){
-    const spanDays = Math.max(14, Math.ceil((now-first)/86400000)+1);
-    return {value: Math.round(total/spanDays), source:'Your recent Quick Add average'};
-  }
+  const quickAvg = total>0 ? Math.round(total/Math.max(14, Math.ceil((now-first)/86400000)+1)) : null;
   const m = state.months[key];
   if(m){
-    const pendingWeekly = ['week1','week2','week3','week4'].map(k=>m.weekly[k]).filter(w=>w.status!=='done').reduce((a,w)=>a+(Number(w.amount)||0),0);
+    const pending = ['week1','week2','week3','week4'].map(k=>m.weekly[k]).filter(w=>w.status!=='done' && (Number(w.amount)||0)>0);
+    const pendingWeekly = pending.reduce((a,w)=>a+(Number(w.amount)||0),0);
     if(pendingWeekly>0){
       const [y,mo] = key.split('-').map(Number);
       const dim = new Date(y, mo, 0).getDate();
       const today = key===monthKey(new Date()) ? new Date().getDate() : 1;
-      return {value: Math.round(pendingWeekly/Math.max(1, dim-today+1)), source:'Spread from your unspent weekly budget'};
+      const days = Math.max(1, dim-today+1);
+      return {value: Math.round(pendingWeekly/days), source:`From your weekly budget — ${pending.length} unpaid week${pending.length!==1?'s':''} (${fmt(pendingWeekly)}) over ${days} day${days!==1?'s':''}`, quickAvg};
     }
   }
-  return {value:0, source:'No Quick Add history yet — set your own'};
+  if(quickAvg!==null) return {value: quickAvg, source:'Your recent Quick Add average (no unpaid weekly budget)', quickAvg};
+  return {value:0, source:'No weekly budget or Quick Add history yet — set your own', quickAvg:null};
 }
 function computeCashflow(key, daily, buffer){
   const m = state.months[key];
@@ -4518,7 +4519,8 @@ function renderCashflow(){
         <div class="cf-slider">
           <div class="cf-ctl-label">Everyday spending assumed</div>
           <div class="cf-slider-row"><input type="range" id="cfDaily" min="0" max="${Math.max(60, Math.ceil(Math.max(daily,def.value)*3/10)*10)}" step="1" value="${daily}" aria-label="Everyday spending per day"><b id="cfDailyVal">${escapeHtml(fmt(daily))}/day</b></div>
-          <div class="cf-ctl-sub" id="cfDailySrc">${typeof s.daily==='number' ? `Your own figure · <a href="#" id="cfDailyReset">reset to ${escapeHtml(fmt(def.value))}/day</a>` : escapeHtml(def.source)}</div>
+          <div class="cf-ctl-sub" id="cfDailySrc"></div>
+          <div class="cf-ctl-sub cf-compare" id="cfCompare"></div>
         </div>
         <div class="cf-buffer">
           <div class="cf-ctl-label">Safety buffer</div>
@@ -4540,8 +4542,7 @@ function renderCashflow(){
   dailyInput.oninput = ()=>{
     document.getElementById('cfDailyVal').textContent = fmt(Number(dailyInput.value)||0)+'/day';
     s.daily = Number(dailyInput.value)||0;
-    document.getElementById('cfDailySrc').innerHTML = `Your own figure · <a href="#" id="cfDailyReset">reset to ${escapeHtml(fmt(def.value))}/day</a>`;
-    wireReset();
+    paintSource();
     update();
   };
   dailyInput.onchange = ()=>save();
@@ -4549,7 +4550,22 @@ function renderCashflow(){
     const r = document.getElementById('cfDailyReset');
     if(r) r.onclick = e=>{ e.preventDefault(); delete s.daily; save(); renderCashflow(); };
   };
-  wireReset();
+  const paintSource = ()=>{
+    const custom = typeof s.daily==='number';
+    document.getElementById('cfDailySrc').innerHTML = custom
+      ? `Your own figure · <a href="#" id="cfDailyReset">reset to ${escapeHtml(fmt(def.value))}/day</a>`
+      : escapeHtml(def.source);
+    const cur = Number(document.getElementById('cfDaily').value)||0;
+    const cmp = document.getElementById('cfCompare');
+    if(def.quickAvg!==null && def.quickAvg!==undefined){
+      const diff = def.quickAvg - cur;
+      cmp.innerHTML = diff>=2
+        ? `<span style="color:var(--amber);">You've actually been spending about ${escapeHtml(fmt(def.quickAvg))}/day</span> (Quick Add) — more than this.`
+        : `Your Quick Add average is about ${escapeHtml(fmt(def.quickAvg))}/day.`;
+    } else cmp.innerHTML = '';
+    wireReset();
+  };
+  paintSource();
   document.getElementById('cfBuffer').oninput = ()=>{ s.buffer = Math.max(0, Number(document.getElementById('cfBuffer').value)||0); update(); };
   document.getElementById('cfBuffer').onchange = ()=>save();
   update();
