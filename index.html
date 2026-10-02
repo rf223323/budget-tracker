@@ -424,8 +424,11 @@
     .cf-buffer{flex:1 1 100%;}
     .cf-ev-list.cf-collapsed .cf-ev:nth-child(n+4){display:none;}
     .cf-showall{display:inline-block;}
-    .cf-ev-d{width:78px;}
-    .cf-ev-b{width:74px;}
+    .cf-ev{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;}
+    .cf-ev-d{grid-column:1;grid-row:2;width:auto;font-size:11.5px;}
+    .cf-ev-n{grid-column:1;grid-row:1;white-space:normal;}
+    .cf-ev-a{grid-column:2;grid-row:1;text-align:right;}
+    .cf-ev-b{grid-column:2;grid-row:2;width:auto;font-size:11.5px;}
   }
   .trend-range{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
   .trend-range .hint{font-size:12px;color:var(--muted);}
@@ -4645,30 +4648,55 @@ function cashflowChartSvg(c){
     shade += `<polygon points="${x0.toFixed(1)},${zeroY.toFixed(1)} ${x0.toFixed(1)},${y0.toFixed(1)} ${x1.toFixed(1)},${y1.toFixed(1)} ${x1.toFixed(1)},${zeroY.toFixed(1)}" fill="${red}" opacity=".28"/>`;
   }
   const area = `M${poly.replace(/ /g,' L')} L${pts[pts.length-1].x.toFixed(1)},${(vmin<0?zeroY:B).toFixed(1)} L${startX.toFixed(1)},${(vmin<0?zeroY:B).toFixed(1)} Z`;
-  // markers + labels for the biggest items
-  const dayY = d => yOf(c.series.find(p=>p.day===d).bal);
-  const markers = c.events.map(e=>{
-    const x = xOf(e.day), y = dayY(e.day);
-    return e.kind==='in'
-      ? `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="5" fill="${green}" stroke="${panel}" stroke-width="2"/>`
-      : `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4.2" fill="${panel}" stroke="${e.late?red:amber}" stroke-width="2.2"/>`;
-  }).join('');
-  const biggest = c.events.filter(e=>e.kind==='out').sort((a,b)=>a.amount-b.amount).slice(0,2);
-  const labelled = [...biggest, ...(c.nextPay?[c.nextPay]:[])];
-  let evLabels = '';
-  labelled.forEach(e=>{
-    const x = xOf(e.day), y = dayY(e.day);
-    const full = `${escapeHtml(e.name)} ${e.kind==='in'?'+':'−'}${escapeHtml(fmtCompact(Math.abs(e.amount)))}`;
-    const anchor = x > R-150 ? 'end' : 'start';
-    const dx = anchor==='end' ? -9 : 9;
-    const dy = e.kind==='in' ? 4 : -9;
-    evLabels += `<text x="${(x+dx).toFixed(1)}" y="${(y+dy).toFixed(1)}" font-size="10.5" font-weight="700" fill="${e.kind==='in'?green:text}" text-anchor="${anchor}">${full}</text>`;
-  });
-  // lowest point callout
+  // lowest point callout (geometry first, so labels can steer clear of it)
   const lx = xOf(c.low.fromOpening ? c.startDay-1 : c.low.day), ly = yOf(c.low.bal);
   const boxW = narrow ? 112 : 128, boxH = 46;
   let bx = Math.min(Math.max(lx - boxW/2, L+4), R-boxW-4);
   let by = ly - boxH - 26; if(by < T-4) by = ly + 26;
+  const placed = [{x0:bx, x1:bx+boxW, y0:Math.min(by,ly-9), y1:Math.max(by+boxH,ly+9)}];
+  // markers: one per day, even when several things fall on it
+  const dayY = d => yOf(c.series.find(p=>p.day===d).bal);
+  const groups = {};
+  c.events.forEach(e=>{ (groups[e.day] = groups[e.day] || {day:e.day, outs:[], ins:[]})[e.kind==='in'?'ins':'outs'].push(e); });
+  const glist = Object.values(groups);
+  const markers = glist.map(g=>{
+    const x = xOf(g.day), y = dayY(g.day);
+    if(g.ins.length) return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="5" fill="${green}" stroke="${panel}" stroke-width="2"/>`;
+    const late = g.outs.some(e=>e.late);
+    return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${g.outs.length>1?5:4.2}" fill="${panel}" stroke="${late?red:amber}" stroke-width="2.2"/>`;
+  }).join('');
+  // labels: biggest outgoing days + payday, each placed where it doesn't collide
+  const outTotal = g => g.outs.reduce((a,e)=>a+e.amount,0);
+  const toLabel = glist.filter(g=>g.outs.length && !g.ins.length).sort((a,b)=>outTotal(a)-outTotal(b)).slice(0, narrow?2:3).map(g=>{
+    const big = g.outs.slice().sort((a,b)=>a.amount-b.amount)[0];
+    return {g, kind:'out', text:`${big.name}${g.outs.length>1?` +${g.outs.length-1} more`:''} −${fmtCompact(Math.abs(outTotal(g)))}`};
+  });
+  const payG = c.nextPay && groups[c.nextPay.day];
+  if(payG){
+    const ins = payG.ins.reduce((a,e)=>a+e.amount,0);
+    toLabel.push({g:payG, kind:'in', text:`${c.nextPay.name}${payG.ins.length>1?` +${payG.ins.length-1} more`:''} +${fmtCompact(ins)}`});
+  }
+  const charW = narrow ? 6.2 : 6.6, lh = 12;
+  toLabel.sort((a,b)=>(a.kind==='in'?-1:0)-(b.kind==='in'?-1:0));   // payday places first, then the biggest bills
+  let evLabels = '';
+  toLabel.forEach(lb=>{
+    const x = xOf(lb.g.day), y = dayY(lb.g.day);
+    const w = lb.text.length*charW;
+    const anchor = x + 9 + w > R+4 ? 'end' : 'start';
+    const tx = anchor==='end' ? x-9 : x+9;
+    const x0 = anchor==='end' ? tx-w : tx, x1 = x0+w;
+    const tries = lb.kind==='in' ? [4,-12,20,-28] : [-9,-24,-39,15,30];
+    const hit = (y0,y1)=>placed.some(r=>x0<r.x1 && x1>r.x0 && y0<r.y1 && y1>r.y0);
+    let chosen = null;
+    for(const dy of tries){
+      const ty = y+dy, y0 = ty-lh+2, y1 = ty+3;
+      if(y0 < T-6 || y1 > B+2) continue;
+      if(!hit(y0,y1)){ chosen = {ty, y0, y1}; break; }
+    }
+    if(!chosen) return;
+    placed.push({x0, x1, y0:chosen.y0, y1:chosen.y1});
+    evLabels += `<text x="${tx.toFixed(1)}" y="${chosen.ty.toFixed(1)}" font-size="10.5" font-weight="700" fill="${lb.kind==='in'?green:text}" text-anchor="${anchor}" stroke="${panel}" stroke-width="3" paint-order="stroke">${escapeHtml(lb.text)}</text>`;
+  });
   const lowCol = c.status==='short' ? red : (c.status==='tight' ? amber : accent);
   const lowDate = new Date(c.y, c.mo-1, c.low.day).toLocaleDateString('en-GB',{day:'numeric',month:'short'});
   const callout = `
