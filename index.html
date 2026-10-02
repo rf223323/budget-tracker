@@ -93,6 +93,12 @@
   .sf-main{flex:1;min-width:0;}
   .sf-avatar{width:34px;height:34px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:var(--on-accent);background:linear-gradient(135deg, var(--accent), var(--accent2));}
   .sf-swatch{width:34px;height:34px;border-radius:10px;flex-shrink:0;border:1px solid var(--border);background:linear-gradient(135deg, var(--bg) 0 50%, var(--accent) 50% 100%);}
+  .sf-settings{cursor:pointer;border-radius:10px;transition:background .1s;}
+  .sf-settings:hover .sf-set-label{color:var(--accent);}
+  .sf-ico{width:34px;height:34px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--bg);border:1px solid var(--border);color:var(--muted);}
+  .sf-settings.active .sf-ico{color:var(--accent);border-color:color-mix(in srgb, var(--accent) 55%, var(--border));}
+  .sf-set-label{pointer-events:none;font-size:13px;font-weight:700;color:var(--text);}
+  .sf-chev{color:var(--muted);flex-shrink:0;}
   .sf-label{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);line-height:1.2;}
   .sf-select{width:100%;appearance:none;-webkit-appearance:none;background-color:transparent;border:none;border-radius:0;color:var(--text);font:inherit;font-size:13px;font-weight:700;padding:1px 16px 1px 0;cursor:pointer;text-overflow:ellipsis;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%238a93ab' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
@@ -816,14 +822,6 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
       Month Tracker
     </div>
-    <div class="nav-item" data-view="calendar">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/><circle cx="8" cy="15" r="1.2" fill="currentColor" stroke="none"/><circle cx="12" cy="15" r="1.2" fill="currentColor" stroke="none"/><circle cx="16" cy="15" r="1.2" fill="currentColor" stroke="none"/></svg>
-      Calendar
-    </div>
-    <div class="nav-item" data-view="trend">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>
-      Trend
-    </div>
     <div class="nav-item" data-view="quarterly">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="8" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/><rect x="13" y="13" width="8" height="8" rx="1"/></svg>
       Quarterly
@@ -832,17 +830,21 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
       Recurring
     </div>
+    <div class="nav-item" data-view="calendar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/><circle cx="8" cy="15" r="1.2" fill="currentColor" stroke="none"/><circle cx="12" cy="15" r="1.2" fill="currentColor" stroke="none"/><circle cx="16" cy="15" r="1.2" fill="currentColor" stroke="none"/></svg>
+      Calendar
+    </div>
     <div class="nav-item" data-view="pay3">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19"/><path d="M6.5 15h4"/></svg>
       Pay in 3
     </div>
+    <div class="nav-item" data-view="trend">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>
+      Trend
+    </div>
     <div class="nav-item" data-view="pots">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 8a4 4 0 0 0-4-4h-1.2a5 5 0 0 0-9.3 2.1C4 6.4 3 7.9 3 9.5 3 11.4 4.6 13 6.5 13H7v3a2 2 0 0 0 2 2h1v3h6v-4a5 5 0 0 0 3-4.6V11a3 3 0 0 0 1-2.3z"/><circle cx="16.5" cy="8.5" r=".6" fill="currentColor" stroke="none"/></svg>
       Pots
-    </div>
-    <div class="nav-item" data-view="settings">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.2a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.2a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.2a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.6 1H21a2 2 0 1 1 0 4h-.2a1.7 1.7 0 0 0-1.6 1z"/></svg>
-      Settings
     </div>
     <div class="sidebar-footer">
       <div class="sf-card">
@@ -870,6 +872,12 @@
         <option value="ember" style="background:#161617;color:#f4f1ef;">Ember</option>
       </select>
           </div>
+        </div>
+        <div class="sf-divider"></div>
+        <div class="sf-row sf-settings" id="sfSettings" role="button" tabindex="0" aria-label="Settings">
+          <div class="sf-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></div>
+          <div class="sf-main"><div class="sf-set-label">Settings</div></div>
+          <svg class="sf-chev" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
         </div>
       </div>
       <button class="sf-refresh" id="forceRefreshBtn" title="Clears the app's cached files and reloads the latest version. Your budget data is not touched.">⟳ Force refresh</button>
@@ -2894,6 +2902,7 @@ function render(){
   const themeMeta = document.querySelector('meta[name="theme-color"]');
   if(themeMeta) themeMeta.setAttribute('content', cssVar('--accent', '#5b8cff'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active', n.dataset.view===currentView));
+  const sfSet = document.getElementById('sfSettings'); if(sfSet) sfSet.classList.toggle('active', currentView==='settings');
   const profileSel = document.getElementById('sidebarProfileSelect');
   profileSel.innerHTML = profilesMeta.profiles.map(p=>`<option value="${p.id}" ${p.id===profilesMeta.activeId?'selected':''}>${escapeHtml(p.name)}</option>`).join('');
   profileSel.onchange = e=>switchProfile(e.target.value);
@@ -5515,6 +5524,12 @@ document.getElementById('hamburgerBtn').onclick = ()=>{
   document.getElementById('sidebarBackdrop').classList.toggle('open');
 };
 document.getElementById('sidebarBackdrop').onclick = closeSidebar;
+{
+  const sfSet = document.getElementById('sfSettings');
+  const openSettings = ()=>{ currentView = 'settings'; render(); closeSidebar(); };
+  sfSet.addEventListener('click', openSettings);
+  sfSet.addEventListener('keydown', ev=>{ if(ev.key==='Enter' || ev.key===' '){ ev.preventDefault(); openSettings(); } });
+}
 document.querySelectorAll('.bn-item').forEach(b=>{
   b.addEventListener('click', ()=>{ currentView = b.dataset.view; render(); window.scrollTo(0,0); });
 });
