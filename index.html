@@ -4221,7 +4221,8 @@ function wardTabHtml(sub){
     : `<div class="wd-spin"><span class="ss-wheel dim">${wheelSvg(34,'')}</span><span><b>Next spin on Sunday</b><i>One new spin every week</i></span></div>`;
   const subs = [['acc','Accessories'],['bg','Backgrounds'],['title','Titles']];
   const segs = `<div class="seg-toggle wide wd-tabs">${subs.map(([k,l])=>`<button type="button" class="seg-btn${sub===k?' active':''}" data-w="${k}">${l}</button>`).join('')}</div>`;
-  const items = WARDROBE[sub].map(it=>{
+  const order = {c:0, r:1, s:2};   // common first, super rare last (stable within each tier)
+  const items = WARDROBE[sub].slice().sort((x,y)=>order[x.r]-order[y.r]).map(it=>{
     const own = W.owned[sub].includes(it.id), eq = W.equipped[sub]===it.id, R = WARD_RARITY[it.r];
     const art = !own ? (sub==='title' ? '<span class="wd-title wd-lock">??? ????</span>' : sub==='acc' ? `<div class="wd-art wd-lock">${emberFlameSvg('st', null, EMBER_SKINS[0], it.id)}</div>` : '<div class="wd-bg wd-lock"></div>') : wardPreviewHtml(sub, it, 64);
     return `<button type="button" class="wd-item r-${it.r}${eq?' on':''}${own?'':' off'}" data-w="${sub}" data-id="${it.id}">
