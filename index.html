@@ -280,13 +280,79 @@
   .delta-down{color:var(--green);}
   .delta-icon{flex-shrink:0;}
   .delta-text{color:var(--text);line-height:1.45;}
-  .heatmap-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;}
+  .heatmap-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;}
   .heatmap-dow{font-size:10.5px;color:var(--muted);text-align:center;text-transform:uppercase;letter-spacing:.03em;padding-bottom:6px;}
-  .heatmap-cell{position:relative;aspect-ratio:1;border-radius:7px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11.5px;color:var(--text);cursor:default;}
-  .heatmap-cell .bill-marker{position:absolute;top:3px;right:3px;width:6px;height:6px;border-radius:50%;background:var(--amber);box-shadow:0 0 0 1.5px var(--panel);}
-  .heatmap-cell .pay-marker{position:absolute;top:3px;left:3px;width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 0 1.5px var(--panel);}
-  .heatmap-cell.empty{border:none;}
+  .heatmap-cell{position:relative;aspect-ratio:1.7;border-radius:8px;border:1px solid var(--border);display:flex;flex-direction:column;justify-content:space-between;align-items:stretch;padding:5px 7px;font:inherit;font-size:11px;color:var(--text);cursor:pointer;text-align:left;transition:transform .12s ease,border-color .12s ease,box-shadow .12s ease;}
+  .heatmap-cell:hover{transform:translateY(-1px);border-color:var(--accent);box-shadow:0 4px 14px rgba(0,0,0,.18);}
+  .heatmap-cell.empty{border:none;cursor:default;pointer-events:none;}
   .heatmap-cell.weekend{border-color:color-mix(in srgb, var(--accent) 35%, var(--border));}
+  .heatmap-cell.today{box-shadow:0 0 0 2px var(--accent);}
+  .heatmap-cell.future{opacity:.6;}
+  .heatmap-cell.hm-hot{color:var(--on-accent);}
+  .hm-day{font-size:11px;font-weight:700;line-height:1;}
+  .hm-markers{position:absolute;top:5px;right:6px;display:flex;gap:3px;}
+  .heatmap-cell .bill-marker,.heatmap-cell .pay-marker{position:static;width:7px;height:7px;border-radius:50%;box-shadow:0 0 0 1.5px var(--panel);}
+  .heatmap-cell .bill-marker{background:var(--amber);}
+  .heatmap-cell .pay-marker{background:var(--green);}
+  .hm-foot{display:flex;flex-direction:column;align-items:flex-start;gap:1px;min-height:12px;}
+  .hm-amt{font-size:11.5px;font-weight:700;line-height:1.1;}
+  .hm-tick{font-size:10px;color:var(--muted);opacity:.7;line-height:1;}
+  .hm-ghost{font-size:9.5px;font-weight:700;color:var(--amber);border:1px dashed color-mix(in srgb, var(--amber) 70%, transparent);border-radius:5px;padding:0 4px;line-height:1.35;}
+  .hm-controls{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
+  .hm-controls .month-switch .label{min-width:130px;}
+  .hm-controls button:disabled{opacity:.35;cursor:default;}
+  .hm-stats{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;}
+  .hm-stat{background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:8px 12px;}
+  .hm-stat .k{font-size:10.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em;}
+  .hm-stat .v{font-size:14.5px;font-weight:700;margin-top:2px;}
+  .hm-sub{font-size:11.5px;font-weight:500;color:var(--muted);}
+  .hm-leg{margin-left:12px;display:inline-flex;align-items:center;gap:5px;}
+  .hm-leg-dot{width:7px;height:7px;border-radius:50%;display:inline-block;}
+  .hm-leg-tick{font-size:10px;opacity:.7;}
+  .hm-insights{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:18px;}
+  .hm-card{background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:14px 16px;min-width:0;}
+  .hm-card-title{font-size:12.5px;font-weight:700;margin-bottom:10px;}
+  .hm-insight{font-size:12.5px;color:var(--muted);margin-top:10px;line-height:1.45;}
+  .hm-wd{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;align-items:end;}
+  .hm-wd-col{display:flex;flex-direction:column;align-items:center;gap:4px;}
+  .hm-wd-val{font-size:10px;color:var(--muted);height:12px;font-weight:600;}
+  .hm-wd-track{height:96px;width:100%;display:flex;align-items:flex-end;}
+  .hm-wd-bar{width:100%;border-radius:6px 6px 2px 2px;background:color-mix(in srgb, var(--accent) 45%, transparent);transition:height .5s ease;}
+  .hm-wd-bar.wknd{background:color-mix(in srgb, var(--accent2) 50%, transparent);}
+  .hm-wd-bar.top{background:var(--accent);}
+  .hm-wd-lbl{font-size:10.5px;color:var(--muted);text-transform:uppercase;}
+  .hm-year{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;}
+  .hm-mini{font:inherit;color:inherit;text-align:left;background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:10px 12px;cursor:pointer;transition:transform .12s ease,border-color .12s ease;}
+  .hm-mini:hover:not(.untracked){transform:translateY(-1px);border-color:var(--accent);}
+  .hm-mini.untracked{opacity:.4;cursor:default;}
+  .hm-mini-head{display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-bottom:8px;}
+  .hm-mini-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
+  .hm-sq{aspect-ratio:1;border-radius:2px;border:1px solid var(--border);}
+  .hm-sq.blank{border:none;}
+  .modal.day-modal{width:min(420px,92vw);}
+  .dm-total{font-size:12.5px;color:var(--muted);margin-bottom:6px;}
+  .dm-sec{margin-top:14px;}
+  .dm-sec-title{font-size:10.5px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
+  .dm-list{display:flex;flex-direction:column;gap:6px;max-height:210px;overflow-y:auto;}
+  .dm-row{display:flex;align-items:center;gap:10px;background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:8px 10px;}
+  .dm-main{flex:1;min-width:0;}
+  .dm-name{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .dm-sub{font-size:11px;color:var(--muted);}
+  .dm-amt{font-size:13px;font-weight:700;white-space:nowrap;}
+  .dm-form{display:grid;grid-template-columns:90px 1fr;gap:8px;}
+  .dm-form .cat-dd{max-width:none;grid-column:1 / -1;width:100%;}
+  .dm-form .btn{grid-column:1 / -1;}
+  .dm-note{font-size:12px;color:var(--muted);margin-top:14px;}
+  @media (max-width:700px){
+    .heatmap-cell{aspect-ratio:1;padding:3px 4px;}
+    .hm-day{font-size:10px;}
+    .hm-amt{font-size:9px;}
+    .hm-ghost{display:none;}
+    .heatmap-cell .bill-marker,.heatmap-cell .pay-marker{width:5px;height:5px;}
+    .hm-markers{top:3px;right:3px;gap:2px;}
+    .hm-insights{grid-template-columns:1fr;}
+    .heatmap-grid{gap:3px;}
+  }
   .heatmap-legend{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);margin-top:14px;}
   .heatmap-legend-swatch{width:14px;height:14px;border-radius:4px;border:1px solid var(--border);}
   .schedule-hint{font-size:11px;color:var(--muted);margin-top:4px;}
@@ -1764,10 +1830,13 @@ function lineChart(container, data, opts={}){
     const x = xFor(idx);
     guide.setAttribute('x1',x); guide.setAttribute('x2',x); guide.setAttribute('opacity',.45);
     dotRefs.forEach(r=>{
-      r.ring.setAttribute('cx',x); r.ring.setAttribute('cy',r.pts[idx].y); r.ring.setAttribute('opacity',1);
+      const pt = r.pts[idx];
+      if(!pt){ r.ring.setAttribute('opacity',0); return; }
+      r.ring.setAttribute('cx',x); r.ring.setAttribute('cy',pt.y); r.ring.setAttribute('opacity',1);
     });
     const label = allSeries[0].points[idx].label || allSeries[0].points[idx].x;
     const rows = dotRefs.map(r=>{
+      if(!r.s.points[idx]) return '';
       const v = r.s.points[idx].y;
       let delta = '';
       if(dotRefs.length===1 && idx>0){
@@ -2692,7 +2761,7 @@ function renderTrend(){
       <div id="catBreakdownDeltas" style="margin-top:8px;"></div>
     </div>
     <div class="panel">
-      <div class="panel-head"><h2>Daily Spending Heatmap</h2><span class="hint">Quick Add spends, plus any outgoing you've given a Day — good for spotting weekend patterns</span></div>
+      <div class="panel-head"><h2>Daily Spending Heatmap</h2><span class="hint">Quick Add spends plus any outgoing with a Day — click a day for details or to log a spend</span></div>
       <div id="spendHeatmap"></div>
     </div>
     <div class="panel">
@@ -2883,62 +2952,379 @@ function hexToRgbTriplet(hex){
   const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
   return m ? `${parseInt(m[1],16)},${parseInt(m[2],16)},${parseInt(m[3],16)}` : '91,140,255';
 }
+// ---- Daily spending heatmap (month view, year view, day details) ----
+let heatmapMonth = null, heatmapMode = 'all', heatmapView = 'month', heatmapYear = null;
+const mondayIndexOf = jsDay => (jsDay+6)%7; // JS: 0=Sun..6=Sat -> Monday-first
+const WEEKDAY_FULL = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+
+// Compact money for tiny cells: £42, £4.50, £1.2k.
+function fmtCompact(n){
+  const v = Math.abs(n), sign = n<0 ? '-' : '';
+  if(v>=10000) return sign+state.currency+Math.round(v/1000)+'k';
+  if(v>=1000) return sign+state.currency+(v/1000).toFixed(1).replace(/\.0$/,'')+'k';
+  if(v>=100) return sign+state.currency+Math.round(v);
+  return sign+state.currency+v.toFixed(2).replace(/\.00$/,'');
+}
+function heatmapCtx(mk){
+  const [y, mo] = mk.split('-').map(Number);
+  const dim = new Date(y, mo, 0).getDate();
+  const now = new Date();
+  const isCurrent = mk===monthKey(now), isPast = mk<monthKey(now);
+  return {y, mo, dim, isCurrent, isPast, today: isCurrent ? now.getDate() : 0, elapsed: isPast ? dim : (isCurrent ? now.getDate() : 0)};
+}
+// Every dated outgoing/incoming (any status) by day, for tooltips, ghost
+// amounts and the day-detail panel.
+function scheduledByDay(mk){
+  const m = state.months[mk];
+  const bills = {}, pays = {};
+  if(!m) return {bills, pays};
+  const [y, mo] = mk.split('-').map(Number);
+  m.outgoings.forEach(o=>{
+    const d = resolveScheduledDay(o, y, mo);
+    if(d && !o.quickAdd) (bills[d] = bills[d]||[]).push({name:o.name, amount:Number(o.amount)||0, done:o.status==='done', category:o.category||'Uncategorized'});
+  });
+  m.incoming.forEach(i=>{
+    const d = resolveScheduledDay(i, y, mo);
+    if(d && !i.quickAdd) (pays[d] = pays[d]||[]).push({name:i.name, amount:Number(i.amount)||0, done:i.status==='done'});
+  });
+  return {bills, pays};
+}
+// Quick Add spends only, by day — everyday discretionary spending, free of
+// bills like rent that would otherwise dominate weekday patterns.
+function discretionaryByDay(mk){
+  const m = state.months[mk];
+  const days = {};
+  if(!m) return days;
+  const [y, mo] = mk.split('-').map(Number);
+  m.outgoings.forEach(o=>{
+    if(!(o.quickAdd && o.ts)) return;
+    const d = new Date(o.ts);
+    if(d.getFullYear()!==y || (d.getMonth()+1)!==mo) return;
+    days[d.getDate()] = round2((days[d.getDate()]||0) + (Number(o.amount)||0));
+  });
+  return days;
+}
+function cumulativeSpend(series, dim, upto){
+  const out = [];
+  let run = 0;
+  for(let d=1; d<=Math.min(dim, upto); d++){ run += series[d]||0; out.push(round2(run)); }
+  return out;
+}
+
 function renderSpendingHeatmap(){
   const el = document.getElementById('spendHeatmap');
   if(!el) return;
-  const monthKey = categoryBreakdownMonth;
-  if(!monthKey){ el.innerHTML = '<div class="empty">No months tracked yet.</div>'; return; }
-  const [y, mo] = monthKey.split('-').map(Number);
-  const daysInMonth = new Date(y, mo, 0).getDate();
-  const mondayIndex = jsDay => (jsDay+6)%7; // JS: 0=Sun..6=Sat -> Monday-first index
-  const firstDow = mondayIndex(new Date(y, mo-1, 1).getDay());
-  const daySpend = dailySpendSeries(monthKey, categoryBreakdownMode);
-  const billDays = billDaysForMonth(monthKey);
-  const payDays = payDaysForMonth(monthKey);
+  const keys = Object.keys(state.months).sort();
+  if(!keys.length){ el.innerHTML = '<div class="empty">No months tracked yet.</div>'; return; }
+  if(!heatmapMonth || !state.months[heatmapMonth]) heatmapMonth = state.months[state.currentMonthKey] ? state.currentMonthKey : keys[keys.length-1];
+  if(heatmapYear===null) heatmapYear = Number(heatmapMonth.slice(0,4));
+  const years = keys.map(k=>Number(k.slice(0,4)));
+  const minYear = Math.min(...years), maxYear = Math.max(...years);
+  const idx = keys.indexOf(heatmapMonth);
+
+  const navHtml = heatmapView==='year'
+    ? `<div class="month-switch"><button id="hmPrev" ${heatmapYear<=minYear?'disabled':''}>‹</button><div class="label">${heatmapYear}</div><button id="hmNext" ${heatmapYear>=maxYear?'disabled':''}>›</button></div>`
+    : `<div class="month-switch"><button id="hmPrev" ${idx<=0?'disabled':''}>‹</button><div class="label">${monthLabelFromKey(heatmapMonth)}</div><button id="hmNext" ${idx>=keys.length-1?'disabled':''}>›</button></div>`;
+  const controls = `
+    <div class="hm-controls">
+      ${navHtml}
+      <div class="seg-toggle" id="hmViewToggle">
+        <button class="seg-btn${heatmapView==='month'?' active':''}" data-v="month">Month</button>
+        <button class="seg-btn${heatmapView==='year'?' active':''}" data-v="year">Year</button>
+      </div>
+      <div class="seg-toggle" id="hmModeToggle">
+        <button class="seg-btn${heatmapMode==='all'?' active':''}" data-m="all">Budgeted</button>
+        <button class="seg-btn${heatmapMode==='done'?' active':''}" data-m="done">Actual (Done)</button>
+      </div>
+    </div>`;
+
+  const body = heatmapView==='year' ? heatmapYearHtml(keys) : heatmapMonthHtml(heatmapMonth);
+  el.innerHTML = controls + body.html;
+
+  document.getElementById('hmPrev').onclick = ()=>{
+    if(heatmapView==='year') heatmapYear--; else heatmapMonth = keys[idx-1];
+    renderSpendingHeatmap();
+  };
+  document.getElementById('hmNext').onclick = ()=>{
+    if(heatmapView==='year') heatmapYear++; else heatmapMonth = keys[idx+1];
+    renderSpendingHeatmap();
+  };
+  el.querySelectorAll('#hmViewToggle .seg-btn').forEach(b=>b.onclick = ()=>{
+    heatmapView = b.dataset.v;
+    if(heatmapView==='year') heatmapYear = Number(heatmapMonth.slice(0,4));
+    renderSpendingHeatmap();
+  });
+  el.querySelectorAll('#hmModeToggle .seg-btn').forEach(b=>b.onclick = ()=>{ heatmapMode = b.dataset.m; renderSpendingHeatmap(); });
+  if(body.after) body.after(el);
+}
+
+function heatmapLegendHtml(accentRgb){
+  return `<div class="heatmap-legend">
+      <span>Less</span>
+      ${[0.18,0.4,0.65,0.9].map(a=>`<span class="heatmap-legend-swatch" style="background:rgba(${accentRgb},${a});"></span>`).join('')}
+      <span>More</span>
+      <span class="hm-leg"><span class="hm-leg-dot" style="background:var(--amber);"></span>Bill due</span>
+      <span class="hm-leg"><span class="hm-leg-dot" style="background:var(--green);"></span>Payday</span>
+      <span class="hm-leg"><span class="hm-leg-tick">✓</span>No spend</span>
+    </div>`;
+}
+
+function heatmapMonthHtml(mk){
+  const c = heatmapCtx(mk);
+  const daySpend = dailySpendSeries(mk, heatmapMode);
+  const {bills, pays} = scheduledByDay(mk);
+  const disc = discretionaryByDay(mk);
   const max = Math.max(0, ...Object.values(daySpend));
   const accentRgb = hexToRgbTriplet(getComputedStyle(document.body).getPropertyValue('--accent').trim() || '#5b8cff');
-  const monthShort = monthLabelFromKey(monthKey).split(' ')[0];
+  const monthShort = monthLabelFromKey(mk).split(' ')[0].slice(0,3);
+  const firstDow = mondayIndexOf(new Date(c.y, c.mo-1, 1).getDay());
+
+  // Month stats
+  let spentToDate = 0, noSpend = 0, best = 0, run = 0, busiest = null;
+  for(let d=1; d<=c.dim; d++){
+    const amt = daySpend[d]||0;
+    if(amt>0 && (!busiest || amt>busiest.amt)) busiest = {day:d, amt};
+    if(d<=c.elapsed){
+      spentToDate += amt;
+      if(amt===0){ noSpend++; run++; best = Math.max(best, run); } else run = 0;
+    }
+  }
+  const curStreak = run;
+  const total = round2(Object.values(daySpend).reduce((a,b)=>a+b,0));
+  const chips = [
+    `<div class="hm-stat"><div class="k">Month total</div><div class="v">${fmt(total)}</div></div>`,
+    c.elapsed>0 ? `<div class="hm-stat"><div class="k">Daily average</div><div class="v">${fmt(round2(spentToDate/c.elapsed))}</div></div>` : '',
+    busiest ? `<div class="hm-stat"><div class="k">Busiest day</div><div class="v">${monthShort} ${busiest.day} · ${fmt(busiest.amt)}</div></div>` : '',
+    c.elapsed>0 ? `<div class="hm-stat" title="Days with nothing logged against them"><div class="k">No-spend days</div><div class="v">${noSpend}<span class="hm-sub"> · best streak ${best}${curStreak>=2?` · now ${curStreak}`:''}</span></div></div>` : ''
+  ].join('');
 
   let cells = '';
-  for(let i=0;i<firstDow;i++) cells += `<div class="heatmap-cell empty"></div>`;
-  for(let day=1; day<=daysInMonth; day++){
+  for(let i=0; i<firstDow; i++) cells += `<div class="heatmap-cell empty"></div>`;
+  for(let day=1; day<=c.dim; day++){
     const amt = daySpend[day]||0;
     const ratio = max>0 ? amt/max : 0;
-    const isWeekend = mondayIndex(new Date(y, mo-1, day).getDay()) >= 5;
+    const dow = mondayIndexOf(new Date(c.y, c.mo-1, day).getDay());
+    const isWeekend = dow >= 5;
+    const isToday = day===c.today;
+    const isFuture = !c.isPast && day>c.elapsed;
     const bg = amt>0 ? `rgba(${accentRgb},${(0.18+0.72*ratio).toFixed(2)})` : 'transparent';
-    const billNames = billDays[day];
-    const payNames = payDays[day];
-    let tip = amt>0 ? `${monthShort} ${day}: ${fmt(amt)}` : `${monthShort} ${day}: no dated spending`;
-    if(payNames) tip += ` · pay: ${payNames.join(', ')}`;
-    if(billNames) tip += ` · due: ${billNames.join(', ')}`;
-    const marker = (billNames?'<span class="bill-marker"></span>':'') + (payNames?'<span class="pay-marker"></span>':'');
-    cells += `<div class="heatmap-cell${isWeekend?' weekend':''}" data-tip="${escapeHtml(tip)}" style="background:${bg};">${day}${marker}</div>`;
+    const dayBills = bills[day]||[], dayPays = pays[day]||[];
+    const pendingBills = dayBills.filter(b=>!b.done), pendingPays = dayPays.filter(p=>!p.done);
+    const ghostAmt = heatmapMode==='done' ? round2(pendingBills.reduce((a,b)=>a+b.amount,0)) : 0;
+    const noSpendDay = !isFuture && amt===0;
+    let tip = `<div style="font-weight:700;margin-bottom:3px;">${WEEKDAY_FULL[dow].slice(0,3)} ${day} ${monthShort}</div>`;
+    tip += amt>0 ? `<div>Spent: ${escapeHtml(fmt(amt))}</div>` : (noSpendDay ? '<div style="color:var(--muted);">Nothing logged</div>' : '<div style="color:var(--muted);">Nothing planned</div>');
+    pendingBills.forEach(b=>{ tip += `<div><span style="color:var(--amber);">●</span> Due: ${escapeHtml(b.name)} ${escapeHtml(fmt(b.amount))}</div>`; });
+    pendingPays.forEach(p=>{ tip += `<div><span style="color:var(--green);">●</span> Pay: ${escapeHtml(p.name)} ${escapeHtml(fmt(p.amount))}</div>`; });
+    tip += '<div style="color:var(--muted);margin-top:3px;">Click for details</div>';
+    const markers = (pendingPays.length?'<span class="pay-marker"></span>':'') + (pendingBills.length?'<span class="bill-marker"></span>':'');
+    const low = (amt>0 ? (ratio>0.5?'hm-hot':'') : '');
+    cells += `<button type="button" class="heatmap-cell${isWeekend?' weekend':''}${isToday?' today':''}${isFuture?' future':''}${low?' '+low:''}" data-day="${day}" data-tip="${escapeHtml(tip)}" style="background:${bg};">
+      <span class="hm-day">${day}</span>
+      <span class="hm-markers">${markers}</span>
+      <span class="hm-foot">
+        ${amt>0 ? `<span class="hm-amt">${fmtCompact(amt)}</span>` : (noSpendDay ? '<span class="hm-tick">✓</span>' : '')}
+        ${ghostAmt>0 ? `<span class="hm-ghost">${fmtCompact(ghostAmt)} due</span>` : ''}
+      </span>
+    </button>`;
   }
-  if(!Object.keys(daySpend).length && !Object.keys(billDays).length && !Object.keys(payDays).length){
-    el.innerHTML = '<div class="empty">No Quick Add spends or dated outgoings for this month yet — add a "Day" to an outgoing, or use Quick Add.</div>';
-    return;
+
+  // Weekday pattern from Quick Add spends only
+  const wd = Array.from({length:7}, ()=>({sum:0, count:0}));
+  for(let d=1; d<=c.elapsed; d++) wd[mondayIndexOf(new Date(c.y, c.mo-1, d).getDay())].count++;
+  Object.entries(disc).forEach(([d,v])=>{ if(Number(d)<=c.elapsed) wd[mondayIndexOf(new Date(c.y, c.mo-1, Number(d)).getDay())].sum += v; });
+  const avgs = wd.map(x=>x.count ? x.sum/x.count : 0);
+  const maxAvg = Math.max(0, ...avgs);
+  let wdInsight = 'Log spends with Quick Add to see which days cost you most.';
+  if(maxAvg>0){
+    const top = avgs.indexOf(maxAvg);
+    wdInsight = `${WEEKDAY_FULL[top]}s cost you most — about ${fmt(round2(maxAvg))} on average.`;
+    const sum = (idxs, f) => idxs.reduce((a,i)=>a+wd[i][f],0);
+    const wkndDays = sum([5,6],'count'), wkdyDays = sum([0,1,2,3,4],'count');
+    if(wkndDays>0 && wkdyDays>0){
+      const wknd = sum([5,6],'sum')/wkndDays, wkdy = sum([0,1,2,3,4],'sum')/wkdyDays;
+      if(wkdy>0 && wknd>0){
+        const ratio = wknd/wkdy;
+        if(ratio>=2) wdInsight += ` Weekend days cost about ${ratio.toFixed(1).replace(/\.0$/,'')}× as much as weekdays.`;
+        else {
+          const pct = Math.round((ratio-1)*100);
+          if(Math.abs(pct)>=5) wdInsight += ` Weekends run ${Math.abs(pct)}% ${pct>0?'higher':'lower'} than weekdays.`;
+        }
+      }
+    }
   }
-  el.innerHTML = `
+  const wdHtml = `
+    <div class="hm-card">
+      <div class="hm-card-title">Everyday spending by weekday</div>
+      <div class="hm-wd">
+        ${avgs.map((a,i)=>`<div class="hm-wd-col" title="${WEEKDAY_FULL[i]}: ${escapeHtml(fmt(round2(a)))} avg over ${wd[i].count} day${wd[i].count!==1?'s':''}">
+          <div class="hm-wd-val">${a>0?fmtCompact(a):''}</div>
+          <div class="hm-wd-track"><div class="hm-wd-bar${a===maxAvg&&a>0?' top':''}${i>=5?' wknd':''}" style="height:${maxAvg?Math.max(a/maxAvg*100, a>0?4:0).toFixed(1):0}%;"></div></div>
+          <div class="hm-wd-lbl">${WEEKDAY_FULL[i].slice(0,3)}</div>
+        </div>`).join('')}
+      </div>
+      <div class="hm-insight">${wdInsight}</div>
+    </div>`;
+
+  // Pace vs the previous tracked month
+  let paceHtml = '', paceAfter = null;
+  if(c.elapsed>0){
+    const keys = Object.keys(state.months).sort();
+    const prevKey = keys[keys.indexOf(mk)-1];
+    const curCum = cumulativeSpend(daySpend, c.dim, c.elapsed);
+    let caption = `${fmt(curCum[curCum.length-1]||0)} spent by day ${c.elapsed}.`;
+    let series;
+    const dayLabel = d => `${monthShort} ${d}`;
+    const xs = Array.from({length:c.dim}, (_,i)=>i+1);
+    if(prevKey){
+      const pc = heatmapCtx(prevKey);
+      const prevCumRaw = cumulativeSpend(dailySpendSeries(prevKey, heatmapMode), pc.dim, pc.dim);
+      const prevCum = xs.map(d=>prevCumRaw[Math.min(d, prevCumRaw.length)-1]||0);
+      const diff = round2((curCum[c.elapsed-1]||0) - prevCum[c.elapsed-1]);
+      caption += Math.abs(diff)<0.005 ? ` Exactly level with ${monthLabelFromKey(prevKey)}.`
+        : ` <span style="color:var(--${diff>0?'red':'green'});font-weight:700;">${fmt(Math.abs(diff))} ${diff>0?'more':'less'}</span> than ${monthLabelFromKey(prevKey)} by the same day.`;
+      series = [
+        {color:cssVar('--muted','#8a93ab'), name:monthLabelFromKey(prevKey), dashed:true, points: xs.map((d,i)=>({x:String(d), label:dayLabel(d), y:prevCum[i]}))},
+        {color:cssVar('--accent','#5b8cff'), name:monthLabelFromKey(mk), points: curCum.map((v,i)=>({x:String(i+1), label:dayLabel(i+1), y:v}))}
+      ];
+    } else {
+      series = [{color:cssVar('--accent','#5b8cff'), name:monthLabelFromKey(mk), points: curCum.map((v,i)=>({x:String(i+1), label:dayLabel(i+1), y:v}))}];
+    }
+    paceHtml = `
+      <div class="hm-card">
+        <div class="hm-card-title">Spending pace</div>
+        <div id="hmPace"></div>
+        <div class="hm-insight">${caption}</div>
+      </div>`;
+    paceAfter = ()=>{
+      const pe = document.getElementById('hmPace');
+      if(pe && series[0].points.length>=2) lineChart(pe, series, {height:170, marker: c.today ? {index:c.today-1, label:'Today'} : null});
+      else if(pe) pe.innerHTML = '<div class="empty">Not enough days yet.</div>';
+    };
+  }
+
+  const empty = !Object.keys(daySpend).length && !Object.keys(bills).length && !Object.keys(pays).length;
+  const html = `
+    <div class="hm-stats">${chips}</div>
+    ${empty ? '<div class="empty" style="padding:6px 0 14px;">No Quick Add spends or dated outgoings for this month yet — click any day to log one, or give an outgoing a Day.</div>' : ''}
     <div class="heatmap-grid">
       ${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d=>`<div class="heatmap-dow">${d}</div>`).join('')}
       ${cells}
     </div>
-    <div class="heatmap-legend">
-      <span>Less</span>
-      <span class="heatmap-legend-swatch" style="background:rgba(${accentRgb},0.18);"></span>
-      <span class="heatmap-legend-swatch" style="background:rgba(${accentRgb},0.4);"></span>
-      <span class="heatmap-legend-swatch" style="background:rgba(${accentRgb},0.65);"></span>
-      <span class="heatmap-legend-swatch" style="background:rgba(${accentRgb},0.9);"></span>
-      <span>More</span>
-      <span style="margin-left:14px;display:inline-flex;align-items:center;gap:5px;"><span style="width:6px;height:6px;border-radius:50%;background:var(--amber);display:inline-block;"></span>Bill due</span>
-      <span style="margin-left:10px;display:inline-flex;align-items:center;gap:5px;"><span style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;"></span>Payday</span>
-    </div>
-  `;
-  el.querySelectorAll('.heatmap-cell[data-tip]').forEach(c=>{
-    c.addEventListener('mouseenter', evt=>showChartTooltip(evt, c.dataset.tip));
-    c.addEventListener('mousemove', evt=>showChartTooltip(evt, c.dataset.tip));
-    c.addEventListener('mouseleave', hideChartTooltip);
+    ${heatmapLegendHtml(accentRgb)}
+    <div class="hm-insights">${wdHtml}${paceHtml}</div>`;
+  return {html, after: root=>{
+    root.querySelectorAll('.heatmap-cell[data-day]').forEach(cell=>{
+      cell.addEventListener('mouseenter', evt=>showChartTooltip(evt, cell.dataset.tip, true));
+      cell.addEventListener('mousemove', evt=>showChartTooltip(evt, cell.dataset.tip, true));
+      cell.addEventListener('mouseleave', hideChartTooltip);
+      cell.addEventListener('click', ()=>{ hideChartTooltip(); openDayModal(mk, Number(cell.dataset.day)); });
+    });
+    if(paceAfter) paceAfter();
+  }};
+}
+
+// Year at a glance: twelve mini calendars on one shared colour scale.
+function heatmapYearHtml(keys){
+  const y = heatmapYear;
+  const accentRgb = hexToRgbTriplet(getComputedStyle(document.body).getPropertyValue('--accent').trim() || '#5b8cff');
+  const monthData = Array.from({length:12}, (_,i)=>{
+    const mk = `${y}-${String(i+1).padStart(2,'0')}`;
+    const tracked = !!state.months[mk];
+    return {mk, i, tracked, spend: tracked ? dailySpendSeries(mk, heatmapMode) : {}};
   });
+  const max = Math.max(0, ...monthData.flatMap(m=>Object.values(m.spend)));
+  const yearTotal = round2(monthData.reduce((a,m)=>a+Object.values(m.spend).reduce((x,v)=>x+v,0),0));
+  const cards = monthData.map(m=>{
+    const dim = new Date(y, m.i+1, 0).getDate();
+    const first = mondayIndexOf(new Date(y, m.i, 1).getDay());
+    let sq = '';
+    for(let b=0; b<first; b++) sq += '<span class="hm-sq blank"></span>';
+    for(let d=1; d<=dim; d++){
+      const a = m.spend[d]||0;
+      sq += `<span class="hm-sq" style="${a>0?`background:rgba(${accentRgb},${(0.2+0.7*(max?a/max:0)).toFixed(2)});border-color:transparent;`:''}"></span>`;
+    }
+    const total = round2(Object.values(m.spend).reduce((x,v)=>x+v,0));
+    const name = new Date(y, m.i, 1).toLocaleString('en-GB',{month:'short'});
+    return `<button type="button" class="hm-mini${m.tracked?'':' untracked'}" data-mk="${m.mk}" ${m.tracked?'':'disabled'}>
+      <div class="hm-mini-head"><span>${name}</span><span class="hm-sub">${m.tracked && total>0 ? fmtCompact(total) : ''}</span></div>
+      <div class="hm-mini-grid">${sq}</div>
+    </button>`;
+  }).join('');
+  const html = `
+    <div class="hm-stats"><div class="hm-stat"><div class="k">${y} total</div><div class="v">${fmt(yearTotal)}</div></div></div>
+    <div class="hm-year">${cards}</div>
+    ${heatmapLegendHtml(accentRgb)}`;
+  return {html, after: root=>{
+    root.querySelectorAll('.hm-mini:not(.untracked)').forEach(b=>b.addEventListener('click', ()=>{
+      heatmapMonth = b.dataset.mk; heatmapView = 'month'; renderSpendingHeatmap();
+    }));
+  }};
+}
+
+// Day details: what was spent, what's due, payday, and (for today or earlier)
+// a form to log a spend against that exact day.
+function openDayModal(mk, day){
+  const m = state.months[mk];
+  if(!m) return;
+  const c = heatmapCtx(mk);
+  const date = new Date(c.y, c.mo-1, day);
+  const bg = document.getElementById('modalBg');
+  const box = document.getElementById('modalBox');
+  box.className = 'modal day-modal';
+  const spends = m.outgoings.filter(o=>{
+    if(!(o.quickAdd && o.ts)) return false;
+    const d = new Date(o.ts);
+    return d.getFullYear()===c.y && d.getMonth()+1===c.mo && d.getDate()===day;
+  });
+  const {bills, pays} = scheduledByDay(mk);
+  const dayBills = bills[day]||[], dayPays = pays[day]||[];
+  const spentTotal = round2(spends.reduce((a,o)=>a+(Number(o.amount)||0),0));
+  const canAdd = c.isPast || (c.isCurrent && day<=c.today);
+  const row = (chip, name, sub, amt, extra='') => `<div class="dm-row"><span class="cat-dd-chip" style="background:${chip};">${extra}</span><div class="dm-main"><div class="dm-name">${escapeHtml(name)}</div><div class="dm-sub">${sub}</div></div><div class="dm-amt">${escapeHtml(fmt(amt))}</div></div>`;
+  const spendRows = spends.map(o=>`<div class="dm-row"><span class="cat-dd-chip" style="background:${categoryColor(o.category||'Uncategorized')};">${categoryIcon(o.category||'Uncategorized')}</span><div class="dm-main"><div class="dm-name">${escapeHtml(o.name)}</div><div class="dm-sub">${escapeHtml(o.category||'Uncategorized')} · ${new Date(o.ts).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</div></div><div class="dm-amt">${escapeHtml(fmt(o.amount))}</div><button class="del-btn dm-del" data-id="${o.id}" aria-label="Delete">✕</button></div>`).join('');
+  const billRows = dayBills.map(b=>row(categoryColor(b.category), b.name, b.done?'Bill · done':'Bill · due', b.amount, categoryIcon(b.category))).join('');
+  const payRows = dayPays.map(p=>row('var(--green)', p.name, p.done?'Payday · received':'Payday · expected', p.amount, '£')).join('');
+  const section = (title, html) => html ? `<div class="dm-sec"><div class="dm-sec-title">${title}</div><div class="dm-list">${html}</div></div>` : '';
+  box.innerHTML = `
+    <h3 style="margin-bottom:2px;">${date.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</h3>
+    <div class="dm-total">${spentTotal>0 ? `${escapeHtml(fmt(spentTotal))} logged` : 'Nothing logged this day'}</div>
+    ${section('Spent', spendRows)}
+    ${section('Bills', billRows)}
+    ${section('Pay', payRows)}
+    ${canAdd ? `
+      <div class="dm-sec"><div class="dm-sec-title">Log a spend on this day</div>
+        <div class="dm-form">
+          <input type="number" step="0.01" id="dmAmount" placeholder="Amount">
+          <input type="text" id="dmReason" placeholder="Reason">
+          ${categoryDropdownHtml('dmCategory','Uncategorized')}
+          <button class="btn small" id="dmAdd">Add</button>
+        </div>
+      </div>` : `<div class="dm-note">This day hasn't happened yet, so spending can't be logged against it.</div>`}
+    <div class="actions"><button class="btn secondary small" id="dmClose">Close</button></div>`;
+  bg.classList.add('open');
+  bg.onclick = e=>{ if(e.target===bg) closeRecapModal(); };
+  document.getElementById('dmClose').onclick = closeRecapModal;
+  box.querySelectorAll('.dm-del').forEach(b=>b.onclick = ()=>{
+    m.outgoings = m.outgoings.filter(o=>o.id!==b.dataset.id);
+    save(); renderSpendingHeatmap(); openDayModal(mk, day);
+  });
+  if(canAdd){
+    const cat = box.querySelector('.dmCategory');
+    initCategoryDropdown(cat, ()=>{});
+    const amountEl = document.getElementById('dmAmount'), reasonEl = document.getElementById('dmReason');
+    const add = ()=>{
+      const amt = Number(amountEl.value);
+      if(!amt || amt<=0) return;
+      const isToday = c.isCurrent && day===c.today;
+      const ts = isToday ? Date.now() : new Date(c.y, c.mo-1, day, 12, 0, 0).getTime();
+      m.outgoings.push({id:uid(), name: reasonEl.value.trim() || 'Spent', amount:amt, status:'done', recurring:false, quickAdd:true, ts, category: cat.dataset.value});
+      save(); renderSpendingHeatmap(); openDayModal(mk, day);
+      showToast(`Added ${fmt(amt)}`, date.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}));
+    };
+    document.getElementById('dmAdd').onclick = add;
+    [amountEl, reasonEl].forEach(i=>i.addEventListener('keydown', e=>{ if(e.key==='Enter') add(); }));
+  }
 }
 
 // ---------------- Quarterly ----------------
