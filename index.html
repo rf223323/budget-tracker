@@ -521,6 +521,24 @@
   .trophy-info{flex:1;min-width:0;}
   .trophy-n{font-size:13.5px;font-weight:700;}
   .trophy-p{font-size:11.5px;color:var(--muted);margin-top:1px;}
+  .sk-card.mystery .sk-flame{filter:brightness(.18) grayscale(1);opacity:.9;}
+  .sk-card.mystery .sk-cn{color:var(--muted);}
+  .lt-card{gap:0;}
+  .lt-chip{display:flex;align-items:center;gap:12px;padding:8px 16px 8px 8px;border-radius:999px;background:var(--panel);border:1px solid var(--border);text-align:left;}
+  .lt-chip-art{width:44px;height:44px;flex-shrink:0;}
+  .lt-chip-art svg{width:100%;height:100%;display:block;}
+  .lt-chip .k{font-size:10px;font-weight:800;letter-spacing:.1em;color:var(--green);}
+  .lt-chip .v{font-size:13px;font-weight:700;}
+  .lt-badge{margin-top:28px;display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:999px;border:1px solid;font-size:11px;font-weight:800;letter-spacing:.12em;}
+  .lt-badge svg{width:14px;height:14px;}
+  .lt-stage{position:relative;margin-top:10px;width:240px;height:240px;animation:luckyPop .7s cubic-bezier(.2,.9,.3,1.4) both;}
+  .lt-rays{position:absolute;inset:0;width:100%;height:100%;}
+  .lt-flame{position:absolute;left:-30px;top:-30px;width:300px;height:300px;}
+  .lt-flame svg{width:100%;height:100%;overflow:visible;display:block;}
+  .lt-name{margin-top:2px;font-size:34px;font-weight:800;letter-spacing:-.03em;}
+  .lt-note{margin-top:5px;font-size:12px;color:var(--muted);}
+  .lt-card .bo-ok{margin-top:20px;}
+  .lt-card .lt-later{margin-top:10px;}
   .boss-xp{font-size:10.5px;font-weight:800;color:#ffb15a;}
   .boss-overlay{position:fixed;inset:0;z-index:125;display:none;align-items:center;justify-content:center;padding:16px;background:radial-gradient(70% 55% at 50% 30%, rgba(255,120,60,.26), rgba(4,4,5,.9) 75%);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);overflow:auto;}
   .boss-overlay.lucky{background:radial-gradient(70% 55% at 50% 30%, color-mix(in srgb, var(--lc,#ffb15a) 30%, transparent), rgba(4,4,5,.9) 75%);}
@@ -589,7 +607,7 @@
     .bo-stage{width:200px;height:200px;}
   }
   @media (prefers-reduced-motion:reduce){
-    .boss-art .boss-body,.bo-stage .boss-body,.boss-hp i.hit,.bo-card,.lk-stage,.lk-xp,.lk-bar i.gain,.lucky-orb{animation:none !important;}
+    .boss-art .boss-body,.bo-stage .boss-body,.boss-hp i.hit,.bo-card,.lk-stage,.lk-xp,.lk-bar i.gain,.lucky-orb,.lt-stage{animation:none !important;}
     .bo-slash{display:none;}
     .bo-dmg,.bo-p,.bo-ring{animation:none !important;}
     .bo-p,.bo-ring{display:none;}
@@ -1599,6 +1617,9 @@ function normalizeState(){
   if(!state.ember || typeof state.ember!=='object') state.ember = {};
   if(!Array.isArray(state.ember.seen)) state.ember.seen = [];
   if(typeof state.ember.skin!=='string') state.ember.skin = 'classic';
+  if(!state.ember.loot || typeof state.ember.loot!=='object') state.ember.loot = {};
+  if(!Array.isArray(state.ember.loot.owned)) state.ember.loot.owned = [];
+  if(typeof state.ember.loot.since!=='number') state.ember.loot.since = 0;
   if(!state.ember.lucky || typeof state.ember.lucky!=='object') state.ember.lucky = {since:0, caught:0, rare:0, gold:0};
   if(typeof state.ember.bonusXp!=='number') state.ember.bonusXp = 0;
   if(typeof state.celebrate!=='boolean') state.celebrate = true;
@@ -3588,6 +3609,51 @@ const EMBER_SKINS = [
   {id:'easter',  name:'Easter',     sub:'Spring · around Easter', season:true, back:'Back at Easter', deco:'eggs', o1:'#ffb6dd', o2:'#9a7cf0', i1:'#fff7b0', i2:'#8fe8c4', ring:'#ffcfe8', halo:'rgba(255,170,220,.4)', glow:'rgba(255,180,230,.85)'},
   {id:'frost',   name:'Frost',      sub:'Winter · Dec to Jan', season:true, back:'Back in December', o1:'#eaf7ff', o2:'#7fb1e6', i1:'#ffffff', i2:'#bfe0ff', ring:'#cfe8ff', halo:'rgba(180,220,255,.4)', glow:'rgba(190,225,255,.85)'}
 ];
+// Boss loot skins: each boss guards one. They drop (rarely) when you pay off a Pay in 3 plan.
+const LOOT_SKINS = [
+  {id:'loot-mimic', loot:'mimic', name:'Hoard', sub:'Dropped by Mimic', motif:'coins', note:'Gold coins orbit the flame', o1:'#ffd36a', o2:'#b8641a', i1:'#fff3b0', i2:'#ffb73a', ring:'#ffd66e', halo:'rgba(255,190,70,.45)', glow:'rgba(255,190,60,.85)'},
+  {id:'loot-card', loot:'card', name:'Magstripe', sub:'Dropped by Plastic Fiend', motif:'chips', note:'Tiny card chips drift past', o1:'#9a82ff', o2:'#2f2090', i1:'#e6dcff', i2:'#6fd0ff', ring:'#9a82ff', halo:'rgba(130,110,255,.45)', glow:'rgba(120,100,255,.85)'},
+  {id:'loot-dragon', loot:'dragon', name:'Dragonfire', sub:'Dropped by Overdraft Dragon', motif:'scales', note:'Emerald scales shimmer', o1:'#6dffb4', o2:'#0b7a48', i1:'#eaffd0', i2:'#8aff5a', ring:'#4cf0a0', halo:'rgba(60,230,150,.42)', glow:'rgba(60,240,150,.85)'},
+  {id:'loot-bat', loot:'bat', name:'Nightwing', sub:'Dropped by Late-Fee Bat', motif:'bats', note:'Bats flutter around it', o1:'#e07bff', o2:'#37106a', i1:'#ffd6ff', i2:'#b45cff', ring:'#c46bff', halo:'rgba(190,90,255,.42)', glow:'rgba(190,90,255,.9)'},
+  {id:'loot-kraken', loot:'kraken', name:'Deep Sea', sub:'Dropped by Interest Kraken', motif:'bubbles', note:'Glowing bubbles rise', o1:'#7cf5ff', o2:'#0b4f9e', i1:'#ffd0f0', i2:'#ff7ac8', ring:'#4fd8ff', halo:'rgba(60,200,255,.4)', glow:'rgba(70,200,255,.85)'},
+  {id:'loot-piggy', loot:'piggy', name:'Piggy Pink', sub:'Dropped by Piggy Gone Bad', motif:'hearts', note:'Little hearts float up', o1:'#ffb3cc', o2:'#e0527c', i1:'#fff3b8', i2:'#ff9ab8', ring:'#ff9ab8', halo:'rgba(255,140,180,.42)', glow:'rgba(255,140,180,.85)'},
+  {id:'loot-skull', loot:'skull', name:'Ghostlight', sub:'Dropped by Debt Collector', motif:'wisps', note:'Ghostly wisps curl by', o1:'#c9ffee', o2:'#1f8f78', i1:'#ffffff', i2:'#7dffc8', ring:'#8affd0', halo:'rgba(120,255,200,.4)', glow:'rgba(120,255,200,.85)'},
+  {id:'loot-golem', loot:'golem', name:'Magma', sub:'Dropped by Rent Golem', motif:'rocks', note:'Glowing rock chips fly off', o1:'#ff9a3c', o2:'#5a1408', i1:'#ffe08a', i2:'#ff5a1a', ring:'#ff8a3c', halo:'rgba(255,110,50,.5)', glow:'rgba(255,100,40,.9)'},
+  {id:'loot-hydra', loot:'hydra', name:'Venom', sub:'Dropped by Compound Hydra', motif:'drops', note:'Toxic drips fall', o1:'#d4ff6a', o2:'#1f7a34', i1:'#f6ffb8', i2:'#70e04a', ring:'#a8f04a', halo:'rgba(150,240,70,.4)', glow:'rgba(160,240,70,.85)'},
+  {id:'loot-minotaur', loot:'minotaur', name:'Labyrinth', sub:'Dropped by Budget Minotaur', motif:'horns', note:'Bronze horns curl around', o1:'#f0a066', o2:'#5e3014', i1:'#ffe6bc', i2:'#d8863a', ring:'#e8a060', halo:'rgba(230,140,70,.42)', glow:'rgba(230,140,70,.85)'},
+  {id:'loot-cyclops', loot:'cyclops', name:'Eye of Flame', sub:'Dropped by Tax Cyclops', motif:'eyes', note:'Watchful eyes blink', o1:'#86b4ff', o2:'#17287e', i1:'#ffffff', i2:'#ffd24a', ring:'#6fa0ff', halo:'rgba(100,150,255,.45)', glow:'rgba(100,150,255,.9)'},
+  {id:'loot-griffin', loot:'griffin', name:'Skyfire', sub:'Dropped by Gilded Griffin', motif:'feathers', note:'Feathers drift down', o1:'#fff1c8', o2:'#f0804a', i1:'#ffffff', i2:'#ffd070', ring:'#ffc27a', halo:'rgba(255,200,130,.45)', glow:'rgba(255,190,110,.85)'},
+  {id:'loot-sphinx', loot:'sphinx', name:'Pharaoh', sub:'Dropped by Small-Print Sphinx', motif:'tri', note:'Golden pyramids glint', o1:'#6cf0e8', o2:'#17549e', i1:'#fff0a0', i2:'#e6b84a', ring:'#5ad8e8', halo:'rgba(70,200,230,.42)', glow:'rgba(80,210,230,.85)'},
+  {id:'loot-gorgon', loot:'gorgon', name:'Gorgon Glare', sub:'Dropped by Fee Gorgon', motif:'snakes', note:'Tiny snakes slither', o1:'#c4ee6a', o2:'#3a6a1a', i1:'#fff59a', i2:'#9ad04a', ring:'#b4e05a', halo:'rgba(170,230,80,.4)', glow:'rgba(180,230,80,.85)'},
+  {id:'loot-cerberus', loot:'cerberus', name:'Hellhound', sub:'Dropped by Credit Cerberus', motif:'triflame', note:'Three little flames guard it', o1:'#ff5a3a', o2:'#2a0a22', i1:'#ffd0a0', i2:'#ff3a3a', ring:'#ff5a3a', halo:'rgba(255,70,50,.5)', glow:'rgba(255,70,50,.95)'}
+];
+
+function lootDeco(kind){
+  const P = [[20,24,1],[95,30,.85],[80,12,.65]];
+  return P.map(([x,y,sc],i)=>{
+    const T = `translate(${x} ${y})`;
+    switch(kind){
+      case 'coins': return `<g transform="${T} scale(${sc})"><circle r="6" fill="#ffd66e" stroke="#9a6a14" stroke-width=".8"/><circle r="3.6" fill="none" stroke="#b8862a" stroke-width=".8"/></g>`;
+      case 'chips': return `<g transform="${T} rotate(${-14+i*14}) scale(${sc})"><rect x="-6" y="-4.4" width="12" height="8.8" rx="1.6" fill="#f2c14e" stroke="#7a5a10" stroke-width=".7"/><path d="M-6,0H6M0,-4.4V4.4" stroke="#7a5a10" stroke-width=".7"/></g>`;
+      case 'scales': return `<g transform="${T} scale(${sc})" fill="#6dffb4" stroke="#0b7a48" stroke-width=".7"><path d="M-6,3 Q0,-8 6,3 Q0,0 -6,3Z"/></g>`;
+      case 'nightbats': return `<g transform="${T} scale(${sc})" fill="#2a1040" stroke="#e07bff" stroke-width=".6"><path d="${EMBER_BAT}"/></g>`;
+      case 'bubbles': return `<g transform="${T} scale(${sc})"><circle r="5" fill="rgba(124,245,255,.15)" stroke="#7cf5ff" stroke-width=".9"/><circle cx="-1.6" cy="-1.8" r="1.2" fill="#fff" opacity=".8"/></g>`;
+      case 'hearts': return `<g transform="${T} scale(${sc})" fill="#ff9ab8" stroke="#fff" stroke-width=".4"><path d="M0,5 C-8,-1 -5,-7 0,-3 C5,-7 8,-1 0,5Z"/></g>`;
+      case 'wisps': return `<g transform="${T} scale(${sc})" fill="none" stroke="#c9ffee" stroke-width="1.3" stroke-linecap="round" opacity=".9"><path d="M-6,5 C-6,-2 4,0 2,-6 C6,-2 8,2 4,6"/></g>`;
+      case 'rocks': return `<g transform="${T} rotate(${i*30}) scale(${sc})" fill="#3a2a2a" stroke="#ff8a3c" stroke-width=".8"><path d="M-5,2 L-2,-5 L4,-3 L5,3 L-1,5Z"/></g>`;
+      case 'drops': return `<g transform="${T} scale(${sc})" fill="#a8f04a" stroke="#1f7a34" stroke-width=".6"><path d="M0,-6 C5,0 6,3 0,6 C-6,3 -5,0 0,-6Z"/></g>`;
+      case 'horns': return `<g transform="${T} scale(${sc})" fill="none" stroke="#f6ead2" stroke-width="2.4" stroke-linecap="round"><path d="M-6,5 C-6,-3 0,-6 6,-4"/></g>`;
+      case 'eyes': return `<g transform="${T} scale(${sc})"><path d="M-7,0 Q0,-6 7,0 Q0,6 -7,0Z" fill="#fff" stroke="#17287e" stroke-width=".8"/><circle r="2.6" fill="#ffd24a" stroke="#17287e" stroke-width=".7"/><circle r="1" fill="#17287e"/></g>`;
+      case 'feathers': return `<g transform="${T} rotate(${-30+i*25}) scale(${sc})" fill="#fff6d8" stroke="#f0804a" stroke-width=".6"><path d="M0,-7 C5,-3 5,3 0,7 C-5,3 -5,-3 0,-7Z"/><path d="M0,-6V6" stroke="#f0804a" stroke-width=".6" fill="none"/></g>`;
+      case 'tri': return `<g transform="${T} scale(${sc})" fill="#e6b84a" stroke="#7a5a10" stroke-width=".7"><path d="M0,-6 L6,5 L-6,5Z"/></g>`;
+      case 'snakes': return `<g transform="${T} scale(${sc})" fill="none" stroke="#9ad04a" stroke-width="2" stroke-linecap="round"><path d="M-7,3 C-4,-6 0,6 3,-3 S7,-4 8,-1"/></g><circle cx="${x+8*sc}" cy="${y-sc}" r="1.3" fill="#fff59a"/>`;
+      case 'triflame': return `<g transform="${T} scale(${sc})"><path d="M0,6 C-5,5 -6,-3 0,-8 C6,-3 5,5 0,6Z" fill="#ff5a3a" stroke="#fff" stroke-width=".3"/><path d="M0,3 C-2,2 -2,-1 0,-3 C2,-1 2,2 0,3Z" fill="#ffd0a0"/></g>`;
+    }
+    return '';
+  }).join('');
+}
+function emberAllSkins(){ return EMBER_SKINS.concat(LOOT_SKINS); }
+function lootOwned(){ return state.ember.loot.owned; }
 function easterSunday(y){
   const a=y%19, b=Math.floor(y/100), c=y%100, d=Math.floor(b/4), e=b%4, f=Math.floor((b+8)/25), g=Math.floor((b-f+1)/3);
   const h=(19*a+b-d-g+15)%30, i=Math.floor(c/4), k=c%4, l=(32+2*e+2*i-h-k)%7, m=Math.floor((a+11*h+22*l)/451);
@@ -3603,12 +3669,13 @@ function emberSeasonOn(id, now){
 }
 // 'open' (level reached), 'locked' (needs a level), 'season' (in season now), 'closed' (out of season)
 function emberSkinState(skin, level){
+  if(skin.loot) return lootOwned().includes(skin.loot) ? 'open' : 'locked';
   if(skin.season) return emberSeasonOn(skin.id) ? 'season' : 'closed';
   return level>=skin.lvl ? 'open' : 'locked';
 }
 function emberCurrentSkin(){
   const id = state.ember && state.ember.skin;
-  return EMBER_SKINS.find(k=>k.id===id) || EMBER_SKINS[0];
+  return emberAllSkins().find(k=>k.id===id) || EMBER_SKINS[0];
 }
 function mixHex(a, b, t){
   const p = h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
@@ -3630,6 +3697,7 @@ function emberFlameSvg(flame, ringPct, skinOverride){
   const P = emberPalette(flame, skin);
   const ring = ringPct==null ? '' : `<circle cx="56" cy="56" r="51" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="5"/><circle cx="56" cy="56" r="51" fill="none" stroke="${skin.ring}" stroke-width="5" stroke-linecap="round" pathLength="100" stroke-dasharray="${Math.max(0.01,Math.min(100,ringPct))} 100" transform="rotate(-90 56 56)" style="filter:drop-shadow(0 0 5px ${skin.ring});"/>`;
   let deco = `<g fill="${P.spark}" opacity="${P.sparkOp}"><circle class="ember-spark" cx="22" cy="30" r="1.6"/><circle class="ember-spark" style="animation-delay:.9s" cx="92" cy="26" r="1.2"/><circle class="ember-spark" style="animation-delay:1.7s" cx="84" cy="14" r="1"/><circle class="ember-spark" style="animation-delay:.4s" cx="14" cy="52" r="1"/></g>`;
+  if(skin.motif && flame!=='lo') deco = lootDeco(skin.motif);
   if(skin.deco==='bats' && flame!=='lo') deco = `<g fill="#2a1840" stroke="#b58aff" stroke-width=".5"><path transform="translate(20 20) scale(1.1)" d="${EMBER_BAT}"/><path transform="translate(94 34) scale(.8)" d="${EMBER_BAT}"/><path transform="translate(80 12) scale(.6)" d="${EMBER_BAT}"/></g>`;
   if(skin.deco==='eggs' && flame!=='lo'){
     const egg = (t, c)=>`<g transform="${t}" fill="${c}" stroke="#fff" stroke-width=".4"><path d="${EMBER_EGG}"/><path d="M-5,1 L-2.5,-1 L0,1 L2.5,-1 L5,1" fill="none" stroke="#fff" stroke-width=".9" stroke-linecap="round" stroke-linejoin="round"/></g>`;
@@ -3738,15 +3806,29 @@ function emberStats(){
 }
 const EMBER_FLAME_TEXT = {lo:'Smouldering', st:'Steady burn', bl:'Blazing'};
 let emberTab = 'milestones';
-function equipEmberSkin(id){
-  const skin = EMBER_SKINS.find(k=>k.id===id);
+function equipEmberSkin(id, quiet){
+  const skin = emberAllSkins().find(k=>k.id===id);
   if(!skin) return;
   state.ember.skin = id;
   save();
   const eb = document.getElementById('emberBtn'); if(eb) eb.dataset.sig = '';
   refreshHero();
   showToast('Flame skin equipped', skin.name);
-  openEmberModal();
+  if(!quiet) openEmberModal();
+}
+function lootBossName(k){ return k.sub.replace('Dropped by ',''); }
+function lootInfoHtml(){
+  const n = lootOwned().length;
+  return `<div class="sk-next lt-info"><div class="sk-next-t"><span>Collected <b>${n} of ${LOOT_SKINS.length}</b></span></div><div class="sk-bar"><i style="width:${Math.round(n/LOOT_SKINS.length*100)}%"></i></div><div class="sk-next-s">Every boss guards its own skin. Paying off a Pay in 3 plan has about a 1 in 5 chance to drop it, and one is guaranteed within 7 plans. Own it already? No more drops from that boss.</div></div>`;
+}
+function lootCardHtml(k, equippedSkin){
+  const own = lootOwned().includes(k.loot), eq = own && k.id===equippedSkin.id;
+  const tag = eq ? 'Equipped' : own ? 'Owned' : 'Not found';
+  const tcls = eq ? 'eq' : own ? 'ok' : 'lk';
+  return `<button type="button" class="sk-card${eq?' on':''}${own?'':' mystery'}" data-skin="${k.id}">
+    <div class="sk-flame">${emberFlameSvg('st', 0.01, k)}</div>
+    <div class="sk-cn">${own ? escapeHtml(k.name) : 'Mystery skin'}</div><div class="sk-cs">${own ? escapeHtml(k.sub) : 'Beat the '+escapeHtml(lootBossName(k))}</div>
+    <span class="sk-tag ${tcls}">${escapeHtml(tag)}</span></button>`;
 }
 function openEmberModal(tab){
   if(typeof tab==='string') emberTab = tab;
@@ -3757,9 +3839,9 @@ function openEmberModal(tab){
   const skin = emberCurrentSkin();
   const earnedN = EMBER_BADGES.filter(b=>e.earned[b.id]).length;
   const chip = {lo:['rgba(160,60,60,.18)','#e2837a'], st:['rgba(255,177,90,.16)','#ffb15a'], bl:['rgba(255,214,110,.18)','#ffd66e']}[e.flame];
-  const tabs = `<div class="seg-toggle wide em-tabs"><button type="button" class="seg-btn${emberTab==='skins'?'':' active'}" data-t="milestones">Milestones</button><button type="button" class="seg-btn${emberTab==='skins'?' active':''}" data-t="skins">Skins</button></div>`;
+  const tabs = `<div class="seg-toggle wide em-tabs"><button type="button" class="seg-btn${emberTab==='milestones'?' active':''}" data-t="milestones">Milestones</button><button type="button" class="seg-btn${emberTab==='skins'?' active':''}" data-t="skins">Skins</button><button type="button" class="seg-btn${emberTab==='loot'?' active':''}" data-t="loot">Boss loot</button></div>`;
   let body;
-  if(emberTab==='skins'){
+  if(emberTab==='skins' || emberTab==='loot'){
     const nextLocked = EMBER_SKINS.filter(k=>!k.season && k.lvl>e.level).sort((a,b)=>a.lvl-b.lvl)[0];
     const next = nextLocked ? `<div class="sk-next"><div class="sk-next-t"><span>Next unlock: <b>${escapeHtml(nextLocked.name)}</b> at Level ${nextLocked.lvl}</span><span>Level ${e.level}</span></div><div class="sk-bar"><i style="width:${e.levelPct}%"></i></div><div class="sk-next-s">${emberLvlFloor(nextLocked.lvl)-e.xp} XP to go</div></div>` : '';
     body = `
@@ -3768,8 +3850,9 @@ function openEmberModal(tab){
         <div class="sk-name">${escapeHtml(skin.name)}</div>
         <div class="sk-sub">Equipped · shows on your main card</div>
       </div>
-      ${next}
-      <div class="sk-grid">${EMBER_SKINS.map(k=>{
+      ${emberTab==='loot' ? lootInfoHtml() : next}
+      <div class="sk-grid">${(emberTab==='loot' ? LOOT_SKINS : EMBER_SKINS).map(k=>{
+        if(k.loot) return lootCardHtml(k, skin);
         const st = emberSkinState(k, e.level);
         const equipped = k.id===skin.id;
         const usable = equipped || st==='open' || st==='season';
@@ -3796,7 +3879,7 @@ function openEmberModal(tab){
   }
   box.innerHTML = `
     <div class="recap-eyebrow">Your Ember</div>
-    ${emberTab==='skins' ? '' : `<div class="em-modal-top">
+    ${(emberTab==='skins' || emberTab==='loot') ? '' : `<div class="em-modal-top">
       <div class="em-big">${emberFlameSvg(e.flame, e.levelPct)}</div>
       <div>
         <div class="recap-title" style="margin:0;">Level ${e.level}</div>
@@ -3812,10 +3895,11 @@ function openEmberModal(tab){
   document.getElementById('emberClose').onclick = closeRecapModal;
   box.querySelectorAll('.em-tabs .seg-btn').forEach(b=>b.onclick = ()=>openEmberModal(b.dataset.t));
   box.querySelectorAll('.sk-card').forEach(c=>c.onclick = ()=>{
-    const k = EMBER_SKINS.find(x=>x.id===c.dataset.skin);
+    const k = emberAllSkins().find(x=>x.id===c.dataset.skin);
     const st = emberSkinState(k, e.level);
     if(k.id===skin.id) return;
     if(st==='open' || st==='season') equipEmberSkin(k.id);
+    else if(k.loot) showToast('Not found yet', 'Beat the '+k.sub.replace('Dropped by ','')+' for a chance to find it.');
     else showToast(st==='locked' ? 'Not unlocked yet' : 'Out of season', st==='locked' ? `Reach Level ${k.lvl} to unlock ${k.name}.` : `${k.name}: ${k.back.toLowerCase()}.`);
   });
 }
@@ -6010,12 +6094,54 @@ function bossXpFromPlans(){
   });
   return xp;
 }
+// Defeating a boss may drop its flame skin: about 1 in 5, guaranteed within 7 eligible defeats.
+// If you already own that boss's skin there is no drop (and it doesn't count towards the guarantee).
+function rollBossLoot(plan){
+  plan.lootRolled = true;
+  const L = state.ember.loot;
+  const kind = bossLook(plan).kind;
+  let skin = null;
+  if(!L.owned.includes(kind)){
+    L.since = (L.since||0) + 1;
+    if(L.since>=7 || Math.random()<0.2){
+      L.owned.push(kind); L.since = 0;
+      skin = LOOT_SKINS.find(k=>k.loot===kind) || null;
+    }
+  }
+  save();
+  return skin;
+}
+function showLootDrop(skin, plan){
+  let ov = document.getElementById('lootOverlay');
+  if(!ov){ ov = document.createElement('div'); ov.id = 'lootOverlay'; ov.className = 'boss-overlay lucky'; ov.setAttribute('aria-hidden','true'); document.body.appendChild(ov); }
+  ov.style.setProperty('--lc', skin.o1);
+  const rays = Array.from({length:12}, (_,i)=>{ const a = i*Math.PI/6; return `<path d="M105,105 L${(105+110*Math.cos(a)).toFixed(0)},${(105+110*Math.sin(a)).toFixed(0)}" stroke="${skin.o1}" stroke-width="2" stroke-linecap="round" opacity="${i%2?.5:.25}"/>`; }).join('');
+  const look = bossLook(plan);
+  ov.innerHTML = `<div class="bo-card lt-card" style="--bc:${skin.o1};">
+    <div class="lt-chip"><div class="lt-chip-art">${bossArt2(look.kind,'dead')}</div><div><div class="k">BOSS DEFEATED</div><div class="v">${escapeHtml(look.title)} · +${BOSS_XP_HIT+BOSS_XP_DEFEAT} XP</div></div></div>
+    <div class="lt-badge" style="color:${skin.o1};border-color:${skin.o1}77;background:${skin.o1}22;">${iconSvg('M3 9h18v4H3zM5 13v8h14v-8M12 9v12M12 9c-3 0-5-1-4.5-3S11 5 12 9c1-4 4-5 4.5-3S15 9 12 9z')}RARE LOOT DROP</div>
+    <div class="lt-stage"><svg class="lt-rays" viewBox="0 0 210 210" aria-hidden="true">${rays}</svg><div class="lt-flame">${emberFlameSvg('st', null, skin)}</div></div>
+    <div class="lt-name" style="color:${skin.o1};text-shadow:0 0 28px ${skin.glow};">${escapeHtml(skin.name)}</div>
+    <div class="bo-sub">A new flame skin · dropped by the ${escapeHtml(lootBossName(skin))}</div>
+    <div class="lt-note">${escapeHtml(skin.note)}</div>
+    <button class="btn bo-ok" id="ltEquip">Equip now</button>
+    <button class="btn secondary bo-ok lt-later" id="ltLater">Keep it for later</button>
+    <div class="lk-count">Boss skins collected: <b>${lootOwned().length} of ${LOOT_SKINS.length}</b> · rare drop</div>
+  </div>`;
+  ov.classList.add('open'); ov.setAttribute('aria-hidden','false');
+  const close = ()=>{ ov.classList.remove('open'); ov.setAttribute('aria-hidden','true'); ov.innerHTML = ''; setTimeout(checkEmberMilestones, 250); };
+  document.getElementById('ltEquip').onclick = ()=>{ equipEmberSkin(skin.id, true); close(); };
+  document.getElementById('ltLater').onclick = close;
+  ov.onmousedown = ev=>{ if(ev.target===ov) close(); };
+}
 // The "hit" moment: a slash across the monster, damage number, and (on the last payment) an ember burst.
 function showBossStrike(plan, idx){
-  if(!state.celebrate || !plan || !plan.inst[idx]) return;
+  if(!plan || !plan.inst[idx]) return;
   const n = plan.inst.length;
   const paidCount = plan.inst.filter((_,i)=>pay3Paid(plan,i)).length;
   const defeated = paidCount>=n;
+  const loot = (defeated && !plan.lootRolled) ? rollBossLoot(plan) : null;
+  if(!state.celebrate){ if(loot) showToast('Boss loot found', loot.name+' flame skin'); return; }
   const look = bossLook(plan);
   const amt = plan.inst[idx].amount;
   const left = round2(plan.inst.reduce((a,it,i)=>a+(pay3Paid(plan,i)?0:it.amount),0));
@@ -6054,7 +6180,7 @@ function showBossStrike(plan, idx){
     <button class="btn bo-ok" id="boOk">${defeated ? 'Claim victory' : 'Keep going'}</button>
   </div>`;
   ov.classList.add('open'); ov.setAttribute('aria-hidden','false');
-  const close = ()=>{ ov.classList.remove('open'); ov.setAttribute('aria-hidden','true'); ov.innerHTML = ''; setTimeout(checkEmberMilestones, 250); };
+  const close = ()=>{ ov.classList.remove('open'); ov.setAttribute('aria-hidden','true'); ov.innerHTML = ''; if(loot) setTimeout(()=>showLootDrop(loot, plan), 350); else setTimeout(checkEmberMilestones, 250); };
   document.getElementById('boOk').onclick = close;
   ov.onmousedown = ev=>{ if(ev.target===ov) close(); };
 }
