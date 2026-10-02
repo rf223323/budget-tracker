@@ -5719,8 +5719,8 @@ function drawRecurringTable(m, kind){
 let p3FormOpen = null;
 // ---------------- Debt monsters (boss fights) ----------------
 let bossUid = 0;
-const BOSS_KINDS = ['mimic','card','dragon','bat','kraken','piggy','skull','golem'];
-const BOSS_COLOR = {mimic:'#f2c14e', card:'#8b6dff', dragon:'#3ec98a', bat:'#a46bff', kraken:'#ff5fa8', piggy:'#ff8fb2', skull:'#7dffc8', golem:'#ff8a3c'};
+const BOSS_KINDS = ['mimic','card','dragon','bat','kraken','piggy','skull','golem','hydra','minotaur','cyclops','griffin','sphinx','gorgon','cerberus'];
+const BOSS_COLOR = {mimic:'#f2c14e', card:'#8b6dff', dragon:'#3ec98a', bat:'#a46bff', kraken:'#ff5fa8', piggy:'#ff8fb2', skull:'#7dffc8', golem:'#ff8a3c', hydra:'#3fd0c8', minotaur:'#d98a50', cyclops:'#6fa3ff', griffin:'#ffc247', sphinx:'#4fa8f0', gorgon:'#8bd150', cerberus:'#ff6a3c'};
 function bossHash(str){ let h = 7; for(let i=0;i<str.length;i++) h = (h*31 + str.charCodeAt(i)) >>> 0; return h; }
 // Each plan always gets the same monster, picked from its id.
 function bossLook(plan){
@@ -5742,14 +5742,21 @@ const BOSS2 = {
   kraken: {name:'Interest Kraken', theme:'Tentacles in every account'},
   piggy:  {name:'Piggy Gone Bad', theme:'The savings jar turned on you'},
   skull:  {name:'Debt Collector', theme:'Top hat, monocle, no mercy'},
-  golem:  {name:'Rent Golem',   theme:'Heavy, slow, always there'}
+  golem:  {name:'Rent Golem',   theme:'Heavy, slow, always there'},
+  hydra:   {name:'Compound Hydra',    theme:'Cut one head off, two grow back'},
+  minotaur:{name:'Budget Minotaur',   theme:'Lost in the maze of bills'},
+  cyclops: {name:'Tax Cyclops',       theme:'One eye, always watching'},
+  griffin: {name:'Gilded Griffin',    theme:'Guards the gold, not yours'},
+  sphinx:  {name:'Small-Print Sphinx',theme:'Answer the riddle or pay'},
+  gorgon:  {name:'Fee Gorgon',        theme:'One look and the charges pile up'},
+  cerberus:{name:'Credit Cerberus',   theme:'Three heads, one vault'}
 };
 function bossArt2(kind, mood, hit){
   const id = 'b2'+(++bossUid2);
   const O = '#1b1016';                      // outline
   const dead = mood==='dead', weak = mood==='weak', hurt = mood==='hurt';
   const filt = {fight:'none', hurt:'saturate(.82) brightness(.97)', weak:'saturate(.55) brightness(.92)', dead:'grayscale(1) brightness(.78)'}[mood];
-  const glowCol = dead ? 'rgba(140,140,150,.2)' : {mimic:'rgba(255,190,70,.5)', card:'rgba(130,110,255,.5)', dragon:'rgba(60,220,140,.45)', bat:'rgba(190,90,255,.5)', kraken:'rgba(255,90,170,.5)', piggy:'rgba(255,130,170,.5)', skull:'rgba(120,255,200,.4)', golem:'rgba(255,140,60,.5)'}[kind];
+  const glowCol = dead ? 'rgba(140,140,150,.2)' : {mimic:'rgba(255,190,70,.5)', card:'rgba(130,110,255,.5)', dragon:'rgba(60,220,140,.45)', bat:'rgba(190,90,255,.5)', kraken:'rgba(255,90,170,.5)', piggy:'rgba(255,130,170,.5)', skull:'rgba(120,255,200,.4)', golem:'rgba(255,140,60,.5)', hydra:'rgba(60,220,210,.45)', minotaur:'rgba(255,150,70,.45)', cyclops:'rgba(110,160,255,.5)', griffin:'rgba(255,200,70,.5)', sphinx:'rgba(80,160,240,.5)', gorgon:'rgba(140,220,70,.45)', cerberus:'rgba(255,100,50,.55)'}[kind];
   const ln = (w)=>`stroke="${O}" stroke-width="${w||3}" stroke-linejoin="round" stroke-linecap="round"`;
   const sh = d => `<path d="${d}" fill="url(#${id}s)"/>`;
   const shine = (x,y,rx,ry,r)=>`<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="#fff" opacity="${dead?.1:.32}" transform="rotate(${r||-30},${x},${y})"/>`;
@@ -5880,6 +5887,95 @@ function bossArt2(kind, mood, hit){
       ${PS('M34,32 L38,6 Q60,0 82,6 L86,32Z', hat)}
       <path d="M35,26 H85 V20 H36Z" fill="#8a52e0" ${ln(2)}/><rect x="54" y="19" width="12" height="8" rx="1.5" fill="#f2c14e" ${ln(1.8)}/>`;
     b = `<g transform="translate(7 9) scale(.89)">${b}</g>`;
+  } else if(kind==='hydra'){
+    const h1='#3fb6b0', belly='#e8f6c8';
+    const neck = d=>`<path d="${d}" fill="none" stroke="${O}" stroke-width="16" stroke-linecap="round"/><path d="${d}" fill="none" stroke="${h1}" stroke-width="10.4" stroke-linecap="round"/><path d="${d}" fill="none" stroke="#fff" stroke-opacity=".2" stroke-width="3" stroke-linecap="round" transform="translate(-2 -1)"/>`;
+    const ell = (x,y,rx,ry)=>`M${x-rx},${y} a${rx},${ry} 0 1 0 ${2*rx},0 a${rx},${ry} 0 1 0 ${-2*rx},0Z`;
+    const fins = (x,y,ry,n)=>Array.from({length:n},(_,i)=>`M${x-6+i*6},${y-ry+1} l3,-8 l3,8Z`).join('');
+    const head = (x,y,rx,ry)=>`${P(fins(x,y,ry,3),'#1f7f80',2)}${PS(ell(x,y,rx,ry), h1)}${shine(x-rx*.35,y-ry*.4,rx*.28,ry*.2,-25)}`;
+    b = `<ellipse cx="60" cy="115" rx="40" ry="4.5" fill="#000" opacity=".25"/>
+      ${neck('M44,92 C28,88 22,70 26,56')}${neck('M60,90 C56,72 64,52 60,40')}${neck('M76,92 C92,88 98,70 94,56')}
+      ${PS(ell(60,96,37,22), h1)}<ellipse cx="60" cy="106" rx="20" ry="7" fill="${belly}" opacity=".85"/><g fill="#1f7f80" opacity=".5"><circle cx="44" cy="90" r="3"/><circle cx="76" cy="90" r="3"/><circle cx="60" cy="84" r="3"/></g>
+      ${head(24,46,18,14)}${head(96,46,18,14)}${head(60,24,22,17)}
+      ${eye(17,44,5,-1)}${eye(31,44,5,1)}<path d="M17,55 q7,4 14,0" fill="none" ${ln(2.4)}/>
+      ${eye(89,44,5,-1)}${eye(103,44,5,1)}<path d="M89,55 q7,4 14,0" fill="none" ${ln(2.4)}/>
+      ${eye(50,22,6.8,-1)}${eye(70,22,6.8,1)}${mouth(60,33,18)}`;
+  } else if(kind==='minotaur'){
+    const f1='#a8683a', f2='#6e4020', cream=dead?'#bbb':'#f6ead2';
+    b = `<ellipse cx="60" cy="115" rx="36" ry="4.5" fill="#000" opacity=".25"/>
+      ${P('M32,42 C12,42 4,24 8,6 C16,24 28,28 42,32Z M88,42 C108,42 116,24 112,6 C104,24 92,28 78,32Z', cream)}
+      ${PS('M30,54 L12,54 L22,68Z M90,54 L108,54 L98,68Z', f2)}
+      ${PS('M60,22 C88,22 98,44 96,68 C94,92 80,106 60,106 C40,106 26,92 24,68 C22,44 32,22 60,22Z', f1)}
+      ${P('M48,26 Q60,12 72,26 Q60,32 48,26Z', f2, 2.2)}
+      ${shine(40,40,9,5,-30)}
+      ${eye(44,50,7.6,-1)}${eye(76,50,7.6,1)}
+      ${PS('M60,66 C78,66 84,78 82,90 C80,100 70,104 60,104 C50,104 40,100 38,90 C36,78 42,66 60,66Z', '#e8b48a', 2.6)}
+      <ellipse cx="52" cy="82" rx="3" ry="4.2" fill="${O}"/><ellipse cx="68" cy="82" rx="3" ry="4.2" fill="${O}"/>
+      <circle cx="60" cy="98" r="7" fill="none" stroke="${O}" stroke-width="7"/><circle cx="60" cy="98" r="7" fill="none" stroke="#f2c14e" stroke-width="3.4"/>`;
+  } else if(kind==='cyclops'){
+    const sk='#7fa6d9', skD='#4e6fa8';
+    const big = dead||weak ? eye(60,54,17,1) : `<circle cx="60" cy="54" r="17" fill="#fffaf0" ${ln(2.6)}/><circle cx="60" cy="56" r="11" fill="${glowEye}"/><ellipse cx="60" cy="56" rx="3.6" ry="9" fill="${O}"/><circle cx="54" cy="49" r="3.2" fill="#fff"/>${hurt?`<path d="M43,54 A17,17 0 0 1 77,54Z" fill="${sk}" ${ln(2.4)}/>`:''}<path d="M38,36 L60,46 L82,36" fill="none" ${ln(5.4)}/>`;
+    b = `<ellipse cx="60" cy="115" rx="34" ry="4.5" fill="#000" opacity=".25"/>
+      ${PS('M26,56 L8,50 L12,74 L28,72Z M94,56 L112,50 L108,74 L92,72Z', skD)}
+      ${P('M44,28 L38,8 L56,22Z M76,28 L82,8 L64,22Z', dead?'#bbb':'#f6ead2')}
+      ${PS('M60,20 C90,20 102,44 100,68 C98,94 82,108 60,108 C38,108 22,94 20,68 C18,44 30,20 60,20Z', sk)}
+      ${shine(38,36,10,5,-30)}
+      ${big}
+      ${mouth(60,90,36)}
+      ${dead?'':`<path d="M42,92 l-4,-14 l10,9Z M78,92 l4,-14 l-10,9Z" fill="#fff6e0" ${ln(2)}/>`}`;
+  } else if(kind==='griffin'){
+    const gold='#d9a441', goldD='#9a6a1c', white='#fff3d6';
+    const w = s=>{ const x=a=>60+s*a; return `M${x(24)},62 C${x(44)},14 ${x(76)},20 ${x(76)},52 l${s*-5},4 l${s*2},4 l${s*-8},2 l${s*3},5 l${s*-9},1 l${s*3},5 l${s*-12},0 Q${x(32)},84 ${x(24)},80Z`; };
+    b = `<ellipse cx="60" cy="115" rx="34" ry="4.5" fill="#000" opacity=".25"/>
+      ${PS(w(-1), goldD)}${PS(w(1), goldD)}
+      ${P('M38,32 L28,8 L52,24Z M82,32 L92,8 L68,24Z', goldD)}
+      ${PS('M60,26 C80,26 94,40 94,60 C94,82 78,98 60,98 C42,98 26,82 26,60 C26,40 40,26 60,26Z', gold)}
+      ${PS('M34,52 Q60,38 86,52 Q82,82 60,90 Q38,82 34,52Z', white, 2.4)}
+      ${shine(42,38,8,4.5,-30)}
+      ${eye(47,56,6.6,-1)}${eye(73,56,6.6,1)}
+      ${PS('M52,66 Q60,61 68,66 Q70,82 62,98 Q61,90 58,86 Q52,78 52,66Z', '#ffb53a', 2.6)}
+      <ellipse cx="57" cy="71" rx="1.5" ry="2.2" fill="${O}"/><ellipse cx="63" cy="71" rx="1.5" ry="2.2" fill="${O}"/>
+      <path d="M54,${weak?90:84} Q${weak?50:56},${weak?100:90} ${weak?58:60},${weak?96:88}" fill="none" ${ln(2.2)}/>`;
+  } else if(kind==='sphinx'){
+    const gold='#e6b84a', blue='#2f6fd0', sand='#e8c98a';
+    const hd='M36,10 Q60,4 84,10 L108,104 H12Z';
+    b = `<ellipse cx="60" cy="115" rx="40" ry="4.5" fill="#000" opacity=".25"/>
+      <clipPath id="${id}hd"><path d="${hd}"/></clipPath>
+      ${P('M34,24 L28,2 L52,14Z M86,24 L92,2 L68,14Z', sand)}
+      ${PS(hd, blue)}
+      <g clip-path="url(#${id}hd)" stroke="${gold}" stroke-width="5" opacity=".95"><path d="M0,26 H120 M0,44 H120 M0,62 H120 M0,80 H120 M0,98 H120"/></g>
+      <path d="${hd}" fill="none" ${ln(3)}/>
+      <path d="M12,98 H108 L109,106 H11Z" fill="${gold}" ${ln(2.4)}/>
+      ${PS('M60,28 C84,28 92,48 90,64 C88,84 76,94 60,94 C44,94 32,84 30,64 C28,48 36,28 60,28Z', sand)}
+      <path d="M60,6 c-5,0 -6,8 -3,12 l3,4 l3,-4 c3,-4 2,-12 -3,-12Z" fill="${gold}" ${ln(2)}/>
+      <path d="M41,57 l-9,-4 M79,57 l9,-4" ${ln(3)}/><path d="M36,76 l-12,-3 M36,81 l-12,4 M84,76 l12,-3 M84,81 l12,4" ${ln(1.8)}/>
+      ${eye(49,57,6.4,-1)}${eye(71,57,6.4,1)}
+      <path d="M56,68 h8 l-4,6Z" fill="#c98a6a" ${ln(1.8)}/>
+      ${mouth(60,84,20)}`;
+  } else if(kind==='gorgon'){
+    const sk='#8fd150', sn='#4a8a2c';
+    const ang=[-172,-142,-112,-90,-68,-38,-8];
+    const snakes = ang.map((a,i)=>{ const r=a*Math.PI/180, c=Math.cos(r), s=Math.sin(r), p=(k)=>[60+c*k, 64+s*k];
+      const [x0,y0]=p(24), [x1,y1]=p(56), [mx,my]=p(40), q=i%2?8:-8; const cx=mx-s*q, cy=my+c*q;
+      return `<path d="M${x0.toFixed(1)},${y0.toFixed(1)} Q${cx.toFixed(1)},${cy.toFixed(1)} ${x1.toFixed(1)},${y1.toFixed(1)}" fill="none" stroke="${O}" stroke-width="9.4" stroke-linecap="round"/><path d="M${x0.toFixed(1)},${y0.toFixed(1)} Q${cx.toFixed(1)},${cy.toFixed(1)} ${x1.toFixed(1)},${y1.toFixed(1)}" fill="none" stroke="${sn}" stroke-width="5.6" stroke-linecap="round"/><circle cx="${x1.toFixed(1)}" cy="${y1.toFixed(1)}" r="5" fill="${sn}" ${ln(2)}/><circle cx="${(x1+c*1.4).toFixed(1)}" cy="${(y1+s*1.4).toFixed(1)}" r="1.5" fill="${dead?'#aaa':'#ffe27a'}"/>`; }).join('');
+    b = `<ellipse cx="60" cy="115" rx="34" ry="4.5" fill="#000" opacity=".25"/>
+      ${snakes}
+      ${PS('M60,36 C80,36 90,50 88,68 C86,88 74,98 60,98 C46,98 34,88 32,68 C30,50 40,36 60,36Z', sk)}
+      ${shine(44,48,8,4.5,-30)}
+      <circle cx="31" cy="76" r="4" fill="#f2c14e" ${ln(1.8)}/><circle cx="89" cy="76" r="4" fill="#f2c14e" ${ln(1.8)}/>
+      ${eye(49,64,7,-1)}${eye(71,64,7,1)}${mouth(60,86,24)}
+      <path d="M38,100 Q60,114 82,100" fill="none" stroke="${O}" stroke-width="7" stroke-linecap="round"/><path d="M38,100 Q60,114 82,100" fill="none" stroke="#f2c14e" stroke-width="3.6" stroke-linecap="round"/>`;
+  } else if(kind==='cerberus'){
+    const fur='#4f3a63', furD='#2b1c3a', muz='#8a6a9c';
+    const ell = (x,y,rx,ry)=>`M${x-rx},${y} a${rx},${ry} 0 1 0 ${2*rx},0 a${rx},${ry} 0 1 0 ${-2*rx},0Z`;
+    const flame = (x,y,s)=> (dead||weak) ? '' : `<g transform="translate(${x} ${y}) scale(${s})"><path d="M0,0 C-8,-2 -9,-14 0,-20 C9,-14 8,-2 0,0Z" fill="#ff7a3c" ${ln(1.8)}/><path d="M0,-3 C-4,-4 -4,-10 0,-13 C4,-10 4,-4 0,-3Z" fill="#ffd66e"/></g>`;
+    const dog = (x,y,rx,ry,er,dx,mw)=>`${P(`M${x-rx*.85},${y-ry*.4} L${x-rx*.8},${y-ry-13} L${x-rx*.05},${y-ry*.92}Z M${x+rx*.85},${y-ry*.4} L${x+rx*.8},${y-ry-13} L${x+rx*.05},${y-ry*.92}Z`, furD, 2.4)}${PS(ell(x,y,rx,ry), fur)}${PS(ell(x,y+ry*.4,rx*.6,ry*.34), muz, 2.2)}<ellipse cx="${x}" cy="${y+ry*.14}" rx="${rx*.19}" ry="${ry*.1}" fill="${O}"/>${eye(x-dx,y-ry*.22,er,-1)}${eye(x+dx,y-ry*.22,er,1)}${mouth(x,y+ry*.74,mw)}`;
+    b = `<ellipse cx="60" cy="115" rx="40" ry="4.5" fill="#000" opacity=".25"/>
+      ${PS(ell(60,98,36,18), fur)}
+      ${dog(22,72,17,21,4.6,8,13)}${dog(98,72,17,21,4.6,8,13)}
+      ${flame(22,48,.8)}${flame(98,48,.8)}
+      ${dog(60,58,27,31,6.4,12,20)}${flame(60,24,1)}
+      <path d="M30,100 Q60,120 90,100 L88,108 Q60,126 32,108Z" fill="#f2c14e" ${ln(2.4)}/>`;
   } else { // golem
     const r1='#8c8a96', r2='#5c5a68', lava='#ff8a3c';
     b = `<ellipse cx="60" cy="115" rx="42" ry="4.5" fill="#000" opacity=".25"/>
