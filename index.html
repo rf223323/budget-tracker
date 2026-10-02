@@ -569,6 +569,33 @@
   .em-badge.off{opacity:.72;}
   .em-badge.off .bt{--c:var(--muted);background:var(--panel);}
   .em-badge .bn{margin-top:8px;font-size:11.5px;font-weight:700;line-height:1.25;}
+  .em-tabs{margin:14px 0 4px;}
+  .sk-preview{display:flex;flex-direction:column;align-items:center;text-align:center;margin:10px 0 6px;}
+  .sk-big{width:150px;height:150px;}
+  .sk-name{margin-top:4px;font-size:22px;font-weight:800;letter-spacing:-.01em;}
+  .sk-sub{margin-top:2px;font-size:12.5px;color:var(--muted);}
+  .sk-next{margin:10px 0 14px;padding:12px 14px;border-radius:16px;background:var(--panel2);border:1px solid var(--border);}
+  .sk-next-t{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--muted);}
+  .sk-next-t b{color:var(--text);}
+  .sk-bar{margin-top:9px;height:6px;border-radius:999px;background:color-mix(in srgb, var(--text) 12%, transparent);}
+  .sk-bar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#ff8a3c,#ffcf70);box-shadow:0 0 10px rgba(255,150,60,.6);}
+  .sk-next-s{margin-top:7px;font-size:11px;color:var(--muted);}
+  .sk-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;}
+  .sk-card{font:inherit;color:inherit;cursor:pointer;border-radius:20px;padding:12px 8px;text-align:center;background:var(--panel2);border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;}
+  .sk-card.on{border-color:color-mix(in srgb, var(--accent) 60%, var(--border));background:linear-gradient(160deg, color-mix(in srgb, var(--accent) 16%, var(--panel2)), var(--panel2) 70%);}
+  .sk-card.off{opacity:.55;}
+  .sk-flame{width:78px;height:78px;}
+  .sk-flame svg{width:100%;height:100%;display:block;overflow:visible;}
+  .sk-cn{margin-top:4px;font-size:13px;font-weight:800;}
+  .sk-cs{margin-top:2px;font-size:10.5px;color:var(--muted);line-height:1.3;}
+  .sk-tag{margin-top:8px;display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;font-size:10.5px;font-weight:800;}
+  .sk-tag svg{width:10px;height:10px;}
+  .sk-tag.eq{background:color-mix(in srgb, var(--accent) 22%, transparent);color:var(--accent);}
+  .sk-tag.ok{background:color-mix(in srgb, var(--green) 14%, transparent);color:var(--green);}
+  .sk-tag.se{background:rgba(255,138,26,.18);color:#ff8a1a;}
+  .sk-tag.cl{background:rgba(160,210,255,.14);color:#a9d4ff;}
+  .sk-tag.lk{background:color-mix(in srgb, var(--text) 8%, transparent);color:var(--muted);}
+  .sk-note{margin-top:12px;font-size:11.5px;color:var(--muted);}
   .em-badge .bh{margin-top:3px;font-size:10px;color:var(--muted);line-height:1.3;}
   .hero-hi{font-size:16px;font-weight:800;}
   .hero-date{font-size:12.5px;color:var(--muted);margin-top:1px;}
@@ -1458,6 +1485,7 @@ function normalizeState(){
   if(!Array.isArray(state.pay3)) state.pay3 = [];
   if(!state.ember || typeof state.ember!=='object') state.ember = {};
   if(!Array.isArray(state.ember.seen)) state.ember.seen = [];
+  if(typeof state.ember.skin!=='string') state.ember.skin = 'classic';
   if(typeof state.celebrate!=='boolean') state.celebrate = true;
   if(!state.pots) state.pots = {};
   if(!state.pots.savings) state.pots.savings = {manualLedger:[]};
@@ -3372,6 +3400,7 @@ function showPaydayMoment(item, key){
   const left = document.getElementById('pdLeft'), right = document.getElementById('pdRight');
   const ov = document.getElementById('paydayOverlay');
   const id = 'pd'+(++emberFlameUid);
+  const PK = emberPalette('bl');
   const sparks = Array.from({length:14}, (_,i)=>{
     const a = (i/14)*Math.PI*2 + Math.random()*.4, r = 55 + Math.random()*55;
     return `<i class="pd-spark" style="--dx:${Math.round(Math.cos(a)*r)}px;--dy:${Math.round(Math.sin(a)*r-30)}px;--d:${(Math.random()*1.4).toFixed(2)}s;"></i>`;
@@ -3379,11 +3408,11 @@ function showPaydayMoment(item, key){
   left.innerHTML = `
     <div class="pd-flame">
       <svg viewBox="0 0 210 190" aria-hidden="true"><defs>
-        <linearGradient id="${id}o" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffc060"/><stop offset="1" stop-color="#ff3a2a"/></linearGradient>
-        <linearGradient id="${id}i" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff2b0"/><stop offset="1" stop-color="#ffa040"/></linearGradient>
+        <linearGradient id="${id}o" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${PK.o1}"/><stop offset="1" stop-color="${PK.o2}"/></linearGradient>
+        <linearGradient id="${id}i" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${PK.i1}"/><stop offset="1" stop-color="${PK.i2}"/></linearGradient>
         <radialGradient id="${id}g" cx="50%" cy="58%" r="50%"><stop offset="0" stop-color="#ff9a45" stop-opacity=".7"/><stop offset="1" stop-color="#ff9a45" stop-opacity="0"/></radialGradient></defs>
         <circle cx="105" cy="108" r="92" fill="url(#${id}g)"/>
-        <g transform="translate(55 22)" style="filter:drop-shadow(0 0 14px rgba(255,170,60,.95));"><g class="pd-pop">
+        <g transform="translate(55 22)" style="filter:drop-shadow(0 0 14px ${PK.glow});"><g class="pd-pop">
           <path d="M50,97 C24,97 9,79 12,58 C14,45 23,36 31,27 C31,38 35,43 39,45 C36,28 44,13 59,3 C58,20 66,29 74,38 C83,48 89,57 89,67 C89,85 73,97 50,97 Z" fill="url(#${id}o)"/>
           <path d="M50,93 C33,93 25,81 27,69 C28,60 34,55 40,49 C40,58 44,62 48,63 C47,52 52,42 61,33 C60,44 66,50 70,58 C76,67 72,93 50,93 Z" fill="url(#${id}i)"/>
           <path d="M50,91 C41,91 37,83 40,76 C42,71 46,69 49,64 C52,70 58,73 59,80 C60,87 56,91 50,91 Z" fill="#fff4d0"/>
@@ -3430,14 +3459,67 @@ function afterIncomeMarkedDone(item, key){
 // Streaks, XP, level and milestones are all worked out from your data (nothing extra is stored
 // except which milestones you've already been congratulated for).
 let emberFlameUid = 0;
-function emberFlameSvg(flame, ringPct){
+// ---- Flame skins ----
+// Level skins unlock as your Ember levels up; seasonal ones are available in their season.
+const EMBER_SKINS = [
+  {id:'classic', name:'Classic',    sub:'Where it all starts', lvl:1,  o1:'#ff9a45', o2:'#e8222f', i1:'#ffe08a', i2:'#ff8a3c', ring:'#ffb15a', halo:'rgba(255,110,60,.45)', glow:'rgba(255,120,50,.7)'},
+  {id:'blue',    name:'Blue flame', sub:'Level 4 reward',      lvl:4,  o1:'#7ec8ff', o2:'#2a5bd7', i1:'#d6f0ff', i2:'#5aa8ff', ring:'#6cb6ff', halo:'rgba(80,160,255,.45)', glow:'rgba(90,170,255,.8)'},
+  {id:'aurora',  name:'Aurora',     sub:'Level 7 reward',      lvl:7,  o1:'#7cf5c0', o2:'#14a58a', i1:'#dcfff0', i2:'#44e0b0', ring:'#5fe3c0', halo:'rgba(60,220,170,.4)', glow:'rgba(70,230,180,.8)'},
+  {id:'violet',  name:'Violet',     sub:'Level 10 reward',     lvl:10, o1:'#c9a2ff', o2:'#6a35d8', i1:'#efe0ff', i2:'#a874ff', ring:'#b88cff', halo:'rgba(160,110,255,.42)', glow:'rgba(170,120,255,.8)'},
+  {id:'gold',    name:'Gold',       sub:'Level 15 reward',     lvl:15, o1:'#ffe08a', o2:'#e0a020', i1:'#fff7d0', i2:'#ffd04a', ring:'#ffd66e', halo:'rgba(255,200,80,.45)', glow:'rgba(255,200,70,.8)'},
+  {id:'inferno', name:'Inferno',    sub:'Level 20 reward',     lvl:20, o1:'#ffd060', o2:'#d4101a', i1:'#ffffff', i2:'#ff6a1a', ring:'#ff6a3a', halo:'rgba(255,70,30,.55)', glow:'rgba(255,90,40,.95)'},
+  {id:'obsidian',name:'Obsidian',   sub:'Level 25 reward',     lvl:25, o1:'#8a8ab0', o2:'#26263e', i1:'#d6d6ff', i2:'#6a6aa0', ring:'#9a9ad0', halo:'rgba(120,120,200,.35)', glow:'rgba(140,140,230,.7)'},
+  {id:'hallow',  name:'Hallow',     sub:'Halloween · October', season:true, back:'Back next October', deco:'bats', o1:'#c58bff', o2:'#4a1a8a', i1:'#c9ff6a', i2:'#3fc22a', ring:'#ff8a1a', halo:'rgba(255,130,20,.42)', glow:'rgba(150,80,255,.9)'},
+  {id:'easter',  name:'Easter',     sub:'Spring · around Easter', season:true, back:'Back at Easter', deco:'eggs', o1:'#ffb6dd', o2:'#9a7cf0', i1:'#fff7b0', i2:'#8fe8c4', ring:'#ffcfe8', halo:'rgba(255,170,220,.4)', glow:'rgba(255,180,230,.85)'},
+  {id:'frost',   name:'Frost',      sub:'Winter · Dec to Jan', season:true, back:'Back in December', o1:'#eaf7ff', o2:'#7fb1e6', i1:'#ffffff', i2:'#bfe0ff', ring:'#cfe8ff', halo:'rgba(180,220,255,.4)', glow:'rgba(190,225,255,.85)'}
+];
+function easterSunday(y){
+  const a=y%19, b=Math.floor(y/100), c=y%100, d=Math.floor(b/4), e=b%4, f=Math.floor((b+8)/25), g=Math.floor((b-f+1)/3);
+  const h=(19*a+b-d-g+15)%30, i=Math.floor(c/4), k=c%4, l=(32+2*e+2*i-h-k)%7, m=Math.floor((a+11*h+22*l)/451);
+  const month=Math.floor((h+l-7*m+114)/31), day=((h+l-7*m+114)%31)+1;
+  return new Date(y, month-1, day);
+}
+function emberSeasonOn(id, now){
+  now = now || new Date();
+  if(id==='hallow') return now.getMonth()===9;
+  if(id==='frost') return now.getMonth()===11 || now.getMonth()===0;
+  if(id==='easter'){ const diff = (now - easterSunday(now.getFullYear()))/86400000; return diff>=-14 && diff<=7; }
+  return false;
+}
+// 'open' (level reached), 'locked' (needs a level), 'season' (in season now), 'closed' (out of season)
+function emberSkinState(skin, level){
+  if(skin.season) return emberSeasonOn(skin.id) ? 'season' : 'closed';
+  return level>=skin.lvl ? 'open' : 'locked';
+}
+function emberCurrentSkin(){
+  const id = state.ember && state.ember.skin;
+  return EMBER_SKINS.find(k=>k.id===id) || EMBER_SKINS[0];
+}
+function mixHex(a, b, t){
+  const p = h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
+  const x = p(a), y = p(b);
+  return '#'+x.map((v,i)=>Math.round(v+(y[i]-v)*t).toString(16).padStart(2,'0')).join('');
+}
+// Colours for the flame in a given mood (lo / st / bl) wearing a skin.
+function emberPalette(flame, skin){
+  const k = skin || emberCurrentSkin();
+  if(flame==='lo') return {o1:mixHex(k.o2,'#6b2a2a',.4), o2:mixHex(k.o2,'#1a0810',.65), i1:mixHex(k.i2,'#3a1018',.5), i2:mixHex(k.i2,'#1a0810',.6), inner:.55, core:0, tf:'translate(33.5 33) scale(.46)', glow:'rgba(160,50,50,.5)', halo:'rgba(160,40,40,.22)', spark:'#7c5b5b', sparkOp:.35, cls:'lo'};
+  if(flame==='bl') return {o1:mixHex(k.o1,'#ffffff',.22), o2:k.o2, i1:mixHex(k.i1,'#ffffff',.5), i2:k.i2, inner:1, core:1, tf:'translate(20.7 20) scale(.72)', glow:k.glow, halo:k.halo, spark:mixHex(k.ring,'#ffffff',.4), sparkOp:1, cls:'hi', blur:14};
+  return {o1:k.o1, o2:k.o2, i1:k.i1, i2:k.i2, inner:1, core:1, tf:'translate(26.6 26) scale(.6)', glow:k.glow, halo:k.halo, spark:k.ring, sparkOp:.9, cls:'', blur:8};
+}
+const EMBER_BAT = 'M-8,0 Q-5,-5 0,-2 Q5,-5 8,0 Q5,-1 3,2 Q0,0 -3,2 Q-5,-1 -8,0 Z';
+const EMBER_EGG = 'M0,-6 C3.5,-6 5.5,-1.5 5.5,1.5 C5.5,4.5 3,6.5 0,6.5 C-3,6.5 -5.5,4.5 -5.5,1.5 C-5.5,-1.5 -3.5,-6 0,-6 Z';
+function emberFlameSvg(flame, ringPct, skinOverride){
   const id = 'ef'+(++emberFlameUid);
-  const P = {
-    lo: {o1:'#c4553f', o2:'#6b1420', i1:'#a34a3a', i2:'#5a1220', inner:.55, core:0, tf:'translate(33.5 33) scale(.46)', glow:'rgba(160,40,40,.5)', halo:'rgba(160,40,40,.22)', spark:'#7c5b5b', sparkOp:.35, cls:'lo'},
-    st: {o1:'#ff9a45', o2:'#e8222f', i1:'#ffe08a', i2:'#ff8a3c', inner:1, core:1, tf:'translate(26.6 26) scale(.6)', glow:'rgba(255,120,50,.7)', halo:'rgba(255,110,60,.45)', spark:'#ffd39a', sparkOp:.9, cls:''},
-    bl: {o1:'#ffc060', o2:'#ff3a2a', i1:'#fff2b0', i2:'#ffa040', inner:1, core:1, tf:'translate(20.7 20) scale(.72)', glow:'rgba(255,170,60,.95)', halo:'rgba(255,150,60,.6)', spark:'#fff0c0', sparkOp:1, cls:'hi'}
-  }[flame] || {};
-  const ring = ringPct==null ? '' : `<circle cx="56" cy="56" r="51" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="5"/><circle cx="56" cy="56" r="51" fill="none" stroke="#ffb15a" stroke-width="5" stroke-linecap="round" pathLength="100" stroke-dasharray="${Math.max(1,Math.min(100,ringPct))} 100" transform="rotate(-90 56 56)" style="filter:drop-shadow(0 0 5px #ff8a3c);"/>`;
+  const skin = skinOverride || emberCurrentSkin();
+  const P = emberPalette(flame, skin);
+  const ring = ringPct==null ? '' : `<circle cx="56" cy="56" r="51" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="5"/><circle cx="56" cy="56" r="51" fill="none" stroke="${skin.ring}" stroke-width="5" stroke-linecap="round" pathLength="100" stroke-dasharray="${Math.max(0.01,Math.min(100,ringPct))} 100" transform="rotate(-90 56 56)" style="filter:drop-shadow(0 0 5px ${skin.ring});"/>`;
+  let deco = `<g fill="${P.spark}" opacity="${P.sparkOp}"><circle class="ember-spark" cx="22" cy="30" r="1.6"/><circle class="ember-spark" style="animation-delay:.9s" cx="92" cy="26" r="1.2"/><circle class="ember-spark" style="animation-delay:1.7s" cx="84" cy="14" r="1"/><circle class="ember-spark" style="animation-delay:.4s" cx="14" cy="52" r="1"/></g>`;
+  if(skin.deco==='bats' && flame!=='lo') deco = `<g fill="#2a1840" stroke="#b58aff" stroke-width=".5"><path transform="translate(20 20) scale(1.1)" d="${EMBER_BAT}"/><path transform="translate(94 34) scale(.8)" d="${EMBER_BAT}"/><path transform="translate(80 12) scale(.6)" d="${EMBER_BAT}"/></g>`;
+  if(skin.deco==='eggs' && flame!=='lo'){
+    const egg = (t, c)=>`<g transform="${t}" fill="${c}" stroke="#fff" stroke-width=".4"><path d="${EMBER_EGG}"/><path d="M-5,1 L-2.5,-1 L0,1 L2.5,-1 L5,1" fill="none" stroke="#fff" stroke-width=".9" stroke-linecap="round" stroke-linejoin="round"/></g>`;
+    deco = egg('translate(20 22) rotate(-14) scale(1.1)','#ffc2e0') + egg('translate(94 32) rotate(12) scale(.9)','#bfe9ff') + egg('translate(78 12) rotate(-8) scale(.7)','#fff3a0');
+  }
   return `<svg viewBox="0 0 112 112" aria-hidden="true"><defs>
       <linearGradient id="${id}o" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${P.o1}"/><stop offset="1" stop-color="${P.o2}"/></linearGradient>
       <linearGradient id="${id}i" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${P.i1}"/><stop offset="1" stop-color="${P.i2}"/></linearGradient>
@@ -3445,13 +3527,14 @@ function emberFlameSvg(flame, ringPct){
     </defs>
     ${ring}
     <circle cx="56" cy="58" r="40" fill="url(#${id}g)"/>
-    <g transform="${P.tf}" style="filter:drop-shadow(0 0 8px ${P.glow});"><g class="ember-flick ${P.cls}">
+    <g transform="${P.tf}" style="filter:drop-shadow(0 0 ${P.blur||8}px ${P.glow});"><g class="ember-flick ${P.cls}">
       <path d="M50,97 C24,97 9,79 12,58 C14,45 23,36 31,27 C31,38 35,43 39,45 C36,28 44,13 59,3 C58,20 66,29 74,38 C83,48 89,57 89,67 C89,85 73,97 50,97 Z" fill="url(#${id}o)"/>
       <path d="M50,93 C33,93 25,81 27,69 C28,60 34,55 40,49 C40,58 44,62 48,63 C47,52 52,42 61,33 C60,44 66,50 70,58 C76,67 72,93 50,93 Z" fill="url(#${id}i)" opacity="${P.inner}"/>
       <path d="M50,91 C41,91 37,83 40,76 C42,71 46,69 49,64 C52,70 58,73 59,80 C60,87 56,91 50,91 Z" fill="#fff4d0" opacity="${P.core}"/>
     </g></g>
-    <g fill="${P.spark}" opacity="${P.sparkOp}"><circle class="ember-spark" cx="22" cy="30" r="1.6"/><circle class="ember-spark" style="animation-delay:.9s" cx="92" cy="26" r="1.2"/><circle class="ember-spark" style="animation-delay:1.7s" cx="84" cy="14" r="1"/><circle class="ember-spark" style="animation-delay:.4s" cx="14" cy="52" r="1"/></g></svg>`;
+    ${deco}</svg>`;
 }
+function emberLvlFloor(L){ return 50*(L-1)*L; }   // xp needed to reach level L
 const EMBER_BADGES = [
   {id:'k1',  name:'First £1k saved',    hint:'Get £1,000 into your pots',            icon:CATEGORY_ICON_PATHS['Savings & Debt'], color:'#3dd68c'},
   {id:'s7',  name:'7-day streak',       hint:'Log spending 7 days in a row',          icon:'M13 2L4 14h7l-1 8 9-12h-7l1-8z', color:'#ffb15a'},
@@ -3493,7 +3576,7 @@ function emberStats(){
   let curB = 0; for(let i=good.length-1;i>=0 && good[i];i--) curB++;
   const goodMonths70 = monthRows.filter(x=>x.sc.score>=70).length;
   const xp = days.length*5 + goodMonths70*15 + doneItems;
-  const lvlFloor = L=>50*(L-1)*L;               // xp needed to reach level L
+  const lvlFloor = emberLvlFloor;
   let level = 1; while(xp >= lvlFloor(level+1)) level++;
   const span = lvlFloor(level+1)-lvlFloor(level);
   const levelPct = Math.round((xp-lvlFloor(level))/span*100);
@@ -3538,37 +3621,87 @@ function emberStats(){
   return data;
 }
 const EMBER_FLAME_TEXT = {lo:'Smouldering', st:'Steady burn', bl:'Blazing'};
-function openEmberModal(){
+let emberTab = 'milestones';
+function equipEmberSkin(id){
+  const skin = EMBER_SKINS.find(k=>k.id===id);
+  if(!skin) return;
+  state.ember.skin = id;
+  save();
+  const eb = document.getElementById('emberBtn'); if(eb) eb.dataset.sig = '';
+  refreshHero();
+  showToast('Flame skin equipped', skin.name);
+  openEmberModal();
+}
+function openEmberModal(tab){
+  if(typeof tab==='string') emberTab = tab;
   const e = emberStats();
   const bg = document.getElementById('modalBg');
   const box = document.getElementById('modalBox');
   box.className = 'modal recap-modal';
+  const skin = emberCurrentSkin();
   const earnedN = EMBER_BADGES.filter(b=>e.earned[b.id]).length;
   const chip = {lo:['rgba(160,60,60,.18)','#e2837a'], st:['rgba(255,177,90,.16)','#ffb15a'], bl:['rgba(255,214,110,.18)','#ffd66e']}[e.flame];
+  const tabs = `<div class="seg-toggle wide em-tabs"><button type="button" class="seg-btn${emberTab==='skins'?'':' active'}" data-t="milestones">Milestones</button><button type="button" class="seg-btn${emberTab==='skins'?' active':''}" data-t="skins">Skins</button></div>`;
+  let body;
+  if(emberTab==='skins'){
+    const nextLocked = EMBER_SKINS.filter(k=>!k.season && k.lvl>e.level).sort((a,b)=>a.lvl-b.lvl)[0];
+    const next = nextLocked ? `<div class="sk-next"><div class="sk-next-t"><span>Next unlock: <b>${escapeHtml(nextLocked.name)}</b> at Level ${nextLocked.lvl}</span><span>Level ${e.level}</span></div><div class="sk-bar"><i style="width:${e.levelPct}%"></i></div><div class="sk-next-s">${emberLvlFloor(nextLocked.lvl)-e.xp} XP to go</div></div>` : '';
+    body = `
+      <div class="sk-preview">
+        <div class="em-big sk-big">${emberFlameSvg(e.flame, e.levelPct)}</div>
+        <div class="sk-name">${escapeHtml(skin.name)}</div>
+        <div class="sk-sub">Equipped · shows on your main card</div>
+      </div>
+      ${next}
+      <div class="sk-grid">${EMBER_SKINS.map(k=>{
+        const st = emberSkinState(k, e.level);
+        const equipped = k.id===skin.id;
+        const usable = equipped || st==='open' || st==='season';
+        const tag = equipped ? 'Equipped' : st==='season' ? 'In season now' : st==='closed' ? k.back : st==='locked' ? `Level ${k.lvl}` : 'Unlocked';
+        const tcls = equipped ? 'eq' : st==='season' ? 'se' : st==='closed' ? 'cl' : st==='locked' ? 'lk' : 'ok';
+        return `<button type="button" class="sk-card${equipped?' on':''}${usable?'':' off'}" data-skin="${k.id}" ${usable?'':'aria-disabled="true"'}>
+          <div class="sk-flame">${emberFlameSvg('st', 0.01, k)}</div>
+          <div class="sk-cn">${escapeHtml(k.name)}</div><div class="sk-cs">${escapeHtml(k.sub)}</div>
+          <span class="sk-tag ${tcls}">${st==='locked'?iconSvg('M6 11h12v9H6zM8 11V8a4 4 0 0 1 8 0v3'):''}${escapeHtml(tag)}</span></button>`;
+      }).join('')}</div>
+      <div class="sk-note">Skins only change how the flame looks. Your colours, level and milestones stay the same.</div>`;
+  } else {
+    body = `
+      <div class="recap-sub">${escapeHtml(e.why)} Log your spending, pay bills on time and keep your Score up to feed it.</div>
+      <div class="em-tiles">
+        <div class="em-tile"><div class="k">Logging streak</div><div class="v">${e.cur} day${e.cur!==1?'s':''}</div><div class="em-week">${e.last7.map(on=>`<i class="${on?'on':''}"></i>`).join('')}</div></div>
+        <div class="em-tile"><div class="k">On budget</div><div class="v">${e.curB} month${e.curB!==1?'s':''}</div><div class="s">Score 80+ each month</div></div>
+      </div>
+      <div class="em-h"><b>Milestones</b><span>${earnedN} of ${EMBER_BADGES.length} earned</span></div>
+      <div class="em-badges">${EMBER_BADGES.map(b=>{
+        const on = !!e.earned[b.id];
+        return `<div class="em-badge ${on?'on':'off'}" style="--c:${b.color};"><div class="bt">${iconSvg(on ? b.icon : 'M6 11h12v9H6zM8 11V8a4 4 0 0 1 8 0v3')}</div><div class="bn">${escapeHtml(b.name)}</div>${on ? '' : `<div class="bh">${escapeHtml(b.hint)}</div>`}</div>`;
+      }).join('')}</div>`;
+  }
   box.innerHTML = `
     <div class="recap-eyebrow">Your Ember</div>
-    <div class="em-modal-top">
+    ${emberTab==='skins' ? '' : `<div class="em-modal-top">
       <div class="em-big">${emberFlameSvg(e.flame, e.levelPct)}</div>
       <div>
         <div class="recap-title" style="margin:0;">Level ${e.level}</div>
         <div class="em-lvl" style="background:${chip[0]};color:${chip[1]};margin-top:6px;">${EMBER_FLAME_TEXT[e.flame]}</div>
         <div class="em-xp"><b>${e.xpToNext} XP</b> to Level ${e.level+1}</div>
       </div>
-    </div>
-    <div class="recap-sub">${escapeHtml(e.why)} Log your spending, pay bills on time and keep your Score up to feed it.</div>
-    <div class="em-tiles">
-      <div class="em-tile"><div class="k">Logging streak</div><div class="v">${e.cur} day${e.cur!==1?'s':''}</div><div class="em-week">${e.last7.map(on=>`<i class="${on?'on':''}"></i>`).join('')}</div></div>
-      <div class="em-tile"><div class="k">On budget</div><div class="v">${e.curB} month${e.curB!==1?'s':''}</div><div class="s">Score 80+ each month</div></div>
-    </div>
-    <div class="em-h"><b>Milestones</b><span>${earnedN} of ${EMBER_BADGES.length} earned</span></div>
-    <div class="em-badges">${EMBER_BADGES.map(b=>{
-      const on = !!e.earned[b.id];
-      return `<div class="em-badge ${on?'on':'off'}" style="--c:${b.color};"><div class="bt">${iconSvg(on ? b.icon : 'M6 11h12v9H6zM8 11V8a4 4 0 0 1 8 0v3')}</div><div class="bn">${escapeHtml(b.name)}</div>${on ? '' : `<div class="bh">${escapeHtml(b.hint)}</div>`}</div>`;
-    }).join('')}</div>
+    </div>`}
+    ${tabs}
+    ${body}
     <div class="actions"><button class="btn small" id="emberClose">Close</button></div>`;
   bg.classList.add('open');
   bg.onclick = ev=>{ if(ev.target===bg) closeRecapModal(); };
   document.getElementById('emberClose').onclick = closeRecapModal;
+  box.querySelectorAll('.em-tabs .seg-btn').forEach(b=>b.onclick = ()=>openEmberModal(b.dataset.t));
+  box.querySelectorAll('.sk-card').forEach(c=>c.onclick = ()=>{
+    const k = EMBER_SKINS.find(x=>x.id===c.dataset.skin);
+    const st = emberSkinState(k, e.level);
+    if(k.id===skin.id) return;
+    if(st==='open' || st==='season') equipEmberSkin(k.id);
+    else showToast(st==='locked' ? 'Not unlocked yet' : 'Out of season', st==='locked' ? `Reach Level ${k.lvl} to unlock ${k.name}.` : `${k.name}: ${k.back.toLowerCase()}.`);
+  });
 }
 // Congratulate new milestones / level-ups once (the first visit just records what you already have).
 function checkEmberMilestones(){
@@ -3577,14 +3710,16 @@ function checkEmberMilestones(){
   const nowEarned = EMBER_BADGES.filter(b=>e.earned[b.id]).map(b=>b.id);
   if(!st.init){ st.init = true; st.seen = nowEarned; st.level = e.level; save(); return; }
   const fresh = nowEarned.filter(id=>!st.seen.includes(id));
-  const leveled = e.level > (st.level||1);
+  const oldLevel = st.level || 1;
+  const leveled = e.level > oldLevel;
   if(!fresh.length && !leveled) return;
   st.seen = nowEarned; st.level = e.level; save();
   if(state.celebrate){
     const names = fresh.map(id=>EMBER_BADGES.find(b=>b.id===id).name);
+    const newSkins = leveled ? EMBER_SKINS.filter(k=>!k.season && k.lvl>(oldLevel||1) && k.lvl<=e.level).map(k=>k.name) : [];
     const msg = leveled ? `Ember reached Level ${e.level}` : 'New milestone';
     setTimeout(()=>{
-      showToast(msg, names.length ? names.join(' · ') : 'Keep it burning');
+      showToast(msg, [...names, ...newSkins.map(n=>'New skin: '+n)].join(' · ') || 'Keep it burning');
       const btn = document.getElementById('emberBtn');
       if(btn){ btn.classList.remove('ember-burst'); void btn.offsetWidth; btn.classList.add('ember-burst'); }
     }, 500);
@@ -3612,7 +3747,7 @@ function refreshHero(){
   const eb = document.getElementById('emberBtn');
   if(eb){
     const e = emberStats();
-    const sig = e.flame+'|'+e.levelPct;
+    const sig = e.flame+'|'+e.levelPct+'|'+emberCurrentSkin().id;
     if(eb.dataset.sig!==sig){ eb.innerHTML = emberFlameSvg(e.flame, e.levelPct); eb.dataset.sig = sig; }
     eb.title = `Ember · Level ${e.level} · ${EMBER_FLAME_TEXT[e.flame]}`;
     eb.onclick = openEmberModal;
