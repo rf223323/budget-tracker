@@ -249,6 +249,8 @@
   .income-table{table-layout:fixed;}
   .income-table th,.income-table td{box-sizing:border-box;}
   .income-table td select{width:100%;}
+  .income-table .recur-select,.responsive-table .recur-select{padding:7px 4px 7px 8px;}
+  select.funds-select{padding:4px 6px;font-size:11.5px;}
   .row-input{border:none;background:transparent;padding:4px 6px;width:100%;}
   .row-input:focus{background:var(--panel2);border-radius:6px;}
   .amt-cell{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
@@ -670,8 +672,8 @@
   .quick-receipt-status.error{color:var(--red);}
   .quick-receipt-status.ok{color:var(--green);}
   .cell-name-flex{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 10px;}
-  .cell-name-flex .row-input{flex:1 1 90px;min-width:0;width:auto;}
-  .cell-name-flex .schedule-hint{margin-top:0;white-space:nowrap;flex:0 0 auto;}
+  .cell-name-flex .row-input{flex:1 1 100%;min-width:0;width:auto;}
+  .cell-name-flex .schedule-hint{margin:0 0 0 6px;font-size:11px;white-space:nowrap;flex:0 0 auto;}
   .legend-item .dash{width:16px;height:0;border-top:2px dashed;flex-shrink:0;}
   .hidden{display:none !important;}
   .formula-note{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.5;}
@@ -2993,8 +2995,8 @@ function weekSummaryHtml(i, w){
 }
 function fundsSelectHtml(cls, item){
   return `<select class="${cls} funds-select${item.fundsNext?' next':''}" aria-label="Which month this income funds" title="Which month's budget this income pays for. Choose next month if, for example, the pay you receive at the end of this month is what you spend next month.">
-    <option value="this" ${!item.fundsNext?'selected':''}>For this month</option>
-    <option value="next" ${item.fundsNext?'selected':''}>For next month →</option>
+    <option value="this" ${!item.fundsNext?'selected':''}>Pays this month</option>
+    <option value="next" ${item.fundsNext?'selected':''}>Pays next month →</option>
   </select>`;
 }
 function incomeSummaryHtml(i){
@@ -3238,7 +3240,7 @@ function renderMonth(){
         <button class="btn small" id="addIncomeBtn">+ Add incoming</button>
       </div>
       <table class="responsive-table income-table">
-        <thead><tr><th>Source</th><th style="width:136px;">Category</th><th style="width:128px;">Schedule</th><th style="width:94px;">Amount</th><th style="width:130px;">Status</th><th style="width:106px;">Recurring</th><th style="width:36px;"></th></tr></thead>
+        <thead><tr><th>Source</th><th style="width:136px;">Category</th><th style="width:152px;">Schedule</th><th style="width:94px;">Amount</th><th style="width:124px;">Status</th><th style="width:116px;">Recurring</th><th style="width:36px;"></th></tr></thead>
         <tbody id="incomeBody"></tbody>
       </table>
     </div>
@@ -3249,7 +3251,7 @@ function renderMonth(){
         <button class="btn small" id="addOutgoingBtn">+ Add outgoing</button>
       </div>
       <table class="responsive-table">
-        <thead><tr><th>Name</th><th style="width:140px;">Category</th><th style="width:76px;">Day</th><th style="width:120px;">Amount</th><th style="width:116px;">Status</th><th style="width:110px;">Recurring</th><th style="width:36px;"></th></tr></thead>
+        <thead><tr><th>Name</th><th style="width:140px;">Category</th><th style="width:76px;">Day</th><th style="width:110px;">Amount</th><th style="width:124px;">Status</th><th style="width:116px;">Recurring</th><th style="width:36px;"></th></tr></thead>
         <tbody id="outgoingBody"></tbody>
       </table>
       <div class="formula-note">
@@ -4696,7 +4698,7 @@ function renderQuarterly(){
 // ---------------- Recurring ----------------
 function recurringTableHtml(kind){
   const label = kind==='incoming' ? 'Source' : 'Name';
-  const catTh = kind==='outgoing' ? '<th style="width:140px;">Category</th><th style="width:76px;">Day</th>' : '<th style="width:136px;">Category</th><th style="width:128px;">Schedule</th>';
+  const catTh = kind==='outgoing' ? '<th style="width:140px;">Category</th><th style="width:76px;">Day</th>' : '<th style="width:136px;">Category</th><th style="width:152px;">Schedule</th>';
   return `
     <table class="responsive-table${kind==='incoming'?' income-table':''}">
       <thead><tr><th>${label}</th>${catTh}<th style="width:120px;">Amount</th><th style="width:130px;">Status</th><th style="width:36px;"></th></tr></thead>
