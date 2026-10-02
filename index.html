@@ -388,6 +388,30 @@
     .so-row{background:var(--panel);border-color:var(--border);margin-bottom:7px;}
     .so-spacer{display:none;}
   }
+  /* Year in review */
+  .modal.yr-modal{width:min(480px,94vw);max-height:90vh;overflow-y:auto;padding:24px 22px 20px;}
+  .yr-view{overflow:hidden;touch-action:pan-y;transition:height .3s ease;}
+  .yr-track{display:flex;align-items:flex-start;transition:transform .38s cubic-bezier(.4,.1,.2,1);}
+  .yr-slide{flex:0 0 100%;min-width:100%;padding:2px 2px 4px;box-sizing:border-box;}
+  .yr-kicker{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);font-weight:800;}
+  .yr-h{font-size:24px;font-weight:800;margin:4px 0 2px;letter-spacing:-.02em;}
+  .yr-sub{font-size:12.5px;color:var(--muted);margin-bottom:14px;}
+  .yr-pager{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:16px;}
+  .yr-dots{display:flex;gap:6px;}
+  .yr-dots i{width:7px;height:7px;border-radius:50%;background:color-mix(in srgb, var(--text) 18%, transparent);transition:all .2s;}
+  .yr-dots i.on{width:20px;border-radius:999px;background:var(--accent);box-shadow:0 0 8px color-mix(in srgb, var(--accent) 60%, transparent);}
+  .yr-bars{display:flex;align-items:flex-end;gap:7px;height:130px;padding:10px 4px 0;}
+  .yr-col{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:6px;}
+  .yr-col i{display:block;width:100%;max-width:22px;min-height:4px;height:0;border-radius:999px;background:var(--c);box-shadow:0 0 10px color-mix(in srgb, var(--c) 65%, transparent);transition:height .8s cubic-bezier(.4,.1,.2,1);}
+  .yr-col span{font-size:10.5px;color:var(--muted);font-weight:700;}
+  .yr-two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px;}
+  .yr-stat{background:var(--panel2);border:1px solid var(--border);border-radius:14px;padding:12px 14px;}
+  .yr-stat .k{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);}
+  .yr-stat .v{font-size:19px;font-weight:800;margin-top:3px;}
+  .yr-stat .s{font-size:11.5px;color:var(--muted);margin-top:2px;}
+  .yr-entry{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;}
+  .yr-entry .yr-btns{display:flex;gap:8px;flex-wrap:wrap;}
+  .recap-link{display:block;margin-top:14px;text-align:center;font-size:13px;font-weight:700;color:var(--accent);cursor:pointer;text-decoration:none;}
   .recap-empty{text-align:center;color:var(--muted);font-size:13px;padding:18px 0 6px;}
   #newMonthBtn{white-space:nowrap;}
   @media (max-width:520px){.topbar > div:last-child{gap:6px !important;}.topbar .btn{padding:8px 9px;}}
@@ -4805,7 +4829,12 @@ function renderQuarterly(){
     quarterlySelectedKey = groupKeys[groupKeys.length-1];
   }
 
+  const reviewYears = yearsWithReview();
   el.innerHTML = `
+    <div class="panel yr-entry">
+      <div><div style="font-size:15px;font-weight:800;">Year in review</div><div class="hint" style="margin-top:2px;">${reviewYears.length ? 'Your year at a glance — totals, top category, best and lightest months.' : 'Unlocks once a year has at least 3 tracked months.'}</div></div>
+      ${reviewYears.length ? `<div class="yr-btns">${reviewYears.map(y=>`<button class="btn small yr-open" data-year="${y}">${y} →</button>`).join('')}</div>` : ''}
+    </div>
     <div class="panel">
       <div class="panel-head"><h2>Income vs Spending by Quarter</h2><span class="hint">based on what's marked Done</span></div>
       <div id="quarterlyChart"></div>
@@ -4870,6 +4899,7 @@ function renderQuarterly(){
     `;
   };
   renderDetail();
+  el.querySelectorAll('.yr-open').forEach(b=>b.onclick = ()=>openYearReview(Number(b.dataset.year)));
   document.getElementById('quarterlySelect').onchange = e=>{ quarterlySelectedKey = e.target.value; renderDetail(); };
   document.getElementById('quarterlyPrev').onclick = ()=>{
     const i = groupKeys.indexOf(quarterlySelectedKey);
@@ -5787,6 +5817,151 @@ function openSearchResult(e){
     else if(ev.key==='Escape' && document.getElementById('searchOverlay').classList.contains('open')){ closeSearchOverlay(); }
   });
 })();
+// ---------------- Year in review ----------------
+function yearReviewData(year){
+  const curKey = monthKey(new Date());
+  const rows = Object.keys(state.months).filter(k=>k.startsWith(year+'-') && k<=curKey).sort().map(k=>{
+    const m = state.months[k], t = monthTotals(m);
+    const sc = monthScoreData(k);
+    return {k, m, t, spent:round2(t.allOutgoing+t.weeklyTotal), earned:t.allIncoming, saved:round2(t.savingsAmount+t.stocksAmount), score: sc && sc.active ? sc.score : null};
+  }).filter(x=>x.earned>0 || x.spent>0);
+  if(rows.length<3) return {year, ok:false, n:rows.length};
+  const sum = f => round2(rows.reduce((a,x)=>a+f(x),0));
+  const earned = sum(x=>x.earned), spent = sum(x=>x.spent), saved = sum(x=>x.saved);
+  const net = round2(rows[rows.length-1].t.totalLeftOver - (Number(rows[0].m.startingBalance)||0));
+  const catMap = {};
+  rows.forEach(x=>categoryBreakdown(x.m,'all').forEach(r=>{ catMap[r.category] = round2((catMap[r.category]||0)+r.amount); }));
+  const cats = Object.entries(catMap).map(([category,amount])=>({category,amount})).sort((a,b)=>b.amount-a.amount);
+  const catTotal = cats.reduce((a,r)=>a+r.amount,0);
+  const bySpend = rows.slice().sort((a,b)=>b.spent-a.spent);
+  const scores = rows.filter(x=>x.score!==null).map(x=>x.score);
+  const avgScore = scores.length ? Math.round(scores.reduce((a,b)=>a+b,0)/scores.length) : null;
+  // Longest run of days with no everyday (Quick Add) spending, across the months tracked so far.
+  let quickCount = 0, run = 0, best = 0, bestEnd = null, runEnd = null;
+  const today = new Date(); today.setHours(0,0,0,0);
+  rows.forEach(x=>{
+    const [y, mo] = x.k.split('-').map(Number);
+    const days = discretionaryByDay(x.k);
+    quickCount += x.m.outgoings.filter(o=>o.quickAdd).length;
+    const dim = new Date(y, mo, 0).getDate();
+    for(let d=1; d<=dim; d++){
+      const date = new Date(y, mo-1, d);
+      if(date>today) break;
+      if((days[d]||0)>0){ run = 0; }
+      else { run++; if(run>best){ best = run; bestEnd = date; } }
+    }
+  });
+  const streak = quickCount>=5 && best>=2 ? {days:best, end:bestEnd} : null;
+  // vs the year before
+  const prevRows = Object.keys(state.months).filter(k=>k.startsWith((year-1)+'-')).map(k=>{ const t = monthTotals(state.months[k]); return round2(t.allOutgoing+t.weeklyTotal); }).filter(v=>v>0);
+  const avgSpend = spent/rows.length;
+  const prevAvg = prevRows.length>=3 ? prevRows.reduce((a,b)=>a+b,0)/prevRows.length : null;
+  const vsPrev = prevAvg ? Math.round((avgSpend-prevAvg)/prevAvg*100) : null;
+  return {year, ok:true, rows, earned, spent, saved, net, cats, catTotal, biggest:bySpend[0], lightest:bySpend[bySpend.length-1], avgScore, streak, vsPrev};
+}
+function yearsWithReview(){
+  const years = [...new Set(Object.keys(state.months).map(k=>Number(k.slice(0,4))))].sort((a,b)=>b-a);
+  return years.filter(y=>yearReviewData(y).ok);
+}
+function openYearReview(year){
+  const d = yearReviewData(year);
+  if(!d.ok){ showToast('Not enough months yet', `Year in review needs at least 3 tracked months in ${year}.`); return; }
+  const bg = document.getElementById('modalBg');
+  const box = document.getElementById('modalBox');
+  box.className = 'modal recap-modal yr-modal';
+  const mShort = k => new Date(Number(k.slice(0,4)), Number(k.slice(5))-1, 1).toLocaleString('en-GB',{month:'short'});
+  const mLong = k => new Date(Number(k.slice(0,4)), Number(k.slice(5))-1, 1).toLocaleString('en-GB',{month:'long'});
+  const slides = [];
+  // 1. Totals
+  slides.push(`<div class="yr-slide">
+    <div class="yr-kicker">Year in review</div><div class="yr-h">${year}</div>
+    <div class="yr-sub">${d.rows.length} months tracked · here's how the year went.</div>
+    <div class="recap-hero"><div class="lbl">Net change over the year</div><div class="big ${d.net>=0?'pos':'neg'}">${escapeHtml(fmt(d.net))}</div><div class="note">${d.net>=0?'You finished the year ahead.':'More went out than came in.'}</div></div>
+    <div class="recap-tiles">
+      <div class="recap-tile"><div class="k">Earned</div><div class="v" style="color:var(--green);">${escapeHtml(fmtCompact(d.earned))}</div></div>
+      <div class="recap-tile"><div class="k">Spent</div><div class="v" style="color:var(--red);">${escapeHtml(fmtCompact(d.spent))}</div></div>
+      <div class="recap-tile"><div class="k">Saved</div><div class="v">${escapeHtml(fmtCompact(d.saved))}</div></div>
+    </div>
+    ${d.earned>0 ? `<div class="yr-sub" style="margin:12px 0 0;text-align:center;">You put away <b style="color:var(--text);">${Math.round(d.saved/d.earned*100)}%</b> of what came in.</div>` : ''}
+  </div>`);
+  // 2. Where it went
+  const top = d.cats[0];
+  if(top){
+    slides.push(`<div class="yr-slide">
+      <div class="yr-kicker">Where it went</div><div class="yr-h">${catTile(top.category,'inl')}${escapeHtml(top.category)}</div>
+      <div class="yr-sub">Your biggest category — ${d.catTotal?Math.round(top.amount/d.catTotal*100):0}% of everything categorised (${escapeHtml(fmt(top.amount))}).</div>
+      <div id="yrDonut" style="display:flex;justify-content:center;margin:6px 0 10px;"></div>
+      <div class="recap-rows">${d.cats.slice(0,3).map(r=>`<div class="recap-row">${catTile(r.category,'sm')}<div class="rl"><div class="rv">${escapeHtml(r.category)}</div></div><div class="ramt">${escapeHtml(fmt(r.amount))}<small>${d.catTotal?Math.round(r.amount/d.catTotal*100):0}%</small></div></div>`).join('')}</div>
+    </div>`);
+  }
+  // 3. Months
+  const max = Math.max(...d.rows.map(x=>x.spent), 1);
+  const byKey = {}; d.rows.forEach(x=>{ byKey[x.k] = x; });
+  const cols = [];
+  for(let mo=1; mo<=12; mo++){
+    const k = `${year}-${String(mo).padStart(2,'0')}`;
+    const x = byKey[k];
+    const color = !x ? 'transparent' : (x===d.biggest ? 'var(--red)' : (x===d.lightest ? 'var(--green)' : 'color-mix(in srgb, var(--text) 40%, var(--panel2))'));
+    cols.push(`<div class="yr-col"><i data-h="${x?Math.max(4, x.spent/max*100).toFixed(1):0}" style="--c:${color};"></i><span>${mShort(k).slice(0,1)}</span></div>`);
+  }
+  slides.push(`<div class="yr-slide">
+    <div class="yr-kicker">Month by month</div><div class="yr-h">Your spending shape</div>
+    <div class="yr-sub">Each bar is a month's spending.</div>
+    <div class="yr-bars" id="yrBars">${cols.join('')}</div>
+    <div class="yr-two">
+      <div class="yr-stat"><div class="k">Biggest month</div><div class="v" style="color:var(--red);">${mLong(d.biggest.k)}</div><div class="s">${escapeHtml(fmt(d.biggest.spent))} spent</div></div>
+      <div class="yr-stat"><div class="k">Lightest month</div><div class="v" style="color:var(--green);">${mLong(d.lightest.k)}</div><div class="s">${escapeHtml(fmt(d.lightest.spent))} spent</div></div>
+    </div>
+  </div>`);
+  // 4. Habits
+  if(d.avgScore!==null || d.streak){
+    const sc = d.avgScore;
+    const col = sc===null ? 'var(--accent)' : (sc>=70 ? 'var(--green)' : sc>=50 ? 'var(--amber)' : 'var(--red)');
+    slides.push(`<div class="yr-slide">
+      <div class="yr-kicker">Habits</div><div class="yr-h">How you did</div>
+      <div class="yr-sub">Your average monthly score${d.streak?' and your best no-spend run':''}.</div>
+      ${sc!==null ? `<div class="score-ring" style="width:150px;height:150px;"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="50" fill="none" stroke="color-mix(in srgb, var(--text) 10%, transparent)" stroke-width="10"/><circle class="sr-fill" id="yrScoreRing" cx="60" cy="60" r="50" fill="none" stroke="${col}" stroke-width="10" stroke-linecap="round" pathLength="100" stroke-dasharray="0 100" transform="rotate(-90 60 60)" data-v="${sc}" style="filter:drop-shadow(0 0 6px ${col});"/></svg><div class="score-center"><div class="score-num" style="font-size:38px;">${sc}</div><div class="score-of">avg score</div></div></div>` : ''}
+      ${d.streak ? `<div class="yr-two" style="grid-template-columns:1fr;"><div class="yr-stat"><div class="k">Longest no-spend streak</div><div class="v">${d.streak.days} days</div><div class="s">ending ${d.streak.end.toLocaleDateString('en-GB',{day:'numeric',month:'long'})} — nothing logged in Quick Add</div></div></div>` : ''}
+    </div>`);
+  }
+  // 5. vs last year
+  if(d.vsPrev!==null){
+    const up = d.vsPrev>0;
+    slides.push(`<div class="yr-slide">
+      <div class="yr-kicker">Compared with ${year-1}</div><div class="yr-h">${d.vsPrev===0?'About the same':`${Math.abs(d.vsPrev)}% ${up?'more':'less'} a month`}</div>
+      <div class="yr-sub">Your average monthly spending against last year.</div>
+      <div class="recap-hero"><div class="lbl">Average spend a month</div><div class="big ${up?'neg':'pos'}">${escapeHtml(fmt(round2(d.spent/d.rows.length)))}</div><div class="note">${up?'▲':'▼'} ${Math.abs(d.vsPrev)}% vs ${year-1}</div></div>
+    </div>`);
+  }
+  box.innerHTML = `
+    <div class="yr-view" id="yrView"><div class="yr-track" id="yrTrack">${slides.join('')}</div></div>
+    <div class="yr-pager"><button class="btn secondary small" id="yrPrev">Back</button><div class="yr-dots">${slides.map((_,i)=>`<i class="${i===0?'on':''}"></i>`).join('')}</div><button class="btn small" id="yrNext">Next</button></div>`;
+  bg.classList.add('open');
+  bg.onclick = e=>{ if(e.target===bg) closeRecapModal(); };
+  let idx = 0;
+  const track = document.getElementById('yrTrack'), view = document.getElementById('yrView');
+  const prev = document.getElementById('yrPrev'), next = document.getElementById('yrNext');
+  const show = i=>{
+    idx = Math.max(0, Math.min(slides.length-1, i));
+    track.style.transform = `translateX(${-idx*100}%)`;
+    box.querySelectorAll('.yr-dots i').forEach((dot,j)=>dot.classList.toggle('on', j===idx));
+    prev.style.visibility = idx===0 ? 'hidden' : 'visible';
+    next.textContent = idx===slides.length-1 ? 'Done' : 'Next';
+    // animate whatever the current slide holds
+    const slide = track.children[idx];
+    view.style.height = slide.scrollHeight + 'px';
+    slide.querySelectorAll('#yrBars i').forEach(b=>{ b.style.height = b.dataset.h+'px'; });
+    const dn = slide.querySelector('#yrDonut'); if(dn && !dn.dataset.done){ dn.dataset.done = '1'; donutChart(dn, d.cats, {size:200}); }
+    const ring = slide.querySelector('#yrScoreRing'); if(ring) ring.setAttribute('stroke-dasharray', `${ring.dataset.v} 100`);
+  };
+  next.onclick = ()=>{ if(idx===slides.length-1) closeRecapModal(); else show(idx+1); };
+  prev.onclick = ()=>show(idx-1);
+  // swipe
+  let sx = null;
+  view.addEventListener('pointerdown', e=>{ sx = e.clientX; });
+  view.addEventListener('pointerup', e=>{ if(sx===null) return; const dx = e.clientX - sx; sx = null; if(Math.abs(dx)>50) show(idx + (dx<0?1:-1)); });
+  setTimeout(()=>show(0), 60);
+}
 // Monthly score out of 100, from four parts: spending vs income (30), saving rate (25),
 // leftover cushion (25) and bills on track (20).
 function monthScoreData(key){
@@ -5953,10 +6128,17 @@ function openRecapModal(key, opts){
       </div>
       <div class="recap-rows">${rows.join('')}</div>`
     : `<div class="recap-empty">Nothing tracked in this month yet — add some income or outgoings and the recap will fill in.</div>`}
+    ${d.active && yearReviewData(Number(d.key.slice(0,4))).ok ? `<a class="recap-link" id="recapYearLink">See your ${d.key.slice(0,4)} year in review →</a>` : ''}
     <div class="actions"><button class="btn small" id="recapClose">${opts.fromNewMonth ? 'Continue' : 'Close'}</button></div>`;
   bg.classList.add('open');
   bg.onclick = e=>{ if(e.target===bg) closeRecapModal(); };
-  document.getElementById('recapClose').onclick = closeRecapModal;
+  const yearLink = document.getElementById('recapYearLink');
+  if(yearLink) yearLink.onclick = ()=>openYearReview(Number(d.key.slice(0,4)));
+  document.getElementById('recapClose').onclick = ()=>{
+    closeRecapModal();
+    // Rolling December into January: offer the whole year next.
+    if(opts.fromNewMonth && d.key.endsWith('-12') && yearReviewData(Number(d.key.slice(0,4))).ok) setTimeout(()=>openYearReview(Number(d.key.slice(0,4))), 250);
+  };
   if(d.active){
     const netEl = document.getElementById('recapNet');
     netEl.dataset.animValue = '0';
@@ -6041,6 +6223,7 @@ document.getElementById('newMonthBtn').onclick = ()=>{
   render();
   const recap = monthRecapData(leavingKey);
   if(recap && recap.active) openRecapModal(leavingKey, {fromNewMonth:true});
+  else if(leavingKey.endsWith('-12') && yearReviewData(Number(leavingKey.slice(0,4))).ok) openYearReview(Number(leavingKey.slice(0,4)));
 };
 document.getElementById('themeSelect').onchange = e=>{
   state.theme = e.target.value;
