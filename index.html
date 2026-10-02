@@ -272,6 +272,37 @@
   }
   .row-input{border:none;background:transparent;padding:4px 6px;width:100%;}
   .row-input:focus{background:var(--panel2);border-radius:6px;}
+  /* Trend → Table */
+  .mt-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:16px;background:var(--panel);}
+  .mt-table{border-collapse:separate;border-spacing:0;width:100%;min-width:1080px;font-size:13px;}
+  .mt-table th{padding:10px 12px;border-bottom:1px solid var(--border);background:color-mix(in srgb, var(--panel2) 70%, var(--panel));color:var(--muted);font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;}
+  .mt-table tr.mt-group th{padding:10px 12px 6px;border-bottom:none;background:color-mix(in srgb, var(--panel2) 70%, var(--panel));text-align:left;}
+  .mt-g{display:inline-block;padding:3px 10px;border-radius:999px;font-size:10px;letter-spacing:.08em;}
+  .mt-g-a{background:color-mix(in srgb, var(--accent) 16%, transparent);color:var(--accent);}
+  .mt-g-b{background:color-mix(in srgb, var(--green) 16%, transparent);color:var(--green);}
+  .mt-table tr:nth-child(2) th{padding-top:4px;}
+  .mt-table td{padding:13px 12px;border-bottom:1px solid color-mix(in srgb, var(--border) 70%, transparent);font-variant-numeric:tabular-nums;}
+  .mt-table tbody tr:last-child td{border-bottom:none;}
+  .mt-table tbody tr:hover td{background:color-mix(in srgb, var(--text) 4%, var(--panel));}
+  .mt-table tbody tr.cur td{background:color-mix(in srgb, var(--accent) 9%, var(--panel));}
+  .mt-table tbody tr.cur td.mt-sticky{box-shadow:inset 3px 0 0 var(--accent);}
+  .mt-table tbody tr.future td:not(.mt-sticky){color:var(--muted);}
+  .mt-table td.pos{color:var(--green);}
+  .mt-table td.neg{color:var(--red);}
+  .mt-table td.strong{font-weight:800;}
+  .mt-table td.zero{opacity:.4;}
+  .mt-table td.proj{font-weight:800;color:var(--text);}
+  .mt-sticky{position:sticky;left:0;z-index:2;background:var(--panel);text-align:left !important;min-width:156px;}
+  .mt-table thead th.mt-sticky{background:color-mix(in srgb, var(--panel2) 70%, var(--panel));}
+  .mt-table tbody tr:hover td.mt-sticky{background:color-mix(in srgb, var(--text) 4%, var(--panel));}
+  .mt-table tbody tr.cur td.mt-sticky{background:color-mix(in srgb, var(--accent) 9%, var(--panel));}
+  .mt-m{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;}
+  .mt-m b{font-size:14px;font-weight:800;}
+  .mt-m span{font-size:11.5px;color:var(--muted);}
+  .mt-m .mt-tag{padding:2px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;}
+  .mt-tag.now{background:var(--accent);color:var(--on-accent);}
+  .mt-tag.plan{background:color-mix(in srgb, var(--text) 10%, transparent);color:var(--muted);}
+  @media (max-width:700px){.mt-sticky{min-width:96px !important;}.mt-m span:not(.mt-tag){display:none;}.mt-m b{font-size:13px;}.mt-table{min-width:980px;}.mt-table td,.mt-table th{padding-left:10px;padding-right:10px;}}
   .amt-cell{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
   .del-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;padding:2px 6px;border-radius:6px;}
   .del-btn:hover{color:var(--red);background:color-mix(in srgb, var(--red) 10%, transparent);}
@@ -4219,13 +4250,21 @@ function renderTrend(){
     pane = `
       <div class="panel">
         <div class="panel-head"><h2>Month by month</h2><span class="hint">${keys.length} month${keys.length!==1?'s':''} tracked</span></div>
-        <div style="overflow-x:auto;">
-        <table>
-          <thead><tr><th>Month</th><th class="amt-cell">Starting Balance</th><th class="amt-cell">Current (live)</th><th class="amt-cell">Incoming</th><th class="amt-cell">Weekly</th><th class="amt-cell">Outgoings</th><th class="amt-cell">Savings</th><th class="amt-cell">Left Over</th><th class="amt-cell">Savings Pot</th><th class="amt-cell">Stocks Pot</th><th class="amt-cell">Actual Total</th><th class="amt-cell">Projected Total</th></tr></thead>
+        <div class="mt-wrap">
+        <table class="mt-table">
+          <thead>
+            <tr class="mt-group"><th class="mt-sticky"></th><th colspan="7"><span class="mt-g mt-g-a">Each month</span></th><th colspan="4"><span class="mt-g mt-g-b">Net worth</span></th></tr>
+            <tr><th class="mt-sticky">Month</th><th class="amt-cell">Starting</th><th class="amt-cell">Current (live)</th><th class="amt-cell">Incoming</th><th class="amt-cell">Weekly</th><th class="amt-cell">Outgoings</th><th class="amt-cell">Savings</th><th class="amt-cell">Left over</th><th class="amt-cell">Savings pot</th><th class="amt-cell">Stocks pot</th><th class="amt-cell">Actual</th><th class="amt-cell">Projected</th></tr>
+          </thead>
           <tbody>
             ${keys.map((k,i)=>{
               const mm = state.months[k]; const tt = totals[i];
-              return `<tr><td>${monthLabelFromKey(k)}</td><td class="amt-cell">${fmt(mm.startingBalance)}</td><td class="amt-cell">${fmt(tt.liveBalance)}</td><td class="amt-cell">${fmt(tt.allIncoming)}</td><td class="amt-cell">${fmt(tt.weeklyTotal)}</td><td class="amt-cell">${fmt(tt.allOutgoing)}</td><td class="amt-cell">${fmt(tt.savingsAmount)}</td><td class="amt-cell">${fmt(tt.totalLeftOver)}</td><td class="amt-cell">${fmt(savingsSeries[i])}</td><td class="amt-cell">${fmt(stocksSeries[i])}</td><td class="amt-cell">${fmt(actualNetWorth[i])}</td><td class="amt-cell"><b>${fmt(projectedNetWorth[i])}</b></td></tr>`;
+              const curK = monthKey(new Date());
+              const tag = k===curK ? '<span class="mt-tag now">Now</span>' : (k>curK ? '<span class="mt-tag plan">Planned</span>' : '');
+              const [yy, mo] = k.split('-').map(Number);
+              const mname = new Date(yy, mo-1, 1).toLocaleString('en-GB',{month:'long'});
+              const c = (v, cls)=>`<td class="amt-cell${cls?' '+cls:''}${Math.abs(Number(v)||0)<0.005?' zero':''}">${fmt(v)}</td>`;
+              return `<tr class="${k===curK?'cur':''}${k>curK?' future':''}"><td class="mt-sticky"><div class="mt-m"><b>${mname}</b><span>${yy}</span>${tag}</div></td>${c(mm.startingBalance)}${c(tt.liveBalance)}${c(tt.allIncoming,'pos')}${c(tt.weeklyTotal,'neg')}${c(tt.allOutgoing,'neg')}${c(tt.savingsAmount)}${c(tt.totalLeftOver, tt.totalLeftOver>=0?'pos strong':'neg strong')}${c(savingsSeries[i])}${c(stocksSeries[i])}${c(actualNetWorth[i])}<td class="amt-cell proj">${fmt(projectedNetWorth[i])}</td></tr>`;
             }).join('')}
           </tbody>
         </table>
