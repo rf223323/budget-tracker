@@ -506,6 +506,54 @@
   .boss-cta{width:100%;justify-content:center;margin-bottom:12px;background:linear-gradient(135deg,var(--bc),color-mix(in srgb, var(--bc) 60%, #ffb15a));color:#1a0a08;font-weight:800;box-shadow:0 0 22px color-mix(in srgb, var(--bc) 40%, transparent);}
   .p3-card.boss{background:linear-gradient(160deg,color-mix(in srgb, var(--bc) 12%, var(--panel)),var(--panel) 62%);border-color:color-mix(in srgb, var(--bc) 30%, var(--border));}
   .p3-card.p3-done.boss{opacity:.8;}
+  .tcg-legend{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px;}
+  .tcg-chip{display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:999px;background:var(--panel2);border:1px solid var(--border);font-size:10.5px;font-weight:800;}
+  .tcg-stack{display:flex;align-items:flex-end;overflow-x:auto;overflow-y:hidden;padding:30px 18px 16px;margin:0 -16px;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+  .tcg-stack::-webkit-scrollbar{display:none;}
+  .tcg-item{flex:0 0 auto;position:relative;width:var(--w);height:var(--h);margin-left:calc(var(--w) * -.64);cursor:pointer;transition:margin .35s ease, transform .35s cubic-bezier(.2,.9,.3,1.15), filter .3s ease;filter:brightness(.7);-webkit-tap-highlight-color:transparent;}
+  .tcg-item:first-child{margin-left:0;}
+  .tcg-item.sel{z-index:5;transform:translateY(-16px) scale(1.04);filter:none;}
+  .tcg-item:not(.sel):hover{transform:translateY(-6px);filter:brightness(.9);}
+  .tcg-info{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-radius:16px;background:var(--panel2);border:1px solid var(--border);}
+  .tcg-info-main{min-width:0;}
+  .tcg-info-t{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:14.5px;}
+  .tcg-info-t span{font-size:10.5px;font-weight:800;letter-spacing:.06em;}
+  .tcg-info-s{margin-top:2px;font-size:11.5px;color:var(--muted);line-height:1.4;}
+  .tcg-info-btns{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+  .tcg-reveal-card{margin:18px 0 8px;display:flex;justify-content:center;animation:tcgIn .8s cubic-bezier(.2,.9,.3,1.1) both;perspective:800px;}
+  .tcg-reveal .bo-ok{margin-top:12px;}
+  @keyframes tcgIn{from{opacity:0;transform:translateY(70px) rotateY(80deg) scale(.7);}to{opacity:1;transform:none;}}
+  .tcg-big{display:flex;justify-content:center;padding:6px 0 16px;}
+  .tcg-big .tc{transform-origin:0 0;}
+  .tcg-modal-info{margin-bottom:12px;}
+  .tcg-modal .actions{justify-content:space-between;}
+  .tc-wrap{position:relative;}
+  .tc{position:absolute;left:0;top:0;width:240px;height:336px;border-radius:16px;padding:7px;box-sizing:border-box;transform-origin:0 0;box-shadow:0 12px 30px rgba(0,0,0,.5),0 0 24px color-mix(in srgb, var(--col) 30%, transparent);color:#f4f1ef;font-family:inherit;text-align:left;}
+  .tc-in{position:relative;width:100%;height:100%;border-radius:11px;background:linear-gradient(180deg,#171720,#0f0f14);overflow:hidden;display:flex;flex-direction:column;padding:8px 9px;box-sizing:border-box;}
+  .tc-top{display:flex;align-items:center;justify-content:space-between;gap:6px;}
+  .tc-name{font-size:14.5px;font-weight:800;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .tc-hp{display:flex;align-items:center;gap:3px;font-size:13px;font-weight:800;color:var(--col);flex-shrink:0;}
+  .tc-hp i{font-style:normal;font-size:8.5px;letter-spacing:.06em;color:#9a9494;}
+  .tc-art{position:relative;margin-top:6px;height:148px;border-radius:9px;overflow:hidden;border:1.5px solid color-mix(in srgb, var(--col) 55%, #2a2a2d);background:radial-gradient(70% 70% at 50% 55%,color-mix(in srgb, var(--col) 42%, #14141a),#0c0c10 80%);}
+  .tc-art > svg{position:absolute;inset:0;width:100%;height:100%;}
+  .tc-boss{position:absolute;left:50%;top:6px;margin-left:-68px;width:136px;height:136px;}
+  .tc-boss svg{width:100%;height:100%;display:block;overflow:visible;}
+  .tc-ribbon{position:absolute;right:-30px;top:14px;width:120px;text-align:center;transform:rotate(38deg);background:#3dd68c;color:#06281a;font-size:9px;font-weight:800;letter-spacing:.14em;padding:3px 0;box-shadow:0 2px 8px rgba(0,0,0,.4);}
+  .tc-type{margin-top:6px;font-size:9px;font-weight:800;letter-spacing:.1em;}
+  .tc-hits{margin-top:6px;display:flex;flex-direction:column;gap:4px;padding:7px 8px;border-radius:8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);}
+  .tc-hit{display:flex;align-items:center;gap:6px;font-size:10.5px;color:#cfc9c7;}
+  .tc-hit .tc-bolt{display:flex;}
+  .tc-hit .tc-bolt svg{width:11px;height:11px;stroke-width:2.6;}
+  .tc-hl{flex:1;} .tc-hd{color:#8a8484;} .tc-hit b{min-width:42px;text-align:right;color:#f4f1ef;}
+  .tc-flav{margin-top:auto;font-size:9.5px;font-style:italic;color:#8a8494;line-height:1.35;}
+  .tc-foot{margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:9.5px;color:#8a8484;white-space:nowrap;}
+  .tc-foot span:first-child{overflow:hidden;text-overflow:ellipsis;}
+  .tc-foil{position:absolute;inset:0;border-radius:16px;pointer-events:none;}
+  .tc-foil.holo{background:linear-gradient(115deg,transparent 18%,rgba(255,110,220,.30) 34%,rgba(110,255,220,.26) 50%,rgba(110,170,255,.30) 66%,transparent 82%);background-size:260% 100%;mix-blend-mode:screen;animation:tcFoil 6s ease-in-out infinite alternate;}
+  .tc-foil.rare{background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.2) 48%,transparent 62%);background-size:260% 100%;animation:tcFoil 7s ease-in-out infinite alternate;}
+  @keyframes tcFoil{from{background-position:0% 0;}to{background-position:100% 0;}}
+  @media (prefers-reduced-motion:reduce){.tc-foil{animation:none;}.tcg-item{transition:none;}}
+  @media (max-width:700px){.tcg-info{flex-wrap:wrap;}}
   .trophy-cab{margin-top:22px;}
   .trophy-head{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
   .trophy-ico{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb, var(--amber) 16%, transparent);color:var(--amber);flex-shrink:0;}
@@ -607,7 +655,7 @@
     .bo-stage{width:200px;height:200px;}
   }
   @media (prefers-reduced-motion:reduce){
-    .boss-art .boss-body,.bo-stage .boss-body,.boss-hp i.hit,.bo-card,.lk-stage,.lk-xp,.lk-bar i.gain,.lucky-orb,.lt-stage{animation:none !important;}
+    .boss-art .boss-body,.bo-stage .boss-body,.boss-hp i.hit,.bo-card,.lk-stage,.lk-xp,.lk-bar i.gain,.lucky-orb,.lt-stage,.tcg-reveal-card{animation:none !important;}
     .bo-slash{display:none;}
     .bo-dmg,.bo-p,.bo-ring{animation:none !important;}
     .bo-p,.bo-ring{display:none;}
@@ -6104,7 +6152,7 @@ function rollBossLoot(plan){
   if(!L.owned.includes(kind)){
     L.since = (L.since||0) + 1;
     if(L.since>=7 || Math.random()<0.2){
-      L.owned.push(kind); L.since = 0;
+      L.owned.push(kind); L.since = 0; plan.lootDrop = true;
       skin = LOOT_SKINS.find(k=>k.loot===kind) || null;
     }
   }
@@ -6180,7 +6228,7 @@ function showBossStrike(plan, idx){
     <button class="btn bo-ok" id="boOk">${defeated ? 'Claim victory' : 'Keep going'}</button>
   </div>`;
   ov.classList.add('open'); ov.setAttribute('aria-hidden','false');
-  const close = ()=>{ ov.classList.remove('open'); ov.setAttribute('aria-hidden','true'); ov.innerHTML = ''; if(loot) setTimeout(()=>showLootDrop(loot, plan), 350); else setTimeout(checkEmberMilestones, 250); };
+  const close = ()=>{ ov.classList.remove('open'); ov.setAttribute('aria-hidden','true'); ov.innerHTML = ''; const after = ()=>{ if(loot) showLootDrop(loot, plan); else checkEmberMilestones(); }; setTimeout(()=>{ if(defeated) showCardReveal(plan, after); else checkEmberMilestones(); }, 350); };
   document.getElementById('boOk').onclick = close;
   ov.onmousedown = ev=>{ if(ev.target===ov) close(); };
 }
@@ -6302,25 +6350,147 @@ function catchLuckyEmber(tier){
   refreshHero();
 }
 
-// Trophy cabinet: every Pay in 3 plan you've paid off, with its defeated boss.
+// ---------------- Trophy cards ----------------
+// Every boss you beat becomes a collectible card. They sit in a slightly overlapping stack; tap one to pull it out.
+const TCG_RARITY = {common:['COMMON','#aab2c0','◆'], rare:['RARE','#dfe7f5','◆◆'], holo:['HOLO','#ffd66e','★']};
+const TCG_BOLT = 'M13 2L4 14h7l-1 8 9-12h-7l1-8z';
+let tcgSel = null;
+function tcgRarity(plan){ return plan.lootDrop ? 'holo' : plan.total>=150 ? 'rare' : 'common'; }
+function tcgSorted(plans){ return plans.slice().sort((a,b)=>a.inst[a.inst.length-1].date.localeCompare(b.inst[b.inst.length-1].date)); }
+function tcgCard(plan, num, k){
+  const look = bossLook(plan), col = look.col, rar = tcgRarity(plan);
+  const [rn, rc, rg] = TCG_RARITY[rar];
+  const theme = BOSS2[look.kind].theme;
+  const day = d=>parseYmd(d).toLocaleDateString('en-GB',{day:'2-digit',month:'short'});
+  const cleared = parseYmd(plan.inst[plan.inst.length-1].date).toLocaleDateString('en-GB',{month:'short',year:'numeric'});
+  const shown = plan.inst.length>4 ? plan.inst.slice(0,3) : plan.inst;
+  const rows = shown.map((it,i)=>`<div class="tc-hit"><span class="tc-bolt" style="color:${col};">${iconSvg(TCG_BOLT)}</span><span class="tc-hl">Hit ${i+1}</span><span class="tc-hd">${day(it.date)}</span><b>−${escapeHtml(fmt(it.amount))}</b></div>`).join('')
+    + (plan.inst.length>4 ? `<div class="tc-hit"><span class="tc-bolt" style="color:${col};">${iconSvg(TCG_BOLT)}</span><span class="tc-hl">+${plan.inst.length-3} more hits</span></div>` : '');
+  const frame = rar==='holo' ? 'linear-gradient(135deg,#ff6ad5,#ffd36a 25%,#6affc8 50%,#6ab8ff 75%,#c46aff)'
+    : rar==='rare' ? 'linear-gradient(145deg,#f4f7ff,#8a95a8 55%,#d6deee)'
+    : `linear-gradient(145deg,${col},color-mix(in srgb, ${col} 38%, #0b0b0c))`;
+  const rays = Array.from({length:20}, (_,i)=>{ const a = i*Math.PI/10; return `<path d="M110,78 L${(110+170*Math.cos(a)).toFixed(0)},${(78+170*Math.sin(a)).toFixed(0)}"/>`; }).join('');
+  const foil = rar==='holo' ? '<div class="tc-foil holo"></div>' : rar==='rare' ? '<div class="tc-foil rare"></div>' : '';
+  return `<div class="tc-wrap" style="width:${Math.round(240*k)}px;height:${Math.round(336*k)}px;"><div class="tc" style="transform:scale(${k});--col:${col};background:${frame};">
+    <div class="tc-in">
+      <div class="tc-top"><div class="tc-name">${escapeHtml(look.title)}</div><div class="tc-hp"><i>HP</i>${escapeHtml(fmt(plan.total))}</div></div>
+      <div class="tc-art"><svg viewBox="0 0 220 148" aria-hidden="true"><g stroke="${col}" stroke-width="1.2" opacity=".18">${rays}</g></svg><div class="tc-boss">${bossArt2(look.kind,'fight')}</div><div class="tc-ribbon">DEFEATED</div></div>
+      <div class="tc-type" style="color:${col};">DEBT BOSS · ${plan.inst.length} HITS TO DEFEAT</div>
+      <div class="tc-hits">${rows}</div>
+      <div class="tc-flav">“${escapeHtml(theme)}.”</div>
+      <div class="tc-foot"><span>${escapeHtml(plan.name)} · ${escapeHtml(cleared)}</span><span><b style="color:${rc};">${rg} ${rn}</b> #${String(num).padStart(3,'0')}/${String(BOSS_KINDS.length).padStart(3,'0')}</span></div>
+    </div>${foil}</div></div>`;
+}
+function tcgInfoHtml(plan, num){
+  const look = bossLook(plan), rar = tcgRarity(plan), [rn, rc, rg] = TCG_RARITY[rar];
+  const when = parseYmd(plan.inst[plan.inst.length-1].date).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+  const loot = plan.lootDrop ? LOOT_SKINS.find(k=>k.loot===look.kind) : null;
+  return `<div class="tcg-info-main" data-plan="${plan.id}">
+    <div class="tcg-info-t"><b>${escapeHtml(look.title)}</b><span style="color:${rc};">${rg} ${rn}</span></div>
+    <div class="tcg-info-s">${escapeHtml(plan.name)} · ${escapeHtml(fmt(plan.total))} · defeated ${escapeHtml(when)} · +${BOSS_XP_HIT*plan.inst.length+BOSS_XP_DEFEAT} XP${loot?` · dropped the ${escapeHtml(loot.name)} skin`:''}</div>
+  </div>
+  <div class="tcg-info-btns"><button class="btn small secondary" id="tcgLook">Look closer</button><button class="del-btn" id="tcgDel" aria-label="Delete plan" title="Delete plan">✕</button></div>`;
+}
 function trophyCabinet(plans){
-  const cleared = round2(plans.reduce((a,p)=>a+p.total,0));
-  const xp = plans.reduce((a,p)=>a+BOSS_XP_HIT*p.inst.length+BOSS_XP_DEFEAT,0);
-  const when = p=>parseYmd(p.inst[p.inst.length-1].date).toLocaleDateString('en-GB',{month:'short',year:'numeric'});
+  const list = tcgSorted(plans);
+  if(!list.some(p=>p.id===tcgSel)) tcgSel = list[list.length-1].id;
+  const xp = list.reduce((a,p)=>a+BOSS_XP_HIT*p.inst.length+BOSS_XP_DEFEAT,0);
+  const k = window.innerWidth<=700 ? .7 : .8;
+  const w = Math.round(240*k);
+  const legend = ['common','rare','holo'].map(r=>`<span class="tcg-chip" style="color:${TCG_RARITY[r][1]};">${TCG_RARITY[r][2]} ${TCG_RARITY[r][0]}</span>`).join('');
   return `<div class="panel trophy-cab">
     <div class="trophy-head">
       <div class="trophy-ico">${iconSvg('M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0zM7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3')}</div>
-      <div class="trophy-ti"><div class="trophy-h">Trophy cabinet</div><div class="trophy-s">${plans.length} boss${plans.length!==1?'es':''} defeated · ${escapeHtml(fmt(cleared))} cleared · +${xp} XP</div></div>
+      <div class="trophy-ti"><div class="trophy-h">Trophy cabinet</div><div class="trophy-s">${list.length} of ${BOSS_KINDS.length} boss cards · +${xp} XP earned</div></div>
     </div>
-    <div class="trophy-grid">${plans.map(p=>{
-      const look = bossLook(p);
-      return `<div class="trophy-row" data-plan="${p.id}" style="--bc:${look.col};">
-        <div class="trophy-art">${bossArt2(look.kind, 'dead')}<i class="trophy-tick">${iconSvg('M5 12.5l4.5 4.5L19 7.5')}</i></div>
-        <div class="trophy-info"><div class="trophy-n">${escapeHtml(look.title)}</div><div class="trophy-p">${escapeHtml(p.name)} · ${escapeHtml(fmt(p.total))} · ${escapeHtml(when(p))}</div></div>
-        <button class="del-btn p3-del" aria-label="Delete plan" title="Delete plan">✕</button>
-      </div>`;}).join('')}
-    </div>
+    <div class="tcg-legend">${legend}</div>
+    <div class="tcg-stack" id="tcgStack" style="--w:${w}px;--h:${Math.round(336*k)}px;">${list.map((pl,i)=>`<div class="tcg-item${pl.id===tcgSel?' sel':''}" data-card="${pl.id}">${tcgCard(pl, i+1, k)}</div>`).join('')}</div>
+    <div class="tcg-info" id="tcgInfo">${tcgInfoHtml(list.find(p=>p.id===tcgSel), list.findIndex(p=>p.id===tcgSel)+1)}</div>
   </div>`;
+}
+function deletePay3(id){
+  const idx = state.pay3.findIndex(x=>x.id===id);
+  if(idx<0) return;
+  const plan = state.pay3[idx];
+  removePay3Links(id);
+  state.pay3.splice(idx, 1);
+  save();
+  renderPay3();
+  showUndoToast(plan.name, ()=>{
+    state.pay3.splice(Math.min(idx, state.pay3.length), 0, plan);
+    syncPay3All();
+    save();
+    render();
+  });
+}
+function openTcgModal(){
+  const done = tcgSorted(state.pay3.filter(p=>p.inst.length && p.inst.every((_,i)=>pay3Paid(p,i))));
+  let i = done.findIndex(p=>p.id===tcgSel); if(i<0) return;
+  const bg = document.getElementById('modalBg'), box = document.getElementById('modalBox');
+  const draw = ()=>{
+    const pl = done[i], look = bossLook(pl);
+    box.className = 'modal recap-modal tcg-modal';
+    box.innerHTML = `<div class="recap-eyebrow">Card ${i+1} of ${done.length}</div>
+      <div class="tcg-big">${tcgCard(pl, i+1, 1.1)}</div>
+      <div class="tcg-info tcg-modal-info">${tcgInfoHtml(pl, i+1).replace(/<div class="tcg-info-btns">.*<\/div>$/s,'')}</div>
+      <div class="actions"><button class="btn secondary small" id="tcgPrev" ${i===0?'disabled':''}>‹ Previous</button><button class="btn secondary small" id="tcgNext" ${i===done.length-1?'disabled':''}>Next ›</button><button class="btn small" id="tcgClose">Close</button></div>`;
+    document.getElementById('tcgPrev').onclick = ()=>{ i--; tcgSel = done[i].id; draw(); };
+    document.getElementById('tcgNext').onclick = ()=>{ i++; tcgSel = done[i].id; draw(); };
+    document.getElementById('tcgClose').onclick = ()=>{ closeRecapModal(); renderPay3(); };
+  };
+  draw();
+  bg.classList.add('open');
+  bg.onclick = ev=>{ if(ev.target===bg){ closeRecapModal(); renderPay3(); } };
+}
+// Shown after a boss is defeated: the new card slides in.
+function showCardReveal(plan, then){
+  const done = tcgSorted(state.pay3.filter(p=>p.inst.length && p.inst.every((_,i)=>pay3Paid(p,i))));
+  const num = done.findIndex(p=>p.id===plan.id) + 1;
+  if(num<1){ then(); return; }
+  const rar = tcgRarity(plan), [rn, rc, rg] = TCG_RARITY[rar];
+  let ov = document.getElementById('cardOverlay');
+  if(!ov){ ov = document.createElement('div'); ov.id = 'cardOverlay'; ov.className = 'boss-overlay lucky'; ov.setAttribute('aria-hidden','true'); document.body.appendChild(ov); }
+  ov.style.setProperty('--lc', rc);
+  ov.innerHTML = `<div class="bo-card tcg-reveal">
+    <div class="bo-k" style="color:${rc};">NEW CARD</div>
+    <div class="lt-badge" style="margin-top:8px;color:${rc};border-color:${rc}77;background:${rc}22;">${rg} ${rn}</div>
+    <div class="tcg-reveal-card">${tcgCard(plan, num, window.innerWidth<=700 ? 1.1 : 1.2)}</div>
+    <div class="lk-count">Added to your trophy cabinet · <b>${done.length} of ${BOSS_KINDS.length}</b></div>
+    <button class="btn bo-ok" id="tcView">View in cabinet</button>
+    <button class="btn secondary bo-ok lt-later" id="tcKeep">Keep going</button>
+  </div>`;
+  ov.classList.add('open'); ov.setAttribute('aria-hidden','false');
+  const close = go=>{
+    ov.classList.remove('open'); ov.setAttribute('aria-hidden','true'); ov.innerHTML = '';
+    if(go){ tcgSel = plan.id; renderPay3(); const c = document.querySelector('.trophy-cab'); if(c) c.scrollIntoView({behavior:'smooth', block:'start'}); }
+    setTimeout(then, 300);
+  };
+  document.getElementById('tcView').onclick = ()=>close(true);
+  document.getElementById('tcKeep').onclick = ()=>close(false);
+  ov.onmousedown = ev=>{ if(ev.target===ov) close(false); };
+}
+function bindTrophy(el){
+  const stack = el.querySelector('#tcgStack');
+  if(!stack) return;
+  const center = (item, smooth)=>{ stack.scrollTo({left: item.offsetLeft - (stack.clientWidth - item.offsetWidth)/2, behavior: smooth ? 'smooth' : 'auto'}); };
+  const done = ()=>tcgSorted(state.pay3.filter(p=>p.inst.length && p.inst.every((_,i)=>pay3Paid(p,i))));
+  const bindInfo = ()=>{
+    const look = el.querySelector('#tcgLook'), del = el.querySelector('#tcgDel');
+    if(look) look.onclick = openTcgModal;
+    if(del) del.onclick = ()=>deletePay3(tcgSel);
+  };
+  bindInfo();
+  stack.querySelectorAll('.tcg-item').forEach(it=>it.onclick = ()=>{
+    if(it.dataset.card===tcgSel){ openTcgModal(); return; }
+    tcgSel = it.dataset.card;
+    stack.querySelectorAll('.tcg-item').forEach(x=>x.classList.toggle('sel', x===it));
+    const list = done(), idx = list.findIndex(p=>p.id===tcgSel);
+    el.querySelector('#tcgInfo').innerHTML = tcgInfoHtml(list[idx], idx+1);
+    bindInfo();
+    setTimeout(()=>center(it, true), 30);
+  });
+  const cur = stack.querySelector('.tcg-item.sel');
+  if(cur) requestAnimationFrame(()=>center(cur, false));
 }
 function renderPay3(){
   syncPay3All();
@@ -6444,22 +6614,8 @@ function renderPay3(){
     renderPay3();
     if(nowPaid) showBossStrike(plan, i);
   });
-  el.querySelectorAll('.p3-del').forEach(b=>b.onclick = ()=>{
-    const id = b.closest('[data-plan]').dataset.plan;
-    const idx = state.pay3.findIndex(x=>x.id===id);
-    if(idx<0) return;
-    const plan = state.pay3[idx];
-    removePay3Links(id);
-    state.pay3.splice(idx, 1);
-    save();
-    renderPay3();
-    showUndoToast(plan.name, ()=>{
-      state.pay3.splice(Math.min(idx, state.pay3.length), 0, plan);
-      syncPay3All();
-      save();
-      render();
-    });
-  });
+  el.querySelectorAll('.p3-del').forEach(b=>b.onclick = ()=>deletePay3(b.closest('[data-plan]').dataset.plan));
+  bindTrophy(el);
 }
 
 // ---------------- Recurring costs summary (subscriptions overview) ----------------
