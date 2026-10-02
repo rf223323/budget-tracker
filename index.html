@@ -220,9 +220,30 @@
   .modal h3{margin:0 0 14px;font-size:16px;}
   .modal .actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;}
 
+  .safe-spend{display:flex;gap:24px;align-items:center;flex-wrap:wrap;background:linear-gradient(135deg, color-mix(in srgb, var(--accent) 12%, var(--panel)), color-mix(in srgb, var(--accent2) 8%, var(--panel)));}
+  .ss-main{min-width:210px;flex:0 1 260px;}
+  .ss-label{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:700;}
+  .ss-val{font-size:34px;font-weight:800;margin:2px 0;}
+  .ss-val.pos{color:var(--green);}
+  .ss-val.neg{color:var(--red);}
+  .ss-sub{font-size:12px;color:var(--muted);}
+  .ss-bar{height:4px;border-radius:4px;background:color-mix(in srgb, var(--muted) 25%, transparent);margin-top:10px;overflow:hidden;}
+  .ss-bar-fill{height:100%;background:var(--accent);border-radius:4px;transition:width .5s ease;}
+  .ss-break{flex:1 1 280px;display:flex;flex-wrap:wrap;align-items:center;gap:8px;}
+  .ss-chip{display:flex;flex-direction:column;background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:7px 11px;font-size:11px;color:var(--muted);}
+  .ss-chip b{font-size:14px;color:var(--text);font-weight:700;}
+  .ss-chip.ss-free{border-color:color-mix(in srgb, var(--accent) 45%, var(--border));}
+  .ss-pair{display:inline-flex;align-items:center;gap:8px;}
+  .ss-op{font-size:16px;color:var(--muted);font-weight:700;}
+  .ss-note{flex-basis:100%;font-size:11.5px;color:var(--muted);}
+  .trend-toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
+  .trend-toolbar .hint{font-size:12px;color:var(--muted);}
   .legend{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:10px;}
   .legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);}
   .legend-item .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+  .legend-item.toggle{cursor:pointer;user-select:none;transition:opacity .15s ease;}
+  .legend-item.toggle:hover{color:var(--text);}
+  .legend-item.toggle.off{opacity:.4;text-decoration:line-through;}
   .cat-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:middle;flex-shrink:0;}
   .sync-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:middle;}
   .sync-dot-ok{background:var(--green);}
@@ -924,6 +945,30 @@ function prevTrackedMonthTotals(forKey){
   if(idx<=0) return null;
   return monthTotals(state.months[keys[idx-1]]);
 }
+// "Safe to spend": what's genuinely free per remaining day. Takes the live
+// balance and sets aside everything still pending this month (outgoings, weekly
+// budget, savings/stocks transfers not yet marked Done). Income that hasn't
+// arrived yet is deliberately NOT counted. Past months return null.
+function safeToSpend(key){
+  const m = state.months[key];
+  if(!m) return null;
+  const now = new Date();
+  const curKey = monthKey(now);
+  if(key < curKey) return null;
+  const [y, mo] = key.split('-').map(Number);
+  const dim = new Date(y, mo, 0).getDate();
+  const isCurrent = key===curKey;
+  const daysLeft = isCurrent ? dim - now.getDate() + 1 : dim;
+  const t = monthTotals(m);
+  const sum = arr => round2(arr.reduce((a,x)=>a+(Number(x.amount)||0),0));
+  const pendingOut = sum(m.outgoings.filter(o=>o.status!=='done'));
+  const pendingWeekly = sum(['week1','week2','week3','week4'].map(k=>m.weekly[k]).filter(w=>w.status!=='done'));
+  const pendingSaved = sum([m.savings, m.stocks].filter(x=>x.status!=='done'));
+  const pendingIncoming = sum(m.incoming.filter(i=>i.status!=='done'));
+  const free = round2(t.liveBalance - pendingOut - pendingWeekly - pendingSaved);
+  const endLabel = new Date(y, mo-1, dim).toLocaleString('en-GB',{day:'numeric',month:'short'});
+  return {isCurrent, daysLeft, dim, dayOfMonth: isCurrent ? now.getDate() : 0, balance:t.liveBalance, pendingOut, pendingWeekly, pendingSaved, pendingIncoming, free, perDay: round2(free/daysLeft), endLabel, monthLabel: monthLabelFromKey(key)};
+}
 // A small "▲ 8% vs last month" line for a summary card. goodDirection 'up' means
 // a rise is good news (colored green); 'down' means a rise is bad news (red).
 // Returns '' when there's no prior month to compare against, or the prior value
@@ -1547,9 +1592,9 @@ function ensureChartTooltip(){
   document.body.appendChild(chartTooltipEl);
   return chartTooltipEl;
 }
-function showChartTooltip(evt, text){
+function showChartTooltip(evt, text, isHtml){
   const t = ensureChartTooltip();
-  t.textContent = text;
+  if(isHtml) t.innerHTML = text; else t.textContent = text;
   t.style.display = 'block';
   const pad = 12;
   let left = evt.clientX + pad, top = evt.clientY - 14;
@@ -1592,21 +1637,36 @@ document.addEventListener('pointermove', e=>{
 document.addEventListener('pointerout', e=>{
   if(!e.relatedTarget && activeSpark){ clearSparkHover(activeSpark); activeSpark = null; hideChartTooltip(); }
 });
+let lineChartUid = 0;
+// Interactive line chart. data is a flat array of {x,y,label} (one series) or
+// an array of series: {color, name, dashed, points:[{x,y,label}]}.
+// opts: height, width, marker:{index,label} (a vertical "Today" line),
+// animate:false (skip the draw-in, used when redrawing after a legend toggle).
+// Hover/touch scrubs across all series at once; legend items (a .legend
+// sibling, or one generated here for multi-series charts) toggle series.
 function lineChart(container, data, opts={}){
-  // Accepts either a flat array of {x,y,label} (single series, default color)
-  // or an array of series: {color, name, dashed, points:[{x,y,label}]}
   const isMulti = Array.isArray(data) && data.length>0 && data[0].points !== undefined;
-  const series = isMulti ? data : [{color:cssVar('--accent','#5b8cff'), points:data}];
+  const allSeries = isMulti ? data : [{color:cssVar('--accent','#5b8cff'), points:data}];
+  container._lc = {data, opts};
+  const hidden = container._hidden || (container._hidden = new Set());
+  let visible = allSeries.map((s,i)=>({s,i})).filter(({i})=>!hidden.has(i));
+  if(!visible.length){ hidden.clear(); visible = allSeries.map((s,i)=>({s,i})); }
+  const animate = opts.animate !== false;
   const w = opts.width||container.clientWidth||600, h = opts.height||240;
-  const padL=54,padR=16,padT=16,padB=28;
-  const allVals = series.flatMap(s=>s.points.map(p=>p.y));
+  const padL=54,padR=16,padT=18,padB=28;
+  const allVals = visible.flatMap(({s})=>s.points.map(p=>p.y));
   const maxV = Math.max(...allVals, 0), minV = Math.min(...allVals, 0);
   const rawRange = maxV - minV;
   const range = rawRange || 1;
-  const n = series[0].points.length;
-  const svg = svgEl('svg',{viewBox:`0 0 ${w} ${h}`, width:'100%', height:h, style:'display:block'});
-  const gridColor = getComputedStyle(document.body).getPropertyValue('--border').trim() || '#2a3552';
-  const mutedColor = getComputedStyle(document.body).getPropertyValue('--muted').trim() || '#8a93ab';
+  const n = allSeries[0].points.length;
+  const uid = ++lineChartUid;
+  const svg = svgEl('svg',{viewBox:`0 0 ${w} ${h}`, width:'100%', height:h, style:'display:block;touch-action:pan-y;'});
+  const gridColor = cssVar('--border','#2a3552');
+  const mutedColor = cssVar('--muted','#8a93ab');
+  const textColor = cssVar('--text','#e8ecf7');
+  const bottom = h-padB;
+  const defs = svgEl('defs',{});
+  svg.appendChild(defs);
   for(let i=0;i<=3;i++){
     const y = padT + (h-padT-padB)*i/3;
     svg.appendChild(svgEl('line',{x1:padL,y1:y,x2:w-padR,y2:y,stroke:gridColor,'stroke-width':1}));
@@ -1616,64 +1676,144 @@ function lineChart(container, data, opts={}){
   }
   const xStep = n>1 ? (w-padL-padR)/(n-1) : 0;
   const yFor = v => padT + (h-padT-padB)*(1-((v-minV)/range));
+  const xFor = i => padL + xStep*i;
+  if(minV<0 && maxV>0){
+    svg.appendChild(svgEl('line',{x1:padL,y1:yFor(0),x2:w-padR,y2:yFor(0),stroke:mutedColor,'stroke-width':1,'stroke-dasharray':'2,3',opacity:.7}));
+  }
+  if(opts.marker && opts.marker.index>=0 && opts.marker.index<n){
+    const mx = xFor(opts.marker.index);
+    svg.appendChild(svgEl('line',{x1:mx,y1:padT-4,x2:mx,y2:bottom,stroke:mutedColor,'stroke-width':1,'stroke-dasharray':'3,3',opacity:.55}));
+    const mt = svgEl('text',{x:mx,y:padT-6,'font-size':9.5,fill:mutedColor,'text-anchor':'middle','font-weight':600});
+    mt.textContent = opts.marker.label || 'Today';
+    svg.appendChild(mt);
+  }
 
-  series.forEach(s=>{
-    let d='';
-    s.points.forEach((p,i)=>{
-      const x = padL + xStep*i;
-      const y = yFor(p.y);
-      d += (i===0?'M':'L')+x+','+y+' ';
-    });
-    const pathAttrs = {d, fill:'none', stroke:s.color||cssVar('--accent','#5b8cff'), 'stroke-width':2.4, 'stroke-linejoin':'round','stroke-linecap':'round'};
+  const smallDots = n<=16;
+  const dotRefs = [];
+  visible.forEach(({s,i:si})=>{
+    const color = s.color||cssVar('--accent','#5b8cff');
+    const pts = s.points.map((p,i)=>({x:xFor(i), y:yFor(p.y)}));
+    const d = smoothPath(pts);
+    if(!s.dashed){
+      const gid = `lcg${uid}_${si}`;
+      const grad = svgEl('linearGradient',{id:gid,x1:0,y1:0,x2:0,y2:1});
+      grad.appendChild(svgEl('stop',{offset:0,'stop-color':color,'stop-opacity':.28}));
+      grad.appendChild(svgEl('stop',{offset:1,'stop-color':color,'stop-opacity':0}));
+      defs.appendChild(grad);
+      const area = svgEl('path',{d:`${d} L${pts[pts.length-1].x},${bottom} L${pts[0].x},${bottom} Z`, fill:`url(#${gid})`, stroke:'none'});
+      if(animate){
+        area.style.opacity = '0';
+        area.style.transition = 'opacity .9s ease .3s';
+        requestAnimationFrame(()=>requestAnimationFrame(()=>{ area.style.opacity = '1'; }));
+      }
+      svg.appendChild(area);
+    }
+    const pathAttrs = {d, fill:'none', stroke:color, 'stroke-width':2.4, 'stroke-linejoin':'round','stroke-linecap':'round'};
     if(s.dashed) pathAttrs['stroke-dasharray'] = '6,4';
     const pathEl = svgEl('path', pathAttrs);
     svg.appendChild(pathEl);
-    // Draw the line in on render rather than having it just appear. Dashed
-    // (projected) lines fade in instead, since the dash pattern is already
-    // using stroke-dasharray for its own purpose.
-    if(s.dashed){
-      pathEl.style.opacity = '0';
-      pathEl.style.transition = 'opacity .6s ease .15s';
-      requestAnimationFrame(()=>requestAnimationFrame(()=>{ pathEl.style.opacity = '1'; }));
-    } else {
-      const len = pathEl.getTotalLength ? pathEl.getTotalLength() : 0;
-      if(len){
-        pathEl.style.strokeDasharray = len;
-        pathEl.style.strokeDashoffset = len;
-        pathEl.style.transition = 'stroke-dashoffset .8s ease';
-        requestAnimationFrame(()=>requestAnimationFrame(()=>{ pathEl.style.strokeDashoffset = '0'; }));
+    if(animate){
+      // Solid lines draw in; dashed (projected) ones fade in, since their dash
+      // pattern already uses stroke-dasharray.
+      if(s.dashed){
+        pathEl.style.opacity = '0';
+        pathEl.style.transition = 'opacity .6s ease .15s';
+        requestAnimationFrame(()=>requestAnimationFrame(()=>{ pathEl.style.opacity = '1'; }));
+      } else {
+        const len = pathEl.getTotalLength ? pathEl.getTotalLength() : 0;
+        if(len){
+          pathEl.style.strokeDasharray = len;
+          pathEl.style.strokeDashoffset = len;
+          pathEl.style.transition = 'stroke-dashoffset .9s cubic-bezier(.4,.1,.2,1)';
+          requestAnimationFrame(()=>requestAnimationFrame(()=>{ pathEl.style.strokeDashoffset = '0'; }));
+        }
       }
     }
-    s.points.forEach((p,i)=>{
-      const x = padL + xStep*i;
-      const y = yFor(p.y);
-      const label = p.label || p.x;
-      const tipText = s.name ? `${label} — ${s.name}: ${fmt(p.y)}` : `${label}: ${fmt(p.y)}`;
-      const dot = svgEl('circle',{cx:x,cy:y,r:3,fill:s.color||cssVar('--accent','#5b8cff'),style:'pointer-events:none;'});
-      const onHover = evt => { showChartTooltip(evt, tipText); dot.setAttribute('r',5); };
-      const onLeave = () => { hideChartTooltip(); dot.setAttribute('r',3); };
-      const hit = svgEl('circle',{cx:x,cy:y,r:10,fill:'transparent',style:'cursor:pointer;'});
-      hit.addEventListener('mouseenter', onHover);
-      hit.addEventListener('mousemove', onHover);
-      hit.addEventListener('mouseleave', onLeave);
-      svg.appendChild(hit);
-      svg.appendChild(dot);
-    });
+    if(smallDots){
+      pts.forEach(pt=>svg.appendChild(svgEl('circle',{cx:pt.x,cy:pt.y,r:2.6,fill:color,style:'pointer-events:none;'})));
+    }
+    dotRefs.push({color, name:s.name, pts, ring:null, s});
   });
 
-  const maxLabels = Math.min(n, Math.floor(w/80));
+  const maxLabels = Math.max(1, Math.min(n, Math.floor(w/80)));
   const step = Math.max(1, Math.round(n/maxLabels));
-  series[0].points.forEach((p,i)=>{
-    if(i%step!==0 && i!==n-1) return;
-    const x = padL + xStep*i;
+  allSeries[0].points.forEach((p,i)=>{
+    // Skip a regular label that would collide with the always-shown last one.
+    if((i%step!==0 || (n-1-i)<step) && i!==n-1) return;
+    const x = xFor(i);
     // First/last labels anchor inward so they can't spill past the chart's own edge.
     const anchor = i===0 ? 'start' : (i===n-1 ? 'end' : 'middle');
     const t = svgEl('text',{x, y:h-8, 'font-size':10, fill:mutedColor, 'text-anchor':anchor});
     t.textContent = p.x;
     svg.appendChild(t);
   });
+
+  // Hover/touch scrubbing: one overlay catches the pointer, snaps to the nearest
+  // month, and lights up that month on every visible series.
+  const guide = svgEl('line',{y1:padT-2,y2:bottom,stroke:textColor,'stroke-width':1,'stroke-dasharray':'3,3',opacity:0,style:'pointer-events:none;'});
+  svg.appendChild(guide);
+  dotRefs.forEach(r=>{
+    r.ring = svgEl('circle',{r:5.5,fill:cssVar('--panel','#161d2e'),stroke:r.color,'stroke-width':2.4,opacity:0,style:'pointer-events:none;'});
+    svg.appendChild(r.ring);
+  });
+  const overlay = svgEl('rect',{x:padL-8,y:0,width:w-padL-padR+16,height:h,fill:'transparent',style:'cursor:crosshair;'});
+  const scrub = evt=>{
+    const rect = svg.getBoundingClientRect();
+    const px = (evt.clientX-rect.left)*(w/rect.width);
+    const idx = n>1 ? Math.max(0, Math.min(n-1, Math.round((px-padL)/xStep))) : 0;
+    const x = xFor(idx);
+    guide.setAttribute('x1',x); guide.setAttribute('x2',x); guide.setAttribute('opacity',.45);
+    dotRefs.forEach(r=>{
+      r.ring.setAttribute('cx',x); r.ring.setAttribute('cy',r.pts[idx].y); r.ring.setAttribute('opacity',1);
+    });
+    const label = allSeries[0].points[idx].label || allSeries[0].points[idx].x;
+    const rows = dotRefs.map(r=>{
+      const v = r.s.points[idx].y;
+      let delta = '';
+      if(dotRefs.length===1 && idx>0){
+        const dv = round2(v - r.s.points[idx-1].y);
+        if(Math.abs(dv)>=0.005) delta = ` <span style="color:var(--muted);font-weight:500;">(${dv>0?'+':''}${escapeHtml(fmt(dv))})</span>`;
+      }
+      return `<div style="display:flex;align-items:center;gap:6px;"><span style="width:8px;height:8px;border-radius:50%;background:${r.color};flex-shrink:0;"></span>${r.name?escapeHtml(r.name)+': ':''}${escapeHtml(fmt(v))}${delta}</div>`;
+    }).join('');
+    showChartTooltip(evt, `<div style="margin-bottom:3px;">${escapeHtml(String(label))}</div>${rows}`, true);
+  };
+  const endScrub = ()=>{
+    guide.setAttribute('opacity',0);
+    dotRefs.forEach(r=>r.ring.setAttribute('opacity',0));
+    hideChartTooltip();
+  };
+  overlay.addEventListener('pointermove', scrub);
+  overlay.addEventListener('pointerdown', scrub);
+  overlay.addEventListener('pointerleave', endScrub);
+  overlay.addEventListener('pointercancel', endScrub);
+  svg.appendChild(overlay);
+
   container.innerHTML='';
   container.appendChild(svg);
+  if(allSeries.length>1) wireChartLegend(container, allSeries);
+}
+// Clickable legend: clicking an item hides/shows that series and redraws.
+// Uses an existing .legend directly after the chart if there is one (item
+// order must match series order), otherwise builds a simple one.
+function wireChartLegend(container, allSeries){
+  let legend = container.nextElementSibling;
+  if(!legend || !legend.classList.contains('legend')){
+    legend = document.createElement('div');
+    legend.className = 'legend auto-legend';
+    legend.innerHTML = allSeries.map(s=>`<div class="legend-item"><span class="${s.dashed?'dash':'dot'}" style="${s.dashed?'border-color':'background'}:${s.color};"></span>${escapeHtml(s.name||'')}</div>`).join('');
+    container.after(legend);
+  }
+  const items = [...legend.querySelectorAll('.legend-item')];
+  items.forEach((it,i)=>{
+    it.classList.add('toggle');
+    it.classList.toggle('off', container._hidden.has(i));
+    it.onclick = ()=>{
+      if(container._hidden.has(i)) container._hidden.delete(i);
+      else if(container._hidden.size < allSeries.length-1) container._hidden.add(i);
+      lineChart(container, container._lc.data, {...container._lc.opts, animate:false});
+    };
+  });
 }
 
 function donutSlicePath(cx,cy,outerR,innerR,startA,endA){
@@ -1814,6 +1954,29 @@ function renderSyncIndicator(){
   }
 }
 
+function refreshSafeSpend(){
+  const panel = document.getElementById('safeSpend');
+  if(!panel) return;
+  const d = safeToSpend(state.currentMonthKey);
+  if(!d){ panel.style.display = 'none'; return; }
+  panel.style.display = '';
+  const val = document.getElementById('ssVal');
+  animateNumberText(val, d.perDay);
+  val.className = 'ss-val ' + (d.perDay>=0 ? 'pos' : 'neg');
+  document.getElementById('ssLabel').textContent = d.isCurrent ? 'Safe to spend today' : `Daily budget for ${d.monthLabel}`;
+  document.getElementById('ssSub').innerHTML = d.free>=0
+    ? `${escapeHtml(fmt(d.free))} free until ${d.endLabel} · ${d.daysLeft} day${d.daysLeft!==1?'s':''} ${d.isCurrent?'left':'in the month'}`
+    : `Pending items exceed your balance by ${escapeHtml(fmt(-d.free))} — nothing is free to spend right now`;
+  document.getElementById('ssBar').style.width = (d.isCurrent ? Math.round(d.dayOfMonth/d.dim*100) : 0) + '%';
+  const part = (label, amt, op) => amt>=0.005 ? `<span class="ss-pair"><span class="ss-op">${op}</span><span class="ss-chip"><b>${escapeHtml(fmt(amt))}</b>${label}</span></span>` : '';
+  document.getElementById('ssBreak').innerHTML =
+    `<span class="ss-chip"><b>${escapeHtml(fmt(d.balance))}</b>Current balance</span>` +
+    part('Bills &amp; outgoings to pay', d.pendingOut, '−') +
+    part('Weekly budget left', d.pendingWeekly, '−') +
+    part('Savings / stocks to move', d.pendingSaved, '−') +
+    `<span class="ss-pair"><span class="ss-op">=</span><span class="ss-chip ss-free"><b>${escapeHtml(fmt(d.free))}</b>Free</span></span>` +
+    (d.pendingIncoming>=0.005 ? `<div class="ss-note">${escapeHtml(fmt(d.pendingIncoming))} of income still to arrive isn't counted.</div>` : '');
+}
 // ---------------- Month Tracker ----------------
 function renderMonth(){
   const m = ensureMonth(state.currentMonthKey);
@@ -1859,6 +2022,16 @@ function renderMonth(){
           <tbody id="quickAddLogBody"></tbody>
         </table>
       </div>
+    </div>
+
+    <div class="panel safe-spend" id="safeSpend" style="display:none;">
+      <div class="ss-main">
+        <div class="ss-label" id="ssLabel">Safe to spend today</div>
+        <div class="ss-val" id="ssVal">£0.00</div>
+        <div class="ss-sub" id="ssSub"></div>
+        <div class="ss-bar"><div class="ss-bar-fill" id="ssBar"></div></div>
+      </div>
+      <div class="ss-break" id="ssBreak"></div>
     </div>
 
     <div class="grid">
@@ -2208,6 +2381,7 @@ function renderMonth(){
     if(clearLink){
       clearLink.onclick = e=>{ e.preventDefault(); m.adjustment = 0; save(); renderMonth(); };
     }
+    refreshSafeSpend();
     document.getElementById('liveBalanceTrend').innerHTML = trendArrowHtml(t2.liveBalance, pt2&&pt2.liveBalance, 'up');
     const tlo = document.getElementById('totalLeftOverVal');
     animateNumberText(tlo, t2.totalLeftOver);
@@ -2452,6 +2626,19 @@ function deleteMonth(key){
 }
 
 // ---------------- Trend ----------------
+// Which slice of tracked months the Trend charts show: a number of months, or
+// 'all'. The window is placed around the month being viewed, leaning forward
+// so upcoming (projected) months are visible.
+let trendRange = 12;
+function trendWindow(keys){
+  const n = keys.length;
+  const size = trendRange==='all' ? n : Math.min(n, trendRange);
+  let anchor = 0;
+  keys.forEach((k,i)=>{ if(k<=state.currentMonthKey) anchor = i; });
+  let start = anchor - Math.floor(size/3);
+  start = Math.max(0, Math.min(n-size, start));
+  return Array.from({length:size}, (_,i)=>start+i);
+}
 function renderTrend(){
   const el = document.getElementById('view-trend');
   const keys = Object.keys(state.months).sort();
@@ -2462,12 +2649,21 @@ function renderTrend(){
   const liveBalances = keys.map(k=>monthTotals(state.months[k]).liveBalance);
   const totalLeftOvers = keys.map(k=>monthTotals(state.months[k]).totalLeftOver);
   const monthLabels = keys.map(k=>monthLabelFromKey(k));
-  const shortLabels = monthLabels.map(l=>l.slice(0,6));
+  const shortLabels = keys.map(shortMonthLabel);
+  const idxs = trendWindow(keys);
+  const todayIdx = idxs.indexOf(keys.indexOf(monthKey(new Date())));
+  const chartMarker = todayIdx>=0 ? {index:todayIdx, label:'Today'} : null;
 
   const actualNetWorth = keys.map((k,i)=>round2(liveBalances[i] + savingsSeries[i] + stocksSeries[i]));
   const projectedNetWorth = keys.map((k,i)=>round2(totalLeftOvers[i] + plannedSavingsSeries[i] + plannedStocksSeries[i]));
 
   el.innerHTML = `
+    <div class="trend-toolbar">
+      <div class="seg-toggle" id="trendRangeToggle">
+        ${[[3,'3M'],[6,'6M'],[12,'12M'],['all','All']].map(([v,l])=>`<button class="seg-btn${trendRange===v?' active':''}" data-range="${v}">${l}</button>`).join('')}
+      </div>
+      <span class="hint" id="trendRangeHint"></span>
+    </div>
     <div class="panel">
       <div class="panel-head"><h2>Net Worth: Actual vs Projected</h2><span class="hint">fill in future months in Month Tracker to project forward</span></div>
       <div id="netWorthChart"></div>
@@ -2538,27 +2734,33 @@ function renderTrend(){
     document.getElementById('monthByMonthWrap').classList.toggle('hidden', !monthByMonthExpanded);
     document.getElementById('monthByMonthToggle').textContent = `${monthByMonthExpanded ? '▾ Hide' : '▸ Show'} (${keys.length})`;
   };
+  document.querySelectorAll('#trendRangeToggle .seg-btn').forEach(btn=>{
+    btn.onclick = ()=>{ trendRange = btn.dataset.range==='all' ? 'all' : Number(btn.dataset.range); renderTrend(); };
+  });
+  document.getElementById('trendRangeHint').textContent = keys.length>=2
+    ? `${monthLabelFromKey(keys[idxs[0]])} – ${monthLabelFromKey(keys[idxs[idxs.length-1]])} · ${idxs.length} of ${keys.length} months · hover or tap a chart to compare`
+    : '';
   if(keys.length<2){
     document.getElementById('trendChart').innerHTML = '<div class="empty">Track at least two months to see a trend line.</div>';
     document.getElementById('netWorthChart').innerHTML = '<div class="empty">Track at least two months to see a trend line.</div>';
     document.getElementById('savingsPotChart').innerHTML = '<div class="empty">Track at least two months to see a trend line.</div>';
     document.getElementById('stocksPotChart').innerHTML = '<div class="empty">Track at least two months to see a trend line.</div>';
   } else {
-    const points = keys.map((k,i)=>({x: shortLabels[i], label: monthLabels[i], y: totalLeftOvers[i]}));
-    lineChart(document.getElementById('trendChart'), points, {height:220});
+    const points = idxs.map(i=>({x: shortLabels[i], label: monthLabels[i], y: totalLeftOvers[i]}));
+    lineChart(document.getElementById('trendChart'), points, {height:220, marker:chartMarker});
     const actualColor = cssVar('--accent','#5b8cff'), projectedColor = cssVar('--green','#3ecf8e');
     lineChart(document.getElementById('netWorthChart'), [
-      {color:actualColor, name:'Actual', points: keys.map((k,i)=>({x:shortLabels[i], label:monthLabels[i], y:actualNetWorth[i]}))},
-      {color:projectedColor, name:'Projected', dashed:true, points: keys.map((k,i)=>({x:shortLabels[i], label:monthLabels[i], y:projectedNetWorth[i]}))}
-    ], {height:240});
+      {color:actualColor, name:'Actual', points: idxs.map(i=>({x:shortLabels[i], label:monthLabels[i], y:actualNetWorth[i]}))},
+      {color:projectedColor, name:'Projected', dashed:true, points: idxs.map(i=>({x:shortLabels[i], label:monthLabels[i], y:projectedNetWorth[i]}))}
+    ], {height:240, marker:chartMarker});
     lineChart(document.getElementById('savingsPotChart'), [
-      {color:actualColor, name:'Actual', points: keys.map((k,i)=>({x:shortLabels[i], label:monthLabels[i], y:savingsSeries[i]}))},
-      {color:projectedColor, name:'Projected', dashed:true, points: keys.map((k,i)=>({x:shortLabels[i], label:monthLabels[i], y:plannedSavingsSeries[i]}))}
-    ], {height:200});
+      {color:actualColor, name:'Actual', points: idxs.map(i=>({x:shortLabels[i], label:monthLabels[i], y:savingsSeries[i]}))},
+      {color:projectedColor, name:'Projected', dashed:true, points: idxs.map(i=>({x:shortLabels[i], label:monthLabels[i], y:plannedSavingsSeries[i]}))}
+    ], {height:200, marker:chartMarker});
     lineChart(document.getElementById('stocksPotChart'), [
-      {color:actualColor, name:'Actual', points: keys.map((k,i)=>({x:shortLabels[i], label:monthLabels[i], y:stocksSeries[i]}))},
-      {color:projectedColor, name:'Projected', dashed:true, points: keys.map((k,i)=>({x:shortLabels[i], label:monthLabels[i], y:plannedStocksSeries[i]}))}
-    ], {height:200});
+      {color:actualColor, name:'Actual', points: idxs.map(i=>({x:shortLabels[i], label:monthLabels[i], y:stocksSeries[i]}))},
+      {color:projectedColor, name:'Projected', dashed:true, points: idxs.map(i=>({x:shortLabels[i], label:monthLabels[i], y:plannedStocksSeries[i]}))}
+    ], {height:200, marker:chartMarker});
   }
   renderCategoryBreakdown();
   renderSpendingHeatmap();
