@@ -5704,17 +5704,15 @@ function drawRecurringTable(m, kind){
 let p3FormOpen = null;
 // ---------------- Debt monsters (boss fights) ----------------
 let bossUid = 0;
-const BOSS_KINDS = ['imp','gazer','gloop','bruiser','wraith','spiker'];
-const BOSS_SUFFIX = {imp:'Imp', gazer:'Gazer', gloop:'Gloop', bruiser:'Bruiser', wraith:'Wraith', spiker:'Spikeling'};
-const BOSS_HUES = [4, 280, 150, 24, 200, 330];
+const BOSS_KINDS = ['mimic','card','dragon','bat','kraken','piggy','skull','golem'];
+const BOSS_SUFFIX = {mimic:'Mimic', card:'Plastic Fiend', dragon:'Dragon', bat:'Bat', kraken:'Kraken', piggy:'Piggy', skull:'Collector', golem:'Golem'};
+const BOSS_COLOR = {mimic:'#f2c14e', card:'#8b6dff', dragon:'#3ec98a', bat:'#a46bff', kraken:'#ff5fa8', piggy:'#ff8fb2', skull:'#7dffc8', golem:'#ff8a3c'};
 function bossHash(str){ let h = 7; for(let i=0;i<str.length;i++) h = (h*31 + str.charCodeAt(i)) >>> 0; return h; }
 // Each plan always gets the same monster, picked from its id.
 function bossLook(plan){
-  const h = bossHash(plan.id || plan.name || 'x');
-  const kind = BOSS_KINDS[h % BOSS_KINDS.length];
-  const hue = BOSS_HUES[Math.floor(h/7) % BOSS_HUES.length];
+  const kind = BOSS_KINDS[bossHash(plan.id || plan.name || 'x') % BOSS_KINDS.length];
   const clean = String(plan.name||'Boss').trim().split(/\s+/)[0].replace(/[^\p{L}\p{N}'&-]/gu,'') || 'Debt';
-  return {kind, hue, title:`The ${clean.charAt(0).toUpperCase()+clean.slice(1)} ${BOSS_SUFFIX[kind]}`};
+  return {kind, col:BOSS_COLOR[kind], title:`The ${clean.charAt(0).toUpperCase()+clean.slice(1)} ${BOSS_SUFFIX[kind]}`};
 }
 // mood: fight (full health) | hurt | weak (one hit from defeat) | dead
 function bossMood(paidCount, n){
@@ -5722,105 +5720,168 @@ function bossMood(paidCount, n){
   if(paidCount>0 && n-paidCount===1) return 'weak';
   return paidCount>0 ? 'hurt' : 'fight';
 }
-function bossSvg(kind, hue, mood, hit){
-  const id = 'bs'+(++bossUid);
-  const sat = {fight:74, hurt:58, weak:40, dead:6}[mood];
-  const hsl = (l, s, h2)=>`hsl(${h2===undefined?hue:h2} ${s===undefined?sat:s}% ${l}%)`;
-  const c0 = hsl(70), c1 = hsl(52), c2 = hsl(32), c3 = hsl(16);
-  const glow = mood==='dead' ? 'rgba(130,130,140,.25)' : hsl(55, 90);
-  const bone = mood==='dead' ? '#9a9a9a' : '#f6ead2', boneD = mood==='dead' ? '#6a6a6a' : '#cdb48a';
+let bossUid2 = 0;
+const BOSS2 = {
+  mimic:  {name:'Mimic',        theme:'Treasure chest that bites'},
+  card:   {name:'Plastic Fiend',theme:'Credit card with teeth'},
+  dragon: {name:'Overdraft Dragon', theme:'Burns through your balance'},
+  bat:    {name:'Late-Fee Bat', theme:'Shows up when you\'re behind'},
+  kraken: {name:'Interest Kraken', theme:'Tentacles in every account'},
+  piggy:  {name:'Piggy Gone Bad', theme:'The savings jar turned on you'},
+  skull:  {name:'Debt Collector', theme:'Top hat, monocle, no mercy'},
+  golem:  {name:'Rent Golem',   theme:'Heavy, slow, always there'}
+};
+function bossArt2(kind, mood, hit){
+  const id = 'b2'+(++bossUid2);
+  const O = '#1b1016';                      // outline
   const dead = mood==='dead', weak = mood==='weak', hurt = mood==='hurt';
-  const eyeGlow = dead ? '#9a9a9a' : weak ? '#bfe0ff' : '#ffe27a';
-  // one eye. kind of lid depends on mood. s = side (-1 left, 1 right)
-  const eye = (cx, cy, r, s, tilt)=>{
-    if(dead){ const d=r*.55; return `<path d="M${cx-d},${cy-d}L${cx+d},${cy+d}M${cx+d},${cy-d}L${cx-d},${cy+d}" stroke="${c3}" stroke-width="3" stroke-linecap="round"/>`; }
-    if(weak){ // dizzy spiral
-      return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#fff"/><path d="M${cx},${cy} m0,-1.2 a1.2,1.2 0 1 1 -1.2,1.2 a2.6,2.6 0 1 1 2.6,2.6 a4,4 0 1 1 -4,-4 a5.4,5.4 0 1 1 5.4,5.4" fill="none" stroke="${c3}" stroke-width="1.5" stroke-linecap="round" transform="scale(1)"/>`;
-    }
-    const brow = `<path d="M${cx-s*(r+2.5)},${cy-r-2+tilt*0}L${cx+s*(r+1)},${cy-r*.55-3 + (hurt?-1:0)}" stroke="${c3}" stroke-width="${r*.55}" stroke-linecap="round" transform="rotate(${s*-0},${cx},${cy})"/>`;
-    // angry brow: slopes down toward the centre
-    const bx1 = cx + s*(r+2.5), by1 = cy - r - 5, bx2 = cx - s*(r+1), by2 = cy - r*.45;
-    return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#fffaf0"/><circle cx="${cx+s*-r*.12}" cy="${cy+r*.12}" r="${r*.62}" fill="${eyeGlow}"/><ellipse cx="${cx+s*-r*.12}" cy="${cy+r*.12}" rx="${r*.2}" ry="${r*.5}" fill="${c3}"/><circle cx="${cx-r*.28}" cy="${cy-r*.3}" r="${r*.18}" fill="#fff"/><path d="M${bx1},${by1}L${bx2},${by2}" stroke="${c3}" stroke-width="${Math.max(3,r*.5)}" stroke-linecap="round"/><path d="M${cx-r-.6},${cy-.4}A${r+.6},${r+.6} 0 0 1 ${cx+r+.6},${cy-.4}" fill="none" stroke="${c3}" stroke-width="1" opacity="0"/>`;
+  const filt = {fight:'none', hurt:'saturate(.82) brightness(.97)', weak:'saturate(.55) brightness(.92)', dead:'grayscale(1) brightness(.78)'}[mood];
+  const glowCol = dead ? 'rgba(140,140,150,.2)' : {mimic:'rgba(255,190,70,.5)', card:'rgba(130,110,255,.5)', dragon:'rgba(60,220,140,.45)', bat:'rgba(190,90,255,.5)', kraken:'rgba(255,90,170,.5)', piggy:'rgba(255,130,170,.5)', skull:'rgba(120,255,200,.4)', golem:'rgba(255,140,60,.5)'}[kind];
+  const ln = (w)=>`stroke="${O}" stroke-width="${w||3}" stroke-linejoin="round" stroke-linecap="round"`;
+  const sh = d => `<path d="${d}" fill="url(#${id}s)"/>`;
+  const shine = (x,y,rx,ry,r)=>`<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="#fff" opacity="${dead?.1:.32}" transform="rotate(${r||-30},${x},${y})"/>`;
+  const glowEye = dead ? '#9aa' : weak ? '#bfe0ff' : '#ffe27a';
+  // eyes: s=-1 left, 1 right
+  const eye = (cx, cy, r, s)=>{
+    if(dead){ const d=r*.6; return `<path d="M${cx-d},${cy-d}L${cx+d},${cy+d}M${cx+d},${cy-d}L${cx-d},${cy+d}" ${ln(3)} fill="none"/>`; }
+    if(weak) return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#fff" ${ln(2.4)}/><path d="M${cx},${cy} m0,-1 a1,1 0 1 1 -1,1 a2.4,2.4 0 1 1 2.4,2.4 a3.8,3.8 0 1 1 -3.8,-3.8 a5.2,5.2 0 1 1 5.2,5.2" fill="none" stroke="${O}" stroke-width="1.5" stroke-linecap="round" transform="translate(0 0) scale(${r/8})" style="transform-origin:${cx}px ${cy}px"/>`;
+    if(hurt && s===-1) return `<path d="M${cx-r},${cy+1} Q${cx},${cy-r*.9} ${cx+r},${cy+1}" fill="none" ${ln(3)}/><path d="M${cx-r-1},${cy-r-2} L${cx+r},${cy-r*.2}" ${ln(Math.max(3,r*.5))}/>`;
+    const bx1 = cx + s*(r+2.5), by1 = cy - r - 5, bx2 = cx - s*(r+1), by2 = cy - r*.4;
+    return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#fffaf0" ${ln(2.4)}/><circle cx="${cx-s*r*.1}" cy="${cy+r*.12}" r="${r*.62}" fill="${glowEye}"/><ellipse cx="${cx-s*r*.1}" cy="${cy+r*.12}" rx="${r*.2}" ry="${r*.5}" fill="${O}"/><circle cx="${cx-r*.3}" cy="${cy-r*.28}" r="${r*.2}" fill="#fff"/><path d="M${bx1},${by1}L${bx2},${by2}" ${ln(Math.max(3,r*.5))}/>`;
   };
-  // mouth centred on (cx, cy), width w
-  const mouth = (cx, cy, w)=>{
-    if(dead) return `<path d="M${cx-w*.35},${cy+2}Q${cx},${cy-2} ${cx+w*.35},${cy+2}" stroke="${c3}" stroke-width="3" fill="none" stroke-linecap="round"/>`;
-    if(weak) return `<ellipse cx="${cx}" cy="${cy+1}" rx="${w*.18}" ry="${w*.13}" fill="${c3}"/><path d="M${cx-w*.08},${cy+w*.1}Q${cx},${cy+w*.22} ${cx+w*.1},${cy+w*.1}" fill="#ff7a8a"/>`;
-    const n = hurt ? 4 : 5, step = w/n, top = cy-3;
-    let teeth = '';
-    for(let i=0;i<n;i++){ const x = cx - w/2 + i*step; teeth += `<path d="M${x+1},${top}L${x+step/2},${top+(i%2?5:7.5)}L${x+step-1},${top}Z" fill="${bone}"/>`; }
-    const sag = hurt ? 3 : 6;
-    return `<path d="M${cx-w/2},${cy-3}Q${cx},${cy+sag*(hurt?.2:1.9)+1} ${cx+w/2},${cy-3}Q${cx},${cy-6} ${cx-w/2},${cy-3}Z" fill="${c3}"/><g clip-path="url(#${id}m)">${teeth}</g><clipPath id="${id}m"><path d="M${cx-w/2},${cy-3}Q${cx},${cy+sag*1.9+1} ${cx+w/2},${cy-3}Q${cx},${cy-6} ${cx-w/2},${cy-3}Z"/></clipPath>`;
+  const mouth = (cx, cy, w, teethCol)=>{
+    const tc = teethCol || (dead ? '#aaa' : '#fff6e0');
+    if(dead) return `<path d="M${cx-w*.35},${cy+2}Q${cx},${cy-2} ${cx+w*.35},${cy+2}" ${ln(3)} fill="none"/>`;
+    if(weak) return `<ellipse cx="${cx}" cy="${cy+1}" rx="${w*.17}" ry="${w*.13}" fill="${O}"/><path d="M${cx-w*.08},${cy+w*.09}Q${cx},${cy+w*.22} ${cx+w*.1},${cy+w*.09}" fill="#ff7a8a"/>`;
+    const n = hurt?4:5, step = w/n, top = cy-3, sag = hurt?1:7;
+    let t=''; for(let i=0;i<n;i++){ const x=cx-w/2+i*step; t+=`<path d="M${x+.8},${top}L${x+step/2},${top+(i%2?5:7.5)}L${x+step-.8},${top}Z" fill="${tc}" stroke="${O}" stroke-width="1"/>`; }
+    const d = `M${cx-w/2},${cy-3}Q${cx},${cy+sag*1.6+1} ${cx+w/2},${cy-3}Q${cx},${cy-6} ${cx-w/2},${cy-3}Z`;
+    return `<clipPath id="${id}m${cx|0}${cy|0}"><path d="${d}"/></clipPath><path d="${d}" fill="${O}" ${ln(2.4)}/><g clip-path="url(#${id}m${cx|0}${cy|0})">${t}</g>`;
   };
-  const cracks = (hurt||weak||dead) ? `<g stroke="${c3}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity=".85"><path d="M74,36L68,46L75,52L69,62"/><path d="M33,74L42,78L38,88"/>${(weak||dead)?'<path d="M52,30L48,38L54,42"/>':''}</g>` : '';
-  const gradient = (gid, cx, cy, r)=>`<radialGradient id="${id}${gid}" cx="${cx}%" cy="${cy}%" r="${r}%"><stop offset="0" stop-color="${c0}"/><stop offset=".55" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></radialGradient>`;
-  const shade = (d)=>`<path d="${d}" fill="url(#${id}sh)"/>`;
-  const defs = `<defs>${gradient('b',36,28,80)}
-    <radialGradient id="${id}g" cx="50%" cy="55%" r="50%"><stop offset="0" stop-color="${glow}" stop-opacity=".5"/><stop offset="1" stop-color="${glow}" stop-opacity="0"/></radialGradient>
-    <linearGradient id="${id}sh" x1="0" y1="0" x2="0" y2="1"><stop offset=".55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".38"/></linearGradient>
-    <linearGradient id="${id}h" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${bone}"/><stop offset="1" stop-color="${boneD}"/></linearGradient></defs>`;
-  const shine = (x,y,rx,ry,rot)=>`<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="#fff" opacity="${dead?.12:.28}" transform="rotate(${rot||-30},${x},${y})"/>`;
-  let body = '';
-  if(kind==='imp'){
-    body = `
-      <path d="M92,92 C112,92 114,72 104,66 C112,76 104,86 92,84Z" fill="${c2}"/><path d="M104,66 L112,58 L112,72Z" fill="${c3}"/>
-      <path d="M33,38 C24,34 18,22 22,8 C30,18 40,24 46,30Z" fill="url(#${id}h)"/><path d="M87,38 C96,34 102,22 98,8 C90,18 80,24 74,30Z" fill="url(#${id}h)"/>
-      <ellipse cx="38" cy="106" rx="13" ry="7" fill="${c2}"/><ellipse cx="82" cy="106" rx="13" ry="7" fill="${c2}"/>
-      <path d="M60,26 C86,26 100,48 100,72 C100,94 82,106 60,106 C38,106 20,94 20,72 C20,48 34,26 60,26Z" fill="url(#${id}b)"/>
-      ${shade('M60,26 C86,26 100,48 100,72 C100,94 82,106 60,106 C38,106 20,94 20,72 C20,48 34,26 60,26Z')}
-      <ellipse cx="60" cy="92" rx="22" ry="12" fill="${c0}" opacity=".22"/>
-      <circle cx="17" cy="76" r="9" fill="${c1}"/><circle cx="103" cy="76" r="9" fill="${c1}"/>
-      ${shine(40,44,9,5,-35)}
-      ${eye(45,62,8,-1)}${eye(75,62,8,1)}${mouth(60,86,30)}`;
-  } else if(kind==='gazer'){
-    const tent = [24,44,64,84,100].map((x,i)=>`<path d="M${x},92 C${x-8},104 ${x+8},110 ${x},118" stroke="${c1}" stroke-width="9" stroke-linecap="round" fill="none"/>`).join('');
-    body = `${tent}
-      <path d="M34,34 L28,12 L48,28Z" fill="${c2}"/><path d="M86,34 L92,12 L72,28Z" fill="${c2}"/><path d="M60,24 L56,6 L64,6Z" fill="${c2}"/>
-      <path d="M60,24 C88,24 104,44 104,66 C104,92 84,104 60,104 C36,104 16,92 16,66 C16,44 32,24 60,24Z" fill="url(#${id}b)"/>
-      ${shade('M60,24 C88,24 104,44 104,66 C104,92 84,104 60,104 C36,104 16,92 16,66 C16,44 32,24 60,24Z')}
-      ${shine(36,42,10,5,-35)}
-      ${dead ? eye(60,60,15,1) : weak ? `<circle cx="60" cy="58" r="19" fill="#fff"/><path d="M60,58 m0,-2 a2,2 0 1 1 -2,2 a4,4 0 1 1 4,4 a6.5,6.5 0 1 1 -6.5,-6.5 a9,9 0 1 1 9,9" fill="none" stroke="${c3}" stroke-width="2" stroke-linecap="round" transform="translate(0 0)"/>` :
-        `<circle cx="60" cy="58" r="20" fill="#fffaf0"/><circle cx="60" cy="60" r="13" fill="${eyeGlow}"/><circle cx="60" cy="60" r="13" fill="none" stroke="${c2}" stroke-width="2"/><ellipse cx="60" cy="60" rx="4.2" ry="10" fill="${c3}"/><circle cx="54" cy="53" r="3.4" fill="#fff"/><path d="M36,34 L84,56" stroke="${c3}" stroke-width="0" /><path d="M38,${hurt?36:33} L82,${hurt?42:39}" stroke="${c3}" stroke-width="0"/>
-        <path d="M36,36 Q60,${hurt?44:50} 84,36" stroke="${c3}" stroke-width="0" fill="none"/>
-        <path d="M37,37 L60,46 L83,37" stroke="${c3}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>`}
-      ${mouth(60,90,34)}`;
-  } else if(kind==='gloop'){
-    const d = 'M60,24 C84,24 92,44 100,60 C112,64 114,84 104,96 C100,104 84,108 60,108 C36,108 20,104 16,96 C6,84 8,64 20,60 C28,44 36,24 60,24Z';
-    body = `
-      <path d="M30,106 C30,116 36,118 36,108Z M84,106 C84,114 90,116 90,108Z" fill="${c1}"/>
-      <path d="${d}" fill="url(#${id}b)"/>${shade(d)}
-      <circle cx="26" cy="70" r="4" fill="${c0}" opacity=".5"/><circle cx="96" cy="82" r="3" fill="${c0}" opacity=".5"/><circle cx="82" cy="40" r="2.5" fill="${c0}" opacity=".5"/>
-      ${shine(42,40,11,5.5,-35)}
-      ${eye(44,64,9,-1)}${eye(76,64,9,1)}${mouth(60,90,40)}`;
-  } else if(kind==='bruiser'){
-    const sp = (x,y,r)=>`<path d="M${x-7},${y+6}L${x},${y-9}L${x+7},${y+6}Z" fill="url(#${id}h)" transform="rotate(${r},${x},${y})"/>`;
-    body = `${sp(28,36,-35)}${sp(14,54,-60)}${sp(92,36,35)}${sp(106,54,60)}
-      <ellipse cx="34" cy="106" rx="15" ry="8" fill="${c2}"/><ellipse cx="86" cy="106" rx="15" ry="8" fill="${c2}"/>
-      <path d="M32,24 H88 C100,24 106,34 106,48 V84 C106,98 96,106 84,106 H36 C24,106 14,98 14,84 V48 C14,34 20,24 32,24Z" fill="url(#${id}b)"/>
-      ${shade('M32,24 H88 C100,24 106,34 106,48 V84 C106,98 96,106 84,106 H36 C24,106 14,98 14,84 V48 C14,34 20,24 32,24Z')}
-      <rect x="22" y="30" width="22" height="7" rx="3.5" fill="#fff" opacity="${dead?.1:.22}" transform="rotate(-8,30,34)"/>
-      ${!dead && !weak ? `<path d="M34,86 L28,66 L40,80Z" fill="url(#${id}h)"/><path d="M86,86 L92,66 L80,80Z" fill="url(#${id}h)"/>` : `<path d="M34,86 L30,72 L40,82Z" fill="url(#${id}h)"/><path d="M86,86 L90,72 L80,82Z" fill="url(#${id}h)"/>`}
-      ${eye(44,58,7.5,-1)}${eye(76,58,7.5,1)}${mouth(60,88,32)}`;
-  } else if(kind==='wraith'){
-    const d = 'M60,10 C86,10 98,32 98,58 V104 L88,96 L78,108 L68,96 L58,110 L48,96 L38,108 L28,96 L22,104 V58 C22,32 34,10 60,10Z';
-    body = `<path d="M24,64 C8,66 6,84 12,96 C16,84 24,80 28,78Z" fill="${c1}" opacity=".85"/><path d="M96,64 C112,66 114,84 108,96 C104,84 96,80 92,78Z" fill="${c1}" opacity=".85"/>
-      <path d="${d}" fill="url(#${id}b)"/>${shade(d)}
-      ${shine(42,30,9,6,-30)}
-      <ellipse cx="46" cy="52" rx="11" ry="14" fill="${c3}"/><ellipse cx="74" cy="52" rx="11" ry="14" fill="${c3}"/>
-      ${dead ? `<path d="M41,47L51,57M51,47L41,57M69,47L79,57M79,47L69,57" stroke="#bbb" stroke-width="3" stroke-linecap="round"/>` : weak ? `<circle cx="46" cy="53" r="4" fill="${eyeGlow}" opacity=".7"/><circle cx="74" cy="53" r="4" fill="${eyeGlow}" opacity=".7"/>` : `<circle cx="47" cy="54" r="5.5" fill="${eyeGlow}"/><circle cx="73" cy="54" r="5.5" fill="${eyeGlow}"/><circle cx="47" cy="54" r="9" fill="${eyeGlow}" opacity=".25"/><circle cx="73" cy="54" r="9" fill="${eyeGlow}" opacity=".25"/>`}
-      ${!dead ? `<path d="M33,36 L54,46 M87,36 L66,46" stroke="${c3}" stroke-width="4" stroke-linecap="round"/>`:''}
-      ${mouth(60,84,26)}`;
-  } else { // spiker
-    const spikes = Array.from({length:14},(_,i)=>{ const a=i/14*Math.PI*2, cx=60+Math.cos(a)*34, cy=62+Math.sin(a)*34; const ax=Math.cos(a), ay=Math.sin(a); return `<path d="M${(60+ax*30-ay*7).toFixed(1)},${(62+ay*30+ax*7).toFixed(1)} L${(60+ax*52).toFixed(1)},${(62+ay*52).toFixed(1)} L${(60+ax*30+ay*7).toFixed(1)},${(62+ay*30-ax*7).toFixed(1)}Z" fill="${c2}"/>`; }).join('');
-    body = `${spikes}
-      <circle cx="60" cy="62" r="38" fill="url(#${id}b)"/>${shade('M60,24A38,38 0 1 1 59.9,24Z')}
-      ${shine(44,44,10,5,-35)}
-      ${eye(46,58,8,-1)}${eye(74,58,8,1)}${mouth(60,80,30)}`;
+  const cracks = (hurt||weak||dead) ? `<g ${ln(2)} fill="none" opacity=".8"><path d="M78,30L72,40L79,46L72,56"/><path d="M30,72L40,76L36,86"/>${(weak||dead)?'<path d="M50,28L46,36L52,40"/>':''}</g>` : '';
+  const defs = `<defs>
+    <linearGradient id="${id}s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".26"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/><stop offset=".62" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".34"/></linearGradient>
+    <radialGradient id="${id}g" cx="50%" cy="55%" r="50%"><stop offset="0" stop-color="${glowCol}"/><stop offset="1" stop-color="${glowCol}" stop-opacity="0"/></radialGradient></defs>`;
+  const P = (d, fill, w)=>`<path d="${d}" fill="${fill}" ${ln(w)}/>`;
+  const PS = (d, fill, w)=>P(d, fill, w) + sh(d);
+  let b = '';
+  if(kind==='mimic'){
+    const wood='#9a6238', gold='#f2c14e', goldD='#b8862a';
+    const lid='M16,56 Q14,16 60,16 Q106,16 104,56Z', base='M18,72 H102 V104 Q102,110 96,110 H24 Q18,110 18,104Z';
+    const tooth = (x,y,dir,len)=>`<path d="M${x},${y} l5,${dir*len} l5,${-dir*len}Z" fill="${dead?'#aaa':'#fff6e0'}" stroke="${O}" stroke-width="1.6" stroke-linejoin="round"/>`;
+    const L = hurt?6:weak?4:9;
+    b = `<ellipse cx="60" cy="113" rx="40" ry="5" fill="#000" opacity=".25"/>
+      <path d="M20,46 H100 V74 H20Z" fill="#5a1224" ${ln(3)}/>
+      ${PS(base, wood)}
+      <rect x="29" y="72" width="10" height="38" fill="${gold}" ${ln(2.4)}/><rect x="81" y="72" width="10" height="38" fill="${gold}" ${ln(2.4)}/>
+      <rect x="52" y="88" width="16" height="16" rx="3" fill="${gold}" ${ln(2.4)}/><circle cx="60" cy="95" r="2.6" fill="${O}"/><path d="M60,95 v5" ${ln(2)}/>
+      ${[0,1,2,3,4].map(i=>tooth(26+i*12,72,-1,L)).join('')}
+      ${dead?'':`<path d="M44,74 Q46,58 60,60 Q74,58 76,74 Q60,${weak?82:90} 44,74Z" fill="#ff6a86" ${ln(2.4)}/><path d="M60,62 V74" stroke="#c23a58" stroke-width="2" stroke-linecap="round"/>`}
+      <g transform="translate(0 -9)">
+        ${PS(lid, wood)}
+        <path d="M16,56 H104" stroke="${O}" stroke-width="3"/>
+        <path d="M24,40 Q60,8 96,40" fill="none" stroke="${gold}" stroke-width="7"/><path d="M24,40 Q60,8 96,40" fill="none" stroke="${goldD}" stroke-width="1.6"/>
+        ${shine(36,28,10,5,-30)}
+        ${eye(44,40,8,-1)}${eye(76,40,8,1)}
+      </g>
+      ${[0,1,2,3,4].map(i=>tooth(26+i*12,47,1,L)).join('')}`;
+  } else if(kind==='card'){
+    const c1='#7b5cff', c2='#4631c9';
+    const body='M34,16 H86 Q96,16 96,26 V96 Q96,106 86,106 H34 Q24,106 24,96 V26 Q24,16 34,16Z';
+    b = `<ellipse cx="60" cy="114" rx="30" ry="4.5" fill="#000" opacity=".25"/>
+      ${P('M28,104 v10 h12 v-10Z M80,104 v10 h12 v-10Z','#3a2aa0')}
+      ${P('M24,60 q-14,2 -14,16 q0,8 8,6 M96,60 q14,2 14,16 q0,8 -8,6','none',6)}
+      <path d="M24,60 q-14,2 -14,16 q0,8 8,6 M96,60 q14,2 14,16 q0,8 -8,6" fill="none" stroke="${c1}" stroke-width="3.4" stroke-linecap="round"/>
+      ${PS(body, c1)}
+      <path d="M30,22 Q60,12 90,22" fill="none" stroke="#fff" stroke-width="3" opacity=".25" stroke-linecap="round"/>
+      <rect x="24" y="32" width="72" height="13" fill="#1a1230" ${ln(2)}/>
+      <rect x="32" y="20" width="16" height="11" rx="2.5" fill="#f2c14e" ${ln(2)}/><path d="M32,25.5 h16 M40,20 v11" stroke="${O}" stroke-width="1.2"/>
+      <path d="M32,100 h8 M46,100 h8 M60,100 h8 M74,100 h12" stroke="#fff" stroke-width="2.6" stroke-linecap="round" opacity=".55"/>
+      ${eye(44,62,8.5,-1)}${eye(76,62,8.5,1)}${mouth(60,86,32)}`;
+  } else if(kind==='dragon'){
+    const g1='#3ec98a', g2='#1f8f66';
+    const flame = dead||weak ? '' : `<g transform="translate(60 ${hurt?94:89}) scale(${hurt?.7:.85})"><path d="M0,0 C-14,2 -16,20 0,30 C16,20 14,2 0,0Z" fill="#ff7a3c" ${ln(2.4)}/><path d="M0,8 C-7,10 -7,20 0,25 C7,20 7,10 0,8Z" fill="#ffd66e"/></g>`;
+    b = `<ellipse cx="60" cy="114" rx="38" ry="5" fill="#000" opacity=".25"/>
+      ${PS('M24,66 C2,58 0,30 12,20 C14,38 24,46 34,50Z', g2)}${PS('M96,66 C118,58 120,30 108,20 C106,38 96,46 86,50Z', g2)}
+      ${P('M94,100 C114,102 118,84 108,78 C112,90 102,94 92,92Z', g2)}
+      ${P('M30,102 q0,8 12,8 h6 v-8Z M72,102 v8 h6 q12,0 12,-8Z', g2)}
+      ${P('M36,26 C26,22 20,10 24,0 C32,6 42,14 46,22Z M84,26 C94,22 100,10 96,0 C88,6 78,14 74,22Z', '#f6ead2')}
+      ${P('M50,22 l5,-12 l5,10 l5,-10 l5,12Z', g2, 2.4)}
+      ${PS('M60,20 C90,20 102,44 102,68 C102,92 84,106 60,106 C36,106 18,92 18,68 C18,44 30,20 60,20Z', g1)}
+      ${P('M18,62 L6,58 L16,74Z M102,62 L114,58 L104,74Z', g2, 2.4)}
+      <path d="M32,62 Q60,50 88,62" fill="none" stroke="${O}" stroke-width="0"/>
+      <path d="M44,90 Q60,100 76,90" fill="none" stroke="#b6f0d2" stroke-width="2" opacity=".5"/>
+      <ellipse cx="55" cy="68" rx="2.2" ry="3" fill="${O}"/><ellipse cx="65" cy="68" rx="2.2" ry="3" fill="${O}"/>
+      ${shine(38,38,9,5,-35)}
+      ${eye(40,52,7.5,-1)}${eye(80,52,7.5,1)}${flame}${mouth(60,86,26)}`;
+  } else if(kind==='bat'){
+    const v1='#7b4ccf', v2='#4a2a90', wing='#35206b';
+    const w = (s)=>{ const x=(a)=>60+s*a; return `M${x(26)},56 C${x(46)},30 ${x(66)},34 ${x(70)},52 Q${x(62)},50 ${x(58)},58 Q${x(54)},56 ${x(46)},64 Q${x(42)},66 ${x(36)},74 Q${x(30)},72 ${x(26)},82Z`; };
+    b = `<ellipse cx="60" cy="114" rx="26" ry="4.5" fill="#000" opacity=".25"/>
+      ${PS(w(-1), wing)}${PS(w(1), wing)}
+      ${P('M34,34 L28,6 L52,26Z M86,34 L92,6 L68,26Z', v2)}<path d="M33,28 L30,12 L44,24Z M87,28 L90,12 L76,24Z" fill="#ff9ad0" opacity=".7"/>
+      ${P('M44,100 q-2,10 8,12 M76,100 q2,10 -8,12','none',4)}
+      ${PS('M60,24 C86,24 96,46 94,70 C92,94 78,106 60,106 C42,106 28,94 26,70 C24,46 34,24 60,24Z', v1)}
+      ${P('M44,88 Q60,106 76,88 Q60,96 44,88Z','#b99aff',0)}
+      <g fill="#fff" opacity=".12"><circle cx="40" cy="92" r="5"/><circle cx="82" cy="40" r="4"/><circle cx="46" cy="40" r="3"/></g>
+      ${shine(42,38,9,5,-35)}
+      ${eye(45,58,9,-1)}${eye(75,58,9,1)}${mouth(60,84,26)}
+      ${dead?'':`<path d="M52,90 l-2,8 l5,-5Z M68,90 l2,8 l-5,-5Z" fill="#fff" stroke="${O}" stroke-width="1.4" stroke-linejoin="round"/>`}`;
+  } else if(kind==='kraken'){
+    const p1='#ff5fa8', p2='#c12a7c';
+    const tent = (x0,x1,y1,s)=>`<path d="M${x0},86 C${x0+s*2},100 ${x1},96 ${x1},${y1} C${x1},${y1+8} ${x1+s*8},${y1+10} ${x1+s*6},${y1+2}" fill="none" stroke="${O}" stroke-width="12" stroke-linecap="round"/><path d="M${x0},86 C${x0+s*2},100 ${x1},96 ${x1},${y1} C${x1},${y1+8} ${x1+s*8},${y1+10} ${x1+s*6},${y1+2}" fill="none" stroke="${p1}" stroke-width="7.4" stroke-linecap="round"/>`;
+    b = `<ellipse cx="60" cy="116" rx="40" ry="4" fill="#000" opacity=".22"/>
+      ${tent(22,12,102,-1)}${tent(38,34,112,-1)}${tent(82,86,112,1)}${tent(98,108,102,1)}${tent(52,52,114,-1)}${tent(68,70,114,1)}
+      ${PS('M60,8 C92,8 104,34 100,60 C98,80 84,92 60,92 C36,92 22,80 20,60 C16,34 28,8 60,8Z', p1)}
+      <g fill="${p2}" opacity=".7"><circle cx="40" cy="22" r="4.5"/><circle cx="82" cy="20" r="3.4"/><circle cx="90" cy="38" r="3"/><circle cx="30" cy="38" r="3.4"/><circle cx="62" cy="14" r="2.6"/></g>
+      ${shine(40,26,11,5.5,-35)}
+      ${eye(42,54,11,-1)}${eye(78,54,11,1)}${mouth(60,78,26)}`;
+  } else if(kind==='piggy'){
+    const k1='#ff9ab8', k2='#e0527c';
+    b = `<ellipse cx="60" cy="114" rx="40" ry="5" fill="#000" opacity=".25"/>
+      ${P('M22,98 v12 h12 v-12Z M86,98 v12 h12 v-12Z M44,102 v10 h10 v-10Z M66,102 v10 h10 v-10Z', k2)}
+      ${P('M100,70 C118,66 116,86 106,84 C112,80 106,74 100,76Z', k2)}
+      ${P('M28,32 L22,10 L46,24Z M92,32 L98,10 L74,24Z', k2)}<path d="M29,27 L26,16 L38,24Z M91,27 L94,16 L82,24Z" fill="#ffd0de" opacity=".8"/>
+      ${PS('M60,22 C92,22 106,48 104,72 C102,96 84,106 60,106 C36,106 18,96 16,72 C14,48 28,22 60,22Z', k1)}
+      <rect x="46" y="20" width="28" height="7" rx="3.5" fill="${O}"/><circle cx="66" cy="22" r="6" fill="#f2c14e" ${ln(2)}/><ellipse cx="64.5" cy="20.5" rx="2" ry="1.4" fill="#fff" opacity=".6"/>
+      ${shine(36,40,10,5,-35)}
+      ${eye(42,52,8,-1)}${eye(78,52,8,1)}
+      ${PS('M60,64 C76,64 82,74 82,80 C82,90 72,94 60,94 C48,94 38,90 38,80 C38,74 44,64 60,64Z', '#ffb3c8', 2.6)}
+      <ellipse cx="52" cy="78" rx="3.2" ry="4.6" fill="${O}"/><ellipse cx="68" cy="78" rx="3.2" ry="4.6" fill="${O}"/>
+      ${dead?'':`<path d="M42,92 l-4,-12 l9,8Z M78,92 l4,-12 l-9,8Z" fill="#fff6e0" stroke="${O}" stroke-width="1.8" stroke-linejoin="round"/>`}`;
+  } else if(kind==='skull'){
+    const bone = dead?'#bbb':'#f4ecd8', boneD = dead?'#888':'#d9c9a0';
+    const hat='#2b1a4a';
+    b = `<ellipse cx="60" cy="114" rx="30" ry="4.5" fill="#000" opacity=".25"/>
+      ${P('M30,38 Q30,6 60,6 Q90,6 90,38 Z','none',0)}
+      ${PS('M60,28 C86,28 96,44 94,62 C93,70 88,74 86,80 V92 Q86,98 80,98 H40 Q34,98 34,92 V80 C32,74 27,70 26,62 C24,44 34,28 60,28Z', bone)}
+      <path d="M44,98 V88 M52,98 V88 M60,98 V88 M68,98 V88 M76,98 V88" stroke="${O}" stroke-width="2"/>
+      <path d="M40,88 H80" stroke="${O}" stroke-width="2.2"/>
+      <ellipse cx="44" cy="62" rx="13" ry="14" fill="#1a0f20" ${ln(2.4)}/><ellipse cx="76" cy="62" rx="13" ry="14" fill="#1a0f20" ${ln(2.4)}/>
+      ${dead ? `<path d="M39,57L49,67M49,57L39,67M71,57L81,67M81,57L71,67" stroke="#bbb" stroke-width="3" stroke-linecap="round"/>` : weak ? `<circle cx="44" cy="63" r="4" fill="#bfe0ff" opacity=".8"/><circle cx="76" cy="63" r="4" fill="#bfe0ff" opacity=".8"/>` : `<circle cx="45" cy="64" r="6" fill="#7dffc8"/><circle cx="45" cy="64" r="10" fill="#7dffc8" opacity=".25"/><circle cx="75" cy="64" r="6" fill="#7dffc8"/><circle cx="75" cy="64" r="10" fill="#7dffc8" opacity=".25"/>`}
+      ${!dead?`<path d="M31,46 L55,56 M89,46 L65,56" ${ln(4)}/>`:''}
+      <path d="M60,72 l-5,10 h10Z" fill="#1a0f20" ${ln(2)}/>
+      ${shine(42,40,8,4.5,-30)}
+      <circle cx="76" cy="62" r="17" fill="none" stroke="#f2c14e" stroke-width="3.4"/><circle cx="76" cy="62" r="17" fill="#fff" opacity=".08"/><path d="M92,70 q8,14 -2,30" fill="none" stroke="#f2c14e" stroke-width="2"/>
+      ${P('M22,32 H98 Q98,38 60,38 Q22,38 22,32Z', hat)}
+      ${PS('M34,32 L38,6 Q60,0 82,6 L86,32Z', hat)}
+      <path d="M35,26 H85 V20 H36Z" fill="#8a52e0" ${ln(2)}/><rect x="54" y="19" width="12" height="8" rx="1.5" fill="#f2c14e" ${ln(1.8)}/>`;
+    b = `<g transform="translate(7 9) scale(.89)">${b}</g>`;
+  } else { // golem
+    const r1='#8c8a96', r2='#5c5a68', lava='#ff8a3c';
+    b = `<ellipse cx="60" cy="115" rx="42" ry="4.5" fill="#000" opacity=".25"/>
+      ${PS('M10,60 L26,52 L34,76 L22,92 L6,82Z', r2)}${PS('M110,60 L94,52 L86,76 L98,92 L114,82Z', r2)}
+      ${PS('M26,80 L40,72 H80 L94,80 L98,104 L88,112 H32 L22,104Z', r1)}
+      ${PS('M32,20 L52,10 H70 L90,22 L96,52 L84,70 H36 L24,52Z', r1)}
+      <path d="M32,20 L52,10 H70 L90,22 M24,52 L36,70 H84 L96,52" fill="none" stroke="${O}" stroke-width="0"/>
+      <g fill="#4e8a54" opacity="${dead?0:.85}" stroke="${O}" stroke-width="1.6" stroke-linejoin="round"><path d="M34,22 Q44,12 54,14 Q48,24 40,24Z"/><path d="M80,18 Q90,20 92,30 Q84,28 78,24Z"/></g>
+      <g stroke="${dead?'#777':lava}" stroke-width="2.4" fill="none" stroke-linecap="round" opacity="${dead?.6:1}" style="filter:drop-shadow(0 0 3px ${lava});"><path d="M60,74 L56,86 L62,92 L58,106"/><path d="M92,34 L86,42 L90,48"/><path d="M28,92 L36,96"/></g>
+      <path d="M28,40 H92" stroke="${O}" stroke-width="2" opacity=".5"/>
+      ${eye(46,44,7.5,-1)}${eye(74,44,7.5,1)}${mouth(60,60,26,'#e6dfcf')}`;
   }
   return `<svg class="boss-svg" viewBox="0 0 120 120" aria-hidden="true">${defs}
     <circle cx="60" cy="62" r="58" fill="url(#${id}g)"/>
-    <g class="boss-body${hit?' boss-flinch':''}" style="filter:drop-shadow(0 4px 6px rgba(0,0,0,.45)) drop-shadow(0 0 7px ${glow});opacity:${dead?.7:1};">${body}${cracks}</g>
-    <ellipse cx="60" cy="114" rx="34" ry="4" fill="#000" opacity=".28"/></svg>`;
+    <g class="boss-body${hit?' boss-flinch':''}" style="filter:${filt === 'none' ? '' : filt+' '}drop-shadow(0 4px 5px rgba(0,0,0,.4));opacity:${dead?.85:1};">${b}${cracks}</g></svg>`;
 }
 
 const BOSS_MOOD_TEXT = {fight:'FULL OF FIGHT', hurt:'WOUNDED', weak:'ONE HIT FROM DEFEAT', dead:'DEFEATED'};
@@ -5852,7 +5913,7 @@ function showBossStrike(plan, idx){
   const nextIdx = plan.inst.findIndex((_,i)=>!pay3Paid(plan,i));
   const fmtDay = str => parseYmd(str).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
   const gain = BOSS_XP_HIT + (defeated ? BOSS_XP_DEFEAT : 0);
-  const bc = `hsl(${look.hue} 78% 60%)`;
+  const bc = look.col;
   let ov = document.getElementById('bossOverlay');
   if(!ov){ ov = document.createElement('div'); ov.id = 'bossOverlay'; ov.className = 'boss-overlay'; ov.setAttribute('aria-hidden','true'); document.body.appendChild(ov); }
   const sparks = defeated ? Array.from({length:26}, (_,i)=>{
@@ -5864,7 +5925,7 @@ function showBossStrike(plan, idx){
   ov.innerHTML = `<div class="bo-card" style="--bc:${bc};">
     <div class="bo-k">${defeated ? 'BOSS DEFEATED' : 'DIRECT HIT'}</div>
     <div class="bo-stage${defeated?' defeat':''}">
-      ${bossSvg(look.kind, look.hue, mood, true)}
+      ${bossArt2(look.kind, mood, true)}
       ${defeated ? '' : `<svg class="bo-slash" viewBox="0 0 230 230" aria-hidden="true"><defs><linearGradient id="boSl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff2b0" stop-opacity="0"/><stop offset=".5" stop-color="#fff2b0"/><stop offset="1" stop-color="#ff8a3c" stop-opacity="0"/></linearGradient></defs>
         <path class="s1" d="M18,40 L212,196" stroke="url(#boSl)" stroke-width="9" stroke-linecap="round" fill="none"/>
         <path class="s2" d="M48,16 L204,150" stroke="url(#boSl)" stroke-width="5" stroke-linecap="round" fill="none"/></svg>`}
@@ -6026,9 +6087,9 @@ function renderPay3(){
     const nextIdx = p.inst.findIndex((_,i)=>!pay3Paid(p,i));
     const look = bossLook(p), mood = bossMood(paidCount, p.inst.length);
     const prov = PAY3_PROVIDERS[p.provider] ? PAY3_PROVIDERS[p.provider].label.split(' · ')[0] : 'Custom';
-    return `<div class="panel p3-card boss${done?' p3-done':''}" data-plan="${p.id}" style="--bc:hsl(${look.hue} 78% 60%);">
+    return `<div class="panel p3-card boss${done?' p3-done':''}" data-plan="${p.id}" style="--bc:${look.col};">
       <div class="boss-row">
-        <div class="boss-art ${mood}">${bossSvg(look.kind, look.hue, mood)}</div>
+        <div class="boss-art ${mood}">${bossArt2(look.kind, mood)}</div>
         <div class="boss-info">
           <div class="boss-mood">${BOSS_MOOD_TEXT[mood]}</div>
           <span class="p3-name">${escapeHtml(look.title)}</span>
