@@ -994,7 +994,7 @@ const OUTGOING_CATEGORIES = [
   'Savings & Debt','Other'
 ];
 const CATEGORY_COLORS = {
-  'Uncategorized':'#8a93ab','Housing':'#5b8cff','Bills & Utilities':'#7c5bff',
+  'Uncategorized':'#8a93ab','Housing':'#5b8cff','Bills & Utilities':'#f0453a',
   'Groceries':'#3ecf8e','Transport':'#36c5f0','Subscriptions':'#ffb946',
   'Shopping':'#ff5c7a','Pay in 3':'#2ec4b6','Eating Out':'#f2994a','Health & Fitness':'#00b894',
   'Grooming':'#d4a373','Entertainment':'#bb6bd9','Savings & Debt':'#e84393','Other':'#636e72',
@@ -1010,7 +1010,7 @@ const CATEGORY_ICONS = {
 const INCOME_CATEGORIES = ['Uncategorized','Salary','From friend','From partner','Selling goods'];
 function guessIncomeCategory(name){ return /salary|wage|payroll|\bpay\b/i.test(name||'') ? 'Salary' : 'Uncategorized'; }
 // Some themes swap a category colour that clashes with their palette (purple on Ember's warm black).
-const THEME_CATEGORY_COLORS = { ember: {'Bills & Utilities':'#f0453a'} };
+const THEME_CATEGORY_COLORS = {};
 function categoryColor(cat){
   const o = THEME_CATEGORY_COLORS[state && state.theme];
   return (o && o[cat]) || CATEGORY_COLORS[cat] || CATEGORY_COLORS['Other'];
