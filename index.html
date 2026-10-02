@@ -484,6 +484,104 @@
   }
   @media (prefers-reduced-motion:reduce){.pd-spark,.pd-card,.pd-flame .pd-pop{animation:none;}.pd-spark{opacity:.7;}}
   @media (max-width:860px){body:has(#paydayOverlay.open) .toast-stack{bottom:auto;top:12px;}}
+  /* Boss fights (Pay in 3) */
+  .boss-row{display:flex;align-items:center;gap:14px;margin-bottom:12px;}
+  .boss-art{position:relative;width:108px;height:108px;flex-shrink:0;}
+  .boss-svg{width:100%;height:100%;overflow:visible;display:block;}
+  .boss-art .boss-body{transform-box:fill-box;transform-origin:50% 100%;animation:bossIdle 3.2s ease-in-out infinite;}
+  .boss-art.dead .boss-body{animation:none;}
+  @keyframes bossIdle{0%,100%{transform:translateY(0) scale(1,1);}50%{transform:translateY(-3px) scale(1.02,.98);}}
+  .boss-info{flex:1;min-width:0;}
+  .boss-mood{font-size:10.5px;font-weight:800;letter-spacing:.1em;color:var(--bc);}
+  .boss-info .p3-name{display:block;font-size:17px;font-weight:800;letter-spacing:-.01em;margin-top:2px;}
+  .boss-sub{font-size:11.5px;color:var(--muted);margin-top:1px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .boss-hp-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-top:10px;font-size:12px;color:var(--muted);}
+  .boss-hp-h b{font-size:15px;color:var(--text);}
+  .boss-hp-h s{opacity:.55;}
+  .boss-hp{display:flex;gap:4px;height:10px;margin-top:5px;}
+  .boss-hp i{display:block;flex:var(--w) 1 0;border-radius:999px;background:color-mix(in srgb, var(--muted) 22%, transparent);transition:background .3s ease, box-shadow .3s ease;}
+  .boss-hp i.on{background:linear-gradient(90deg,var(--bc),color-mix(in srgb, var(--bc) 45%, #ffcf70));box-shadow:0 0 10px color-mix(in srgb, var(--bc) 60%, transparent);}
+  .boss-hp i.hit{animation:bossSegHit .9s ease-out .35s both;}
+  @keyframes bossSegHit{0%{background:#fff;box-shadow:0 0 16px #ffd9a0;}100%{}}
+  .boss-cta{width:100%;justify-content:center;margin-bottom:12px;background:linear-gradient(135deg,var(--bc),color-mix(in srgb, var(--bc) 60%, #ffb15a));color:#1a0a08;font-weight:800;box-shadow:0 0 22px color-mix(in srgb, var(--bc) 40%, transparent);}
+  .p3-card.boss{background:linear-gradient(160deg,color-mix(in srgb, var(--bc) 12%, var(--panel)),var(--panel) 62%);border-color:color-mix(in srgb, var(--bc) 30%, var(--border));}
+  .p3-card.p3-done.boss{opacity:.8;}
+  .boss-xp{font-size:10.5px;font-weight:800;color:#ffb15a;}
+  .boss-overlay{position:fixed;inset:0;z-index:125;display:none;align-items:center;justify-content:center;padding:16px;background:radial-gradient(70% 55% at 50% 30%, rgba(255,120,60,.26), rgba(4,4,5,.9) 75%);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);overflow:auto;}
+  .boss-overlay.lucky{background:radial-gradient(70% 55% at 50% 30%, color-mix(in srgb, var(--lc,#ffb15a) 30%, transparent), rgba(4,4,5,.9) 75%);}
+  .boss-overlay.open{display:flex;}
+  .bo-card{width:min(400px,100%);display:flex;flex-direction:column;align-items:center;text-align:center;animation:pdIn .45s cubic-bezier(.2,.9,.3,1.2) 1;margin:auto;}
+  .bo-k{font-size:12px;font-weight:800;letter-spacing:.14em;color:#ffb15a;}
+  .bo-stage{position:relative;width:220px;height:220px;margin-top:8px;}
+  .bo-stage .boss-svg{width:100%;height:100%;}
+  .bo-stage .boss-body{transform-box:fill-box;transform-origin:50% 100%;}
+  .bo-stage .boss-flinch{animation:bossFlinch .55s ease-out .3s both;}
+  @keyframes bossFlinch{0%{transform:translate(0,0) rotate(0);}15%{transform:translate(-12px,3px) rotate(-5deg);}35%{transform:translate(10px,-2px) rotate(4deg);}55%{transform:translate(-6px,1px) rotate(-2deg);}80%{transform:translate(3px,0);}100%{transform:none;}}
+  .bo-stage.defeat .boss-flinch{animation:bossFlinch .5s ease-out .3s both, bossDie .7s ease-in 1.15s forwards;}
+  @keyframes bossDie{to{transform:translateY(10px) scale(.15) rotate(12deg);opacity:0;}}
+  .bo-slash{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;filter:drop-shadow(0 0 10px #ffb15a);}
+  .bo-slash path{stroke-dasharray:260;stroke-dashoffset:260;opacity:0;animation:bossSlash .38s ease-out both;}
+  .bo-slash .s1{animation-delay:.18s;} .bo-slash .s2{animation-delay:.3s;}
+  @keyframes bossSlash{0%{stroke-dashoffset:260;opacity:1;}60%{stroke-dashoffset:0;opacity:1;}100%{stroke-dashoffset:0;opacity:0;}}
+  .bo-dmg{position:absolute;right:-10px;top:6px;font-size:38px;font-weight:800;letter-spacing:-.03em;color:#ffb15a;text-shadow:0 0 20px rgba(255,150,60,.8),0 3px 0 #7a2a0a;white-space:nowrap;animation:bossDmg 1.4s cubic-bezier(.2,.9,.3,1.3) .45s both;}
+  .bo-tick{display:flex;align-items:center;justify-content:center;width:58px;height:58px;border-radius:50%;background:var(--green);color:#06281a;box-shadow:0 0 30px color-mix(in srgb, var(--green) 65%, transparent);}
+  .bo-stage.defeat .bo-dmg{display:flex;flex-direction:column;align-items:center;gap:12px;right:50%;top:50%;transform:translate(50%,-50%);font-size:30px;letter-spacing:.06em;color:#fff4d0;animation:bossDefeatTxt 1.8s ease-out 1.1s both;}
+  @keyframes bossDmg{0%{opacity:0;transform:translateY(14px) scale(.4);}30%{opacity:1;transform:translateY(-6px) scale(1.15);}100%{opacity:1;transform:translateY(-12px) scale(1);}}
+  @keyframes bossDefeatTxt{0%{opacity:0;transform:translate(50%,-30%) scale(.5);}25%{opacity:1;transform:translate(50%,-50%) scale(1.15);}100%{opacity:1;transform:translate(50%,-50%) scale(1);}}
+  .bo-p{position:absolute;left:50%;top:55%;width:var(--s);height:var(--s);margin:calc(var(--s) / -2);border-radius:50%;opacity:0;animation:bossBurst 1.2s ease-out var(--d) both;animation-delay:calc(1.1s + var(--d) - .55s);}
+  @keyframes bossBurst{0%{opacity:0;transform:translate(0,0) scale(.3);}15%{opacity:1;}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(1);}}
+  .bo-ring{position:absolute;left:50%;top:55%;width:40px;height:40px;margin:-20px;border-radius:50%;border:3px solid #ffd9a0;box-shadow:0 0 24px #ffb15a;opacity:0;animation:bossRing .9s ease-out 1.15s both;}
+  @keyframes bossRing{0%{opacity:.9;transform:scale(.3);}100%{opacity:0;transform:scale(6);}}
+  .bo-title{margin-top:6px;font-size:22px;font-weight:800;letter-spacing:-.01em;}
+  .bo-sub{margin-top:2px;font-size:12.5px;color:var(--muted);}
+  .bo-panel{margin-top:16px;width:100%;box-sizing:border-box;padding:14px 16px;border-radius:20px;background:var(--panel);border:1px solid var(--border);text-align:left;}
+  .bo-panel .boss-hp-h{margin-top:0;}
+  .bo-panel .boss-hp{margin-top:9px;height:12px;}
+  .bo-chips{margin-top:14px;display:flex;gap:10px;}
+  .bo-chip{flex:1;padding:10px 12px;border-radius:14px;background:var(--panel2);border:1px solid var(--border);}
+  .bo-chip.xp{background:rgba(255,177,90,.12);border-color:rgba(255,177,90,.3);}
+  .bo-chip .k{font-size:10.5px;font-weight:800;letter-spacing:.06em;color:var(--muted);}
+  .bo-chip.xp .k{color:#ffb15a;}
+  .bo-chip .v{margin-top:1px;font-size:18px;font-weight:800;}
+  .bo-chip .v.sm{font-size:14px;}
+  .bo-ok{margin-top:16px;width:100%;justify-content:center;padding:14px 0;}
+  .lk-stage{width:170px;height:170px;margin-top:6px;animation:luckyPop .7s cubic-bezier(.2,.9,.3,1.4) both;}
+  .lk-stage svg{width:100%;height:100%;}
+  @keyframes luckyPop{from{opacity:0;transform:scale(.3);}to{opacity:1;transform:none;}}
+  .lk-xp{font-size:50px;font-weight:800;letter-spacing:-.03em;margin-top:2px;animation:luckyPop .6s cubic-bezier(.2,.9,.3,1.4) .15s both;}
+  .lk-bar{position:relative;margin-top:9px;height:8px;border-radius:999px;background:color-mix(in srgb, var(--muted) 22%, transparent);overflow:hidden;}
+  .lk-bar i{position:absolute;top:0;height:100%;border-radius:999px;display:block;}
+  .lk-bar i.base{left:0;background:linear-gradient(90deg,#ff8a3c,#ffcf70);}
+  .lk-bar i.gain{animation:lkGain .9s ease-out .5s both;transform-origin:left;}
+  @keyframes lkGain{from{transform:scaleX(0);}to{transform:none;}}
+  .lk-fact{margin-top:12px;}
+  .lk-fact .k{font-size:10.5px;font-weight:800;letter-spacing:.08em;}
+  .lk-fact .t{margin-top:3px;font-size:13px;line-height:1.45;}
+  .lk-count{margin-top:12px;font-size:11.5px;color:var(--muted);}
+  .lk-count b{color:var(--text);}
+  .lucky-orb{position:fixed;left:50%;top:36%;z-index:124;width:130px;height:130px;margin:-65px 0 0 -65px;padding:0;border:0;background:none;cursor:pointer;animation:luckyIn .7s cubic-bezier(.2,.9,.3,1.3) both,luckyBob 2.6s ease-in-out .7s infinite;-webkit-tap-highlight-color:transparent;}
+  .lucky-orb svg{display:block;}
+  .lucky-orb.out{animation:luckyOut .7s ease-in forwards;}
+  .lucky-tag{position:absolute;left:50%;top:100%;transform:translateX(-50%);margin-top:-8px;white-space:nowrap;padding:9px 16px;border-radius:999px;background:var(--panel);border:1px solid rgba(255,177,90,.5);box-shadow:0 0 24px rgba(255,150,60,.4);font-size:13px;color:var(--muted);}
+  .lucky-tag b{color:#ffd66e;margin-right:4px;}
+  @keyframes luckyIn{from{opacity:0;transform:translateY(60px) scale(.3);}to{opacity:1;transform:none;}}
+  @keyframes luckyBob{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
+  @keyframes luckyOut{to{opacity:0;transform:translateY(-120px) scale(.5);}}
+  @media (max-width:700px){
+    .boss-art{width:84px;height:84px;}
+    .boss-row{gap:11px;}
+    .boss-info .p3-name{font-size:16px;}
+    .bo-stage{width:200px;height:200px;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .boss-art .boss-body,.bo-stage .boss-body,.boss-hp i.hit,.bo-card,.lk-stage,.lk-xp,.lk-bar i.gain,.lucky-orb{animation:none !important;}
+    .bo-slash{display:none;}
+    .bo-dmg,.bo-p,.bo-ring{animation:none !important;}
+    .bo-p,.bo-ring{display:none;}
+    .bo-stage.defeat .bo-dmg{opacity:1;}
+    .bo-stage.defeat .boss-body{opacity:.35;}
+    .lucky-orb.out{display:none;}
+  }
   .push-msg{font-size:13.5px;line-height:1.5;}
   .push-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
   .push-setup{margin-top:14px;font-size:12.5px;color:var(--muted);}
@@ -1486,6 +1584,8 @@ function normalizeState(){
   if(!state.ember || typeof state.ember!=='object') state.ember = {};
   if(!Array.isArray(state.ember.seen)) state.ember.seen = [];
   if(typeof state.ember.skin!=='string') state.ember.skin = 'classic';
+  if(!state.ember.lucky || typeof state.ember.lucky!=='object') state.ember.lucky = {since:0, caught:0, rare:0, gold:0};
+  if(typeof state.ember.bonusXp!=='number') state.ember.bonusXp = 0;
   if(typeof state.celebrate!=='boolean') state.celebrate = true;
   if(!state.pots) state.pots = {};
   if(!state.pots.savings) state.pots.savings = {manualLedger:[]};
@@ -3560,7 +3660,7 @@ function emberStats(){
     const m = state.months[k];
     [...m.outgoings, ...m.incoming].forEach(it=>{
       if(it.quickAdd && it.ts){ const d = new Date(it.ts); logSet.add(dayIdx(d.getFullYear(), d.getMonth(), d.getDate())); }
-      else if(it.status==='done') doneItems++;
+      else if(it.status==='done' && !it.pay3Id) doneItems++;
     });
   });
   const days = [...logSet].sort((a,b)=>a-b);
@@ -3575,7 +3675,8 @@ function emberStats(){
   let bestB = 0, runB = 0; good.forEach(g=>{ runB = g ? runB+1 : 0; bestB = Math.max(bestB, runB); });
   let curB = 0; for(let i=good.length-1;i>=0 && good[i];i--) curB++;
   const goodMonths70 = monthRows.filter(x=>x.sc.score>=70).length;
-  const xp = days.length*5 + goodMonths70*15 + doneItems;
+  const bonusXp = state.ember.bonusXp||0, bossXp = bossXpFromPlans();
+  const xp = days.length*5 + goodMonths70*15 + doneItems + bonusXp + bossXp;
   const lvlFloor = emberLvlFloor;
   let level = 1; while(xp >= lvlFloor(level+1)) level++;
   const span = lvlFloor(level+1)-lvlFloor(level);
@@ -3995,10 +4096,12 @@ function renderMonth(){
     entry.category = (type==='out' ? quickAddCategory : quickAddIncomeCategory).dataset.value;
     m[listKey].push(entry);
     if(repeat) syncNewRecurringForward(entry, state.currentMonthKey, listKey);
+    const lucky = repeat ? null : luckyRoll();
     save();
     quickAddLogExpanded = !repeat || quickAddLogExpanded;
     renderMonth();
     showToast(`Added ${fmt(amt)}${repeat?' · repeats monthly':''}`, type==='out' ? (entry.category||entry.name) : entry.name);
+    if(lucky) setTimeout(()=>showLuckyEmber(lucky), 900);
   };
   document.getElementById('quickAddBtn').onclick = doQuickAdd;
   const repeatBtn = document.getElementById('quickAddRepeat');
@@ -4281,7 +4384,7 @@ function renderMonth(){
       };
       tr.querySelector('.out-amount').oninput = e=>{ item.amount=Number(e.target.value); save(); refreshCards(); refreshSummary(); };
       const sel = tr.querySelector('.out-status');
-      sel.onchange = e=>{ item.status=e.target.value; save(); e.target.className = `out-status status-select status-${e.target.value}`; refreshCards(); refreshSummary(); };
+      sel.onchange = e=>{ item.status=e.target.value; save(); e.target.className = `out-status status-select status-${e.target.value}`; refreshCards(); refreshSummary(); afterOutgoingMarkedDone(item); };
       const recurSel = tr.querySelector('.out-recur');
       recurSel.onchange = e=>{ item.recurring = (e.target.value==='yes'); if(item.recurring) syncNewRecurringForward(item, state.currentMonthKey, 'outgoings'); else stopRecurringInLaterMonths(m, 'outgoings', item); save(); e.target.className = `out-recur recur-select ${item.recurring?'recur-yes':'recur-no'}`; refreshSummary(); };
       initCategoryDropdown(tr.querySelector('.out-category'), val=>{ item.category = val; propagateOutgoingFieldForward(item, state.currentMonthKey, 'category'); save(); refreshCards(); refreshSummary(); });
@@ -5599,6 +5702,310 @@ function drawRecurringTable(m, kind){
 }
 // ---------------- Pay in 3 page ----------------
 let p3FormOpen = null;
+// ---------------- Debt monsters (boss fights) ----------------
+let bossUid = 0;
+const BOSS_KINDS = ['imp','gazer','gloop','bruiser','wraith','spiker'];
+const BOSS_SUFFIX = {imp:'Imp', gazer:'Gazer', gloop:'Gloop', bruiser:'Bruiser', wraith:'Wraith', spiker:'Spikeling'};
+const BOSS_HUES = [4, 280, 150, 24, 200, 330];
+function bossHash(str){ let h = 7; for(let i=0;i<str.length;i++) h = (h*31 + str.charCodeAt(i)) >>> 0; return h; }
+// Each plan always gets the same monster, picked from its id.
+function bossLook(plan){
+  const h = bossHash(plan.id || plan.name || 'x');
+  const kind = BOSS_KINDS[h % BOSS_KINDS.length];
+  const hue = BOSS_HUES[Math.floor(h/7) % BOSS_HUES.length];
+  const clean = String(plan.name||'Boss').trim().split(/\s+/)[0].replace(/[^\p{L}\p{N}'&-]/gu,'') || 'Debt';
+  return {kind, hue, title:`The ${clean.charAt(0).toUpperCase()+clean.slice(1)} ${BOSS_SUFFIX[kind]}`};
+}
+// mood: fight (full health) | hurt | weak (one hit from defeat) | dead
+function bossMood(paidCount, n){
+  if(paidCount>=n) return 'dead';
+  if(paidCount>0 && n-paidCount===1) return 'weak';
+  return paidCount>0 ? 'hurt' : 'fight';
+}
+function bossSvg(kind, hue, mood, hit){
+  const id = 'bs'+(++bossUid);
+  const sat = {fight:74, hurt:58, weak:40, dead:6}[mood];
+  const hsl = (l, s, h2)=>`hsl(${h2===undefined?hue:h2} ${s===undefined?sat:s}% ${l}%)`;
+  const c0 = hsl(70), c1 = hsl(52), c2 = hsl(32), c3 = hsl(16);
+  const glow = mood==='dead' ? 'rgba(130,130,140,.25)' : hsl(55, 90);
+  const bone = mood==='dead' ? '#9a9a9a' : '#f6ead2', boneD = mood==='dead' ? '#6a6a6a' : '#cdb48a';
+  const dead = mood==='dead', weak = mood==='weak', hurt = mood==='hurt';
+  const eyeGlow = dead ? '#9a9a9a' : weak ? '#bfe0ff' : '#ffe27a';
+  // one eye. kind of lid depends on mood. s = side (-1 left, 1 right)
+  const eye = (cx, cy, r, s, tilt)=>{
+    if(dead){ const d=r*.55; return `<path d="M${cx-d},${cy-d}L${cx+d},${cy+d}M${cx+d},${cy-d}L${cx-d},${cy+d}" stroke="${c3}" stroke-width="3" stroke-linecap="round"/>`; }
+    if(weak){ // dizzy spiral
+      return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#fff"/><path d="M${cx},${cy} m0,-1.2 a1.2,1.2 0 1 1 -1.2,1.2 a2.6,2.6 0 1 1 2.6,2.6 a4,4 0 1 1 -4,-4 a5.4,5.4 0 1 1 5.4,5.4" fill="none" stroke="${c3}" stroke-width="1.5" stroke-linecap="round" transform="scale(1)"/>`;
+    }
+    const brow = `<path d="M${cx-s*(r+2.5)},${cy-r-2+tilt*0}L${cx+s*(r+1)},${cy-r*.55-3 + (hurt?-1:0)}" stroke="${c3}" stroke-width="${r*.55}" stroke-linecap="round" transform="rotate(${s*-0},${cx},${cy})"/>`;
+    // angry brow: slopes down toward the centre
+    const bx1 = cx + s*(r+2.5), by1 = cy - r - 5, bx2 = cx - s*(r+1), by2 = cy - r*.45;
+    return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#fffaf0"/><circle cx="${cx+s*-r*.12}" cy="${cy+r*.12}" r="${r*.62}" fill="${eyeGlow}"/><ellipse cx="${cx+s*-r*.12}" cy="${cy+r*.12}" rx="${r*.2}" ry="${r*.5}" fill="${c3}"/><circle cx="${cx-r*.28}" cy="${cy-r*.3}" r="${r*.18}" fill="#fff"/><path d="M${bx1},${by1}L${bx2},${by2}" stroke="${c3}" stroke-width="${Math.max(3,r*.5)}" stroke-linecap="round"/><path d="M${cx-r-.6},${cy-.4}A${r+.6},${r+.6} 0 0 1 ${cx+r+.6},${cy-.4}" fill="none" stroke="${c3}" stroke-width="1" opacity="0"/>`;
+  };
+  // mouth centred on (cx, cy), width w
+  const mouth = (cx, cy, w)=>{
+    if(dead) return `<path d="M${cx-w*.35},${cy+2}Q${cx},${cy-2} ${cx+w*.35},${cy+2}" stroke="${c3}" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+    if(weak) return `<ellipse cx="${cx}" cy="${cy+1}" rx="${w*.18}" ry="${w*.13}" fill="${c3}"/><path d="M${cx-w*.08},${cy+w*.1}Q${cx},${cy+w*.22} ${cx+w*.1},${cy+w*.1}" fill="#ff7a8a"/>`;
+    const n = hurt ? 4 : 5, step = w/n, top = cy-3;
+    let teeth = '';
+    for(let i=0;i<n;i++){ const x = cx - w/2 + i*step; teeth += `<path d="M${x+1},${top}L${x+step/2},${top+(i%2?5:7.5)}L${x+step-1},${top}Z" fill="${bone}"/>`; }
+    const sag = hurt ? 3 : 6;
+    return `<path d="M${cx-w/2},${cy-3}Q${cx},${cy+sag*(hurt?.2:1.9)+1} ${cx+w/2},${cy-3}Q${cx},${cy-6} ${cx-w/2},${cy-3}Z" fill="${c3}"/><g clip-path="url(#${id}m)">${teeth}</g><clipPath id="${id}m"><path d="M${cx-w/2},${cy-3}Q${cx},${cy+sag*1.9+1} ${cx+w/2},${cy-3}Q${cx},${cy-6} ${cx-w/2},${cy-3}Z"/></clipPath>`;
+  };
+  const cracks = (hurt||weak||dead) ? `<g stroke="${c3}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity=".85"><path d="M74,36L68,46L75,52L69,62"/><path d="M33,74L42,78L38,88"/>${(weak||dead)?'<path d="M52,30L48,38L54,42"/>':''}</g>` : '';
+  const gradient = (gid, cx, cy, r)=>`<radialGradient id="${id}${gid}" cx="${cx}%" cy="${cy}%" r="${r}%"><stop offset="0" stop-color="${c0}"/><stop offset=".55" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></radialGradient>`;
+  const shade = (d)=>`<path d="${d}" fill="url(#${id}sh)"/>`;
+  const defs = `<defs>${gradient('b',36,28,80)}
+    <radialGradient id="${id}g" cx="50%" cy="55%" r="50%"><stop offset="0" stop-color="${glow}" stop-opacity=".5"/><stop offset="1" stop-color="${glow}" stop-opacity="0"/></radialGradient>
+    <linearGradient id="${id}sh" x1="0" y1="0" x2="0" y2="1"><stop offset=".55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".38"/></linearGradient>
+    <linearGradient id="${id}h" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${bone}"/><stop offset="1" stop-color="${boneD}"/></linearGradient></defs>`;
+  const shine = (x,y,rx,ry,rot)=>`<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="#fff" opacity="${dead?.12:.28}" transform="rotate(${rot||-30},${x},${y})"/>`;
+  let body = '';
+  if(kind==='imp'){
+    body = `
+      <path d="M92,92 C112,92 114,72 104,66 C112,76 104,86 92,84Z" fill="${c2}"/><path d="M104,66 L112,58 L112,72Z" fill="${c3}"/>
+      <path d="M33,38 C24,34 18,22 22,8 C30,18 40,24 46,30Z" fill="url(#${id}h)"/><path d="M87,38 C96,34 102,22 98,8 C90,18 80,24 74,30Z" fill="url(#${id}h)"/>
+      <ellipse cx="38" cy="106" rx="13" ry="7" fill="${c2}"/><ellipse cx="82" cy="106" rx="13" ry="7" fill="${c2}"/>
+      <path d="M60,26 C86,26 100,48 100,72 C100,94 82,106 60,106 C38,106 20,94 20,72 C20,48 34,26 60,26Z" fill="url(#${id}b)"/>
+      ${shade('M60,26 C86,26 100,48 100,72 C100,94 82,106 60,106 C38,106 20,94 20,72 C20,48 34,26 60,26Z')}
+      <ellipse cx="60" cy="92" rx="22" ry="12" fill="${c0}" opacity=".22"/>
+      <circle cx="17" cy="76" r="9" fill="${c1}"/><circle cx="103" cy="76" r="9" fill="${c1}"/>
+      ${shine(40,44,9,5,-35)}
+      ${eye(45,62,8,-1)}${eye(75,62,8,1)}${mouth(60,86,30)}`;
+  } else if(kind==='gazer'){
+    const tent = [24,44,64,84,100].map((x,i)=>`<path d="M${x},92 C${x-8},104 ${x+8},110 ${x},118" stroke="${c1}" stroke-width="9" stroke-linecap="round" fill="none"/>`).join('');
+    body = `${tent}
+      <path d="M34,34 L28,12 L48,28Z" fill="${c2}"/><path d="M86,34 L92,12 L72,28Z" fill="${c2}"/><path d="M60,24 L56,6 L64,6Z" fill="${c2}"/>
+      <path d="M60,24 C88,24 104,44 104,66 C104,92 84,104 60,104 C36,104 16,92 16,66 C16,44 32,24 60,24Z" fill="url(#${id}b)"/>
+      ${shade('M60,24 C88,24 104,44 104,66 C104,92 84,104 60,104 C36,104 16,92 16,66 C16,44 32,24 60,24Z')}
+      ${shine(36,42,10,5,-35)}
+      ${dead ? eye(60,60,15,1) : weak ? `<circle cx="60" cy="58" r="19" fill="#fff"/><path d="M60,58 m0,-2 a2,2 0 1 1 -2,2 a4,4 0 1 1 4,4 a6.5,6.5 0 1 1 -6.5,-6.5 a9,9 0 1 1 9,9" fill="none" stroke="${c3}" stroke-width="2" stroke-linecap="round" transform="translate(0 0)"/>` :
+        `<circle cx="60" cy="58" r="20" fill="#fffaf0"/><circle cx="60" cy="60" r="13" fill="${eyeGlow}"/><circle cx="60" cy="60" r="13" fill="none" stroke="${c2}" stroke-width="2"/><ellipse cx="60" cy="60" rx="4.2" ry="10" fill="${c3}"/><circle cx="54" cy="53" r="3.4" fill="#fff"/><path d="M36,34 L84,56" stroke="${c3}" stroke-width="0" /><path d="M38,${hurt?36:33} L82,${hurt?42:39}" stroke="${c3}" stroke-width="0"/>
+        <path d="M36,36 Q60,${hurt?44:50} 84,36" stroke="${c3}" stroke-width="0" fill="none"/>
+        <path d="M37,37 L60,46 L83,37" stroke="${c3}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>`}
+      ${mouth(60,90,34)}`;
+  } else if(kind==='gloop'){
+    const d = 'M60,24 C84,24 92,44 100,60 C112,64 114,84 104,96 C100,104 84,108 60,108 C36,108 20,104 16,96 C6,84 8,64 20,60 C28,44 36,24 60,24Z';
+    body = `
+      <path d="M30,106 C30,116 36,118 36,108Z M84,106 C84,114 90,116 90,108Z" fill="${c1}"/>
+      <path d="${d}" fill="url(#${id}b)"/>${shade(d)}
+      <circle cx="26" cy="70" r="4" fill="${c0}" opacity=".5"/><circle cx="96" cy="82" r="3" fill="${c0}" opacity=".5"/><circle cx="82" cy="40" r="2.5" fill="${c0}" opacity=".5"/>
+      ${shine(42,40,11,5.5,-35)}
+      ${eye(44,64,9,-1)}${eye(76,64,9,1)}${mouth(60,90,40)}`;
+  } else if(kind==='bruiser'){
+    const sp = (x,y,r)=>`<path d="M${x-7},${y+6}L${x},${y-9}L${x+7},${y+6}Z" fill="url(#${id}h)" transform="rotate(${r},${x},${y})"/>`;
+    body = `${sp(28,36,-35)}${sp(14,54,-60)}${sp(92,36,35)}${sp(106,54,60)}
+      <ellipse cx="34" cy="106" rx="15" ry="8" fill="${c2}"/><ellipse cx="86" cy="106" rx="15" ry="8" fill="${c2}"/>
+      <path d="M32,24 H88 C100,24 106,34 106,48 V84 C106,98 96,106 84,106 H36 C24,106 14,98 14,84 V48 C14,34 20,24 32,24Z" fill="url(#${id}b)"/>
+      ${shade('M32,24 H88 C100,24 106,34 106,48 V84 C106,98 96,106 84,106 H36 C24,106 14,98 14,84 V48 C14,34 20,24 32,24Z')}
+      <rect x="22" y="30" width="22" height="7" rx="3.5" fill="#fff" opacity="${dead?.1:.22}" transform="rotate(-8,30,34)"/>
+      ${!dead && !weak ? `<path d="M34,86 L28,66 L40,80Z" fill="url(#${id}h)"/><path d="M86,86 L92,66 L80,80Z" fill="url(#${id}h)"/>` : `<path d="M34,86 L30,72 L40,82Z" fill="url(#${id}h)"/><path d="M86,86 L90,72 L80,82Z" fill="url(#${id}h)"/>`}
+      ${eye(44,58,7.5,-1)}${eye(76,58,7.5,1)}${mouth(60,88,32)}`;
+  } else if(kind==='wraith'){
+    const d = 'M60,10 C86,10 98,32 98,58 V104 L88,96 L78,108 L68,96 L58,110 L48,96 L38,108 L28,96 L22,104 V58 C22,32 34,10 60,10Z';
+    body = `<path d="M24,64 C8,66 6,84 12,96 C16,84 24,80 28,78Z" fill="${c1}" opacity=".85"/><path d="M96,64 C112,66 114,84 108,96 C104,84 96,80 92,78Z" fill="${c1}" opacity=".85"/>
+      <path d="${d}" fill="url(#${id}b)"/>${shade(d)}
+      ${shine(42,30,9,6,-30)}
+      <ellipse cx="46" cy="52" rx="11" ry="14" fill="${c3}"/><ellipse cx="74" cy="52" rx="11" ry="14" fill="${c3}"/>
+      ${dead ? `<path d="M41,47L51,57M51,47L41,57M69,47L79,57M79,47L69,57" stroke="#bbb" stroke-width="3" stroke-linecap="round"/>` : weak ? `<circle cx="46" cy="53" r="4" fill="${eyeGlow}" opacity=".7"/><circle cx="74" cy="53" r="4" fill="${eyeGlow}" opacity=".7"/>` : `<circle cx="47" cy="54" r="5.5" fill="${eyeGlow}"/><circle cx="73" cy="54" r="5.5" fill="${eyeGlow}"/><circle cx="47" cy="54" r="9" fill="${eyeGlow}" opacity=".25"/><circle cx="73" cy="54" r="9" fill="${eyeGlow}" opacity=".25"/>`}
+      ${!dead ? `<path d="M33,36 L54,46 M87,36 L66,46" stroke="${c3}" stroke-width="4" stroke-linecap="round"/>`:''}
+      ${mouth(60,84,26)}`;
+  } else { // spiker
+    const spikes = Array.from({length:14},(_,i)=>{ const a=i/14*Math.PI*2, cx=60+Math.cos(a)*34, cy=62+Math.sin(a)*34; const ax=Math.cos(a), ay=Math.sin(a); return `<path d="M${(60+ax*30-ay*7).toFixed(1)},${(62+ay*30+ax*7).toFixed(1)} L${(60+ax*52).toFixed(1)},${(62+ay*52).toFixed(1)} L${(60+ax*30+ay*7).toFixed(1)},${(62+ay*30-ax*7).toFixed(1)}Z" fill="${c2}"/>`; }).join('');
+    body = `${spikes}
+      <circle cx="60" cy="62" r="38" fill="url(#${id}b)"/>${shade('M60,24A38,38 0 1 1 59.9,24Z')}
+      ${shine(44,44,10,5,-35)}
+      ${eye(46,58,8,-1)}${eye(74,58,8,1)}${mouth(60,80,30)}`;
+  }
+  return `<svg class="boss-svg" viewBox="0 0 120 120" aria-hidden="true">${defs}
+    <circle cx="60" cy="62" r="58" fill="url(#${id}g)"/>
+    <g class="boss-body${hit?' boss-flinch':''}" style="filter:drop-shadow(0 4px 6px rgba(0,0,0,.45)) drop-shadow(0 0 7px ${glow});opacity:${dead?.7:1};">${body}${cracks}</g>
+    <ellipse cx="60" cy="114" rx="34" ry="4" fill="#000" opacity=".28"/></svg>`;
+}
+
+const BOSS_MOOD_TEXT = {fight:'FULL OF FIGHT', hurt:'WOUNDED', weak:'ONE HIT FROM DEFEAT', dead:'DEFEATED'};
+const BOSS_XP_HIT = 20, BOSS_XP_DEFEAT = 150;
+function bossHpSegs(plan, hitIdx){
+  return plan.inst.map((it,i)=>{
+    const on = !pay3Paid(plan,i);
+    return `<i class="${on?'on':''}${i===hitIdx?' hit':''}" style="--w:${Math.max(1, Math.round(it.amount*100))};"></i>`;
+  }).join('');
+}
+function bossXpFromPlans(){
+  let xp = 0;
+  (state.pay3||[]).forEach(plan=>{
+    if(!plan.inst || !plan.inst.length) return;
+    const paid = plan.inst.filter((_,i)=>pay3Paid(plan,i)).length;
+    xp += paid*BOSS_XP_HIT + (paid>=plan.inst.length ? BOSS_XP_DEFEAT : 0);
+  });
+  return xp;
+}
+// The "hit" moment: a slash across the monster, damage number, and (on the last payment) an ember burst.
+function showBossStrike(plan, idx){
+  if(!state.celebrate || !plan || !plan.inst[idx]) return;
+  const n = plan.inst.length;
+  const paidCount = plan.inst.filter((_,i)=>pay3Paid(plan,i)).length;
+  const defeated = paidCount>=n;
+  const look = bossLook(plan);
+  const amt = plan.inst[idx].amount;
+  const left = round2(plan.inst.reduce((a,it,i)=>a+(pay3Paid(plan,i)?0:it.amount),0));
+  const nextIdx = plan.inst.findIndex((_,i)=>!pay3Paid(plan,i));
+  const fmtDay = str => parseYmd(str).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
+  const gain = BOSS_XP_HIT + (defeated ? BOSS_XP_DEFEAT : 0);
+  const bc = `hsl(${look.hue} 78% 60%)`;
+  let ov = document.getElementById('bossOverlay');
+  if(!ov){ ov = document.createElement('div'); ov.id = 'bossOverlay'; ov.className = 'boss-overlay'; ov.setAttribute('aria-hidden','true'); document.body.appendChild(ov); }
+  const sparks = defeated ? Array.from({length:26}, (_,i)=>{
+    const a = (i/26)*Math.PI*2 + Math.random()*.3, r = 70 + Math.random()*90;
+    const col = ['#ffd9a0','#ffb15a','#ff7a3c','#fff4d0',bc][i%5];
+    return `<i class="bo-p" style="--dx:${Math.round(Math.cos(a)*r)}px;--dy:${Math.round(Math.sin(a)*r)}px;--d:${(.55+Math.random()*.25).toFixed(2)}s;--s:${(4+Math.random()*5).toFixed(1)}px;background:${col};box-shadow:0 0 10px ${col};"></i>`;
+  }).join('') : '';
+  const mood = defeated ? 'weak' : bossMood(paidCount, n);
+  ov.innerHTML = `<div class="bo-card" style="--bc:${bc};">
+    <div class="bo-k">${defeated ? 'BOSS DEFEATED' : 'DIRECT HIT'}</div>
+    <div class="bo-stage${defeated?' defeat':''}">
+      ${bossSvg(look.kind, look.hue, mood, true)}
+      ${defeated ? '' : `<svg class="bo-slash" viewBox="0 0 230 230" aria-hidden="true"><defs><linearGradient id="boSl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff2b0" stop-opacity="0"/><stop offset=".5" stop-color="#fff2b0"/><stop offset="1" stop-color="#ff8a3c" stop-opacity="0"/></linearGradient></defs>
+        <path class="s1" d="M18,40 L212,196" stroke="url(#boSl)" stroke-width="9" stroke-linecap="round" fill="none"/>
+        <path class="s2" d="M48,16 L204,150" stroke="url(#boSl)" stroke-width="5" stroke-linecap="round" fill="none"/></svg>`}
+      ${defeated ? '<i class="bo-ring"></i>' : ''}${sparks}
+      <div class="bo-dmg">${defeated ? '<span class="bo-tick"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>DEFEATED' : '-'+escapeHtml(fmt(amt))}</div>
+    </div>
+    <div class="bo-title">${escapeHtml(look.title)}</div>
+    <div class="bo-sub">${defeated ? `${escapeHtml(plan.name)} is paid off — ${escapeHtml(fmt(plan.total))} cleared` : `Hit ${paidCount} of ${n} landed${nextIdx>=0 ? ' · next ' + fmtDay(plan.inst[nextIdx].date) : ''}`}</div>
+    <div class="bo-panel">
+      <div class="boss-hp-h"><span>HP</span><span>${defeated ? '' : `<s>${escapeHtml(fmt(round2(left+amt)))}</s> `}<b>${escapeHtml(fmt(left))}</b> / ${escapeHtml(fmt(plan.total))}</span></div>
+      <div class="boss-hp">${bossHpSegs(plan, idx)}</div>
+      <div class="bo-chips">
+        <div class="bo-chip xp"><div class="k">XP</div><div class="v">+${gain}</div></div>
+        <div class="bo-chip"><div class="k">${defeated ? 'CLEARED' : 'NEXT HIT'}</div><div class="v sm">${defeated ? escapeHtml(fmt(plan.total)) : nextIdx>=0 ? escapeHtml(fmtDay(plan.inst[nextIdx].date)+' · '+fmt(plan.inst[nextIdx].amount)) : '—'}</div></div>
+      </div>
+    </div>
+    <button class="btn bo-ok" id="boOk">${defeated ? 'Claim victory' : 'Keep going'}</button>
+  </div>`;
+  ov.classList.add('open'); ov.setAttribute('aria-hidden','false');
+  const close = ()=>{ ov.classList.remove('open'); ov.setAttribute('aria-hidden','true'); ov.innerHTML = ''; setTimeout(checkEmberMilestones, 250); };
+  document.getElementById('boOk').onclick = close;
+  ov.onmousedown = ev=>{ if(ev.target===ov) close(); };
+}
+// Called when an instalment is ticked as paid in the Month Tracker.
+function afterOutgoingMarkedDone(item){
+  if(!item.pay3Id || item.status!=='done') return;
+  const plan = (state.pay3||[]).find(p=>p.id===item.pay3Id);
+  if(!plan || !plan.inst[item.pay3Idx]) return;
+  plan.inst[item.pay3Idx].paid = true;
+  showBossStrike(plan, item.pay3Idx);
+}
+
+// ---------------- Lucky embers ----------------
+// After you log something, now and then a spark drifts up. Catch it for bonus XP and a tip. Costs nothing, ever.
+const LUCKY_TIERS = {
+  gold:  {id:'gold',  name:'Golden ember', xp:150, c1:'#ffe08a', c2:'#e0a020', fg:'#ffd66e', line:"A golden one — that's really rare."},
+  rare:  {id:'rare',  name:'Rare ember',   xp:50,  c1:'#7ec8ff', c2:'#2a5bd7', fg:'#7ec8ff', line:"That's a good one. Keep logging."},
+  spark: {id:'spark', name:'Spark',        xp:10,  c1:'#ffb15a', c2:'#e8561a', fg:'#ffb15a', line:'A little spark of luck.'}
+};
+function luckyOrbSvg(t, size){
+  const id = 'lo'+(++bossUid);
+  return `<svg width="${size}" height="${size}" viewBox="0 0 120 120" aria-hidden="true"><defs>
+    <radialGradient id="${id}o" cx="42%" cy="38%" r="65%"><stop offset="0" stop-color="#fff6c8"/><stop offset=".35" stop-color="${t.c1}"/><stop offset="1" stop-color="${t.c2}"/></radialGradient>
+    <radialGradient id="${id}h" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="${t.c1}" stop-opacity=".65"/><stop offset="1" stop-color="${t.c1}" stop-opacity="0"/></radialGradient></defs>
+    <circle cx="60" cy="60" r="58" fill="url(#${id}h)"/>
+    <circle cx="60" cy="60" r="26" fill="url(#${id}o)" style="filter:drop-shadow(0 0 10px ${t.c1});"/>
+    <path d="M60,26 C66,38 76,40 76,52 C76,60 68,66 60,66 C52,66 44,60 44,52 C44,42 56,38 60,26 Z" fill="#fff6c8" opacity=".55"/>
+    <g fill="#fff0c0" class="lk-tw"><circle cx="16" cy="40" r="2"/><circle cx="104" cy="34" r="2.4"/><circle cx="96" cy="92" r="1.8"/><circle cx="22" cy="90" r="1.6"/><circle cx="60" cy="8" r="1.8"/></g></svg>`;
+}
+// Decides whether this log earns a lucky ember (about 1 in 4, and never more than 7 logs apart). Returns a tier or null.
+function luckyRoll(){
+  if(!state.celebrate) return null;
+  const L = state.ember.lucky;
+  L.since = (L.since||0) + 1;
+  if(L.since < 2) return null;
+  if(L.since < 7 && Math.random() > 0.25) return null;
+  L.since = 0;
+  const r = Math.random();
+  return r < 1/40 ? LUCKY_TIERS.gold : r < 1/40 + 1/8 ? LUCKY_TIERS.rare : LUCKY_TIERS.spark;
+}
+const LUCKY_TIPS = [
+  () => 'Small amounts add up: '+fmt(4)+' a day is about '+fmt(1460)+' a year.',
+  () => 'The 24-hour rule: wait a day before any non-essential purchase and half the urges fade.',
+  () => 'Paying yourself first works — move savings out the moment your pay lands.',
+  () => 'Forgotten subscriptions are the most common budget leak. Check the Recurring page now and then.',
+  () => 'The 50/30/20 rule splits pay into needs, wants and savings.',
+  () => 'Round a spend up to the next whole amount and tuck the difference into a pot.',
+  () => 'Checking your budget for five minutes a week beats a big monthly tidy-up.'
+];
+function luckyFact(e){
+  const out = [];
+  if(e.cur>=2) out.push({k:'YOUR STREAK', t:`You've logged ${e.cur} days in a row${e.best>e.cur ? `. Your best ever is ${e.best}.` : ' — your best yet!'}`});
+  out.push({k:'YOUR EMBER', t:`${e.xpToNext} XP to Level ${e.level+1}.`});
+  const m = state.months[monthKey(new Date())];
+  if(m){
+    const today = new Date(); today.setHours(0,0,0,0);
+    let todayTotal = 0; const cats = {};
+    m.outgoings.forEach(o=>{
+      if(!o.quickAdd || !o.ts) return;
+      const amt = Number(o.amount)||0;
+      if(o.ts >= today.getTime()) todayTotal += amt;
+      const c = o.category || o.name; cats[c] = (cats[c]||0) + amt;
+    });
+    if(todayTotal>0) out.push({k:'TODAY', t:`You've logged ${fmt(round2(todayTotal))} of spending today.`});
+    const top = Object.entries(cats).sort((a,b)=>b[1]-a[1])[0];
+    if(top) out.push({k:'YOUR SPENDING', t:`${top[0]} is what you've logged most this month: ${fmt(round2(top[1]))}.`});
+  }
+  const n = daysUntilPayday();
+  if(n!==null && n>0) out.push({k:'PAYDAY', t:`${n} day${n!==1?'s':''} until payday.`});
+  const sum = pay3Summary();
+  if(sum.owed>0) out.push({k:'BOSSES', t:`${fmt(sum.owed)} left to defeat across your Pay in 3 plans.`});
+  const tip = {k:'DID YOU KNOW', t:LUCKY_TIPS[Math.floor(Math.random()*LUCKY_TIPS.length)]()};
+  return Math.random() < 0.6 && out.length ? out[Math.floor(Math.random()*out.length)] : tip;
+}
+function showLuckyEmber(tier){
+  if(document.getElementById('luckyOrb')) return;
+  const orb = document.createElement('button');
+  orb.id = 'luckyOrb'; orb.type = 'button'; orb.className = 'lucky-orb';
+  orb.setAttribute('aria-label','A lucky ember — tap to catch it');
+  orb.innerHTML = `${luckyOrbSvg(LUCKY_TIERS.spark, 130)}<span class="lucky-tag"><b>A lucky ember!</b> Tap to catch it</span>`;
+  document.body.appendChild(orb);
+  const gone = ()=>{ if(orb.isConnected) orb.remove(); };
+  const timer = setTimeout(()=>{ orb.classList.add('out'); setTimeout(gone, 700); }, 7000);
+  orb.onclick = ()=>{ clearTimeout(timer); gone(); catchLuckyEmber(tier); };
+}
+function catchLuckyEmber(tier){
+  const e0 = emberStats();
+  const L = state.ember.lucky;
+  state.ember.bonusXp = (state.ember.bonusXp||0) + tier.xp;
+  L.caught = (L.caught||0) + 1;
+  if(tier.id==='rare') L.rare = (L.rare||0) + 1;
+  if(tier.id==='gold') L.gold = (L.gold||0) + 1;
+  save();
+  const e = emberStats();
+  const fact = luckyFact(e);
+  let ov = document.getElementById('luckyOverlay');
+  if(!ov){ ov = document.createElement('div'); ov.id = 'luckyOverlay'; ov.className = 'boss-overlay lucky'; ov.setAttribute('aria-hidden','true'); document.body.appendChild(ov); }
+  const leveled = e.level > e0.level;
+  const beforePct = e0.levelPct, afterPct = leveled ? 100 : e.levelPct;
+  ov.style.setProperty('--lc', tier.c1);
+  ov.innerHTML = `<div class="bo-card lk-card" style="--bc:${tier.c1};">
+    <div class="bo-k" style="color:${tier.fg};">${escapeHtml(tier.name.toUpperCase())}</div>
+    <div class="lk-stage">${luckyOrbSvg(tier, 170)}</div>
+    <div class="lk-xp" style="color:${tier.fg};text-shadow:0 0 30px ${tier.c1}88;">+${tier.xp} XP</div>
+    <div class="bo-sub">${leveled ? `Level ${e.level} reached!` : escapeHtml(tier.line)}</div>
+    <div class="bo-panel">
+      <div class="boss-hp-h"><span>Ember · <b>Level ${e.level}</b></span><span>${leveled ? 'Level up!' : e.xpToNext+' XP to Level '+(e.level+1)}</span></div>
+      <div class="lk-bar"><i class="base" style="width:${leveled?0:beforePct}%;"></i><i class="gain" style="left:${leveled?0:beforePct}%;width:${leveled?100:Math.max(2,afterPct-beforePct)}%;background:${tier.c1};box-shadow:0 0 10px ${tier.c1};"></i></div>
+    </div>
+    <div class="bo-panel lk-fact"><div class="k" style="color:${tier.fg};">${escapeHtml(fact.k)}</div><div class="t">${escapeHtml(fact.t)}</div></div>
+    <div class="lk-count">Embers caught: <b>${L.caught}</b> · Rare <b style="color:${LUCKY_TIERS.rare.fg};">${L.rare||0}</b> · Golden <b style="color:${LUCKY_TIERS.gold.fg};">${L.gold||0}</b></div>
+    <button class="btn bo-ok" id="lkOk">Nice — got it</button>
+  </div>`;
+  ov.classList.add('open'); ov.setAttribute('aria-hidden','false');
+  const close = ()=>{ ov.classList.remove('open'); ov.setAttribute('aria-hidden','true'); ov.innerHTML = ''; setTimeout(checkEmberMilestones, 250); };
+  document.getElementById('lkOk').onclick = close;
+  ov.onmousedown = ev=>{ if(ev.target===ov) close(); };
+  const hero = document.getElementById('emberBtn'); if(hero) hero.dataset.sig = '';
+  refreshHero();
+}
+
 function renderPay3(){
   syncPay3All();
   if(p3FormOpen===null) p3FormOpen = state.pay3.length===0;
@@ -5616,16 +6023,22 @@ function renderPay3(){
 
   const card = ({p, paidCount, done})=>{
     const left = round2(p.inst.reduce((a,it,i)=>a + (pay3Paid(p,i) ? 0 : it.amount), 0));
-    const pct = Math.round(paidCount/p.inst.length*100);
+    const nextIdx = p.inst.findIndex((_,i)=>!pay3Paid(p,i));
+    const look = bossLook(p), mood = bossMood(paidCount, p.inst.length);
     const prov = PAY3_PROVIDERS[p.provider] ? PAY3_PROVIDERS[p.provider].label.split(' · ')[0] : 'Custom';
-    return `<div class="panel p3-card${done?' p3-done':''}" data-plan="${p.id}">
-      <div class="p3-head">
-        <div class="p3-title"><span class="p3-name">${escapeHtml(p.name)}</span><span class="p3-badge">${escapeHtml(prov)}</span></div>
-        <div class="p3-total">${fmt(p.total)}</div>
+    return `<div class="panel p3-card boss${done?' p3-done':''}" data-plan="${p.id}" style="--bc:hsl(${look.hue} 78% 60%);">
+      <div class="boss-row">
+        <div class="boss-art ${mood}">${bossSvg(look.kind, look.hue, mood)}</div>
+        <div class="boss-info">
+          <div class="boss-mood">${BOSS_MOOD_TEXT[mood]}</div>
+          <span class="p3-name">${escapeHtml(look.title)}</span>
+          <div class="boss-sub"><span>${escapeHtml(p.name)} · ${escapeHtml(prov)} · ${p.inst.length} payments</span>${done?`<span class="boss-xp">+${BOSS_XP_HIT*p.inst.length+BOSS_XP_DEFEAT} XP earned</span>`:''}</div>
+          <div class="boss-hp-h"><span>HP</span><span><b>${escapeHtml(fmt(left))}</b> / ${escapeHtml(fmt(p.total))}</span></div>
+          <div class="boss-hp">${bossHpSegs(p, -1)}</div>
+        </div>
         <button class="del-btn p3-del" aria-label="Delete plan" title="Delete plan">✕</button>
       </div>
-      <div class="p3-progress"><div class="p3-bar"><div class="p3-bar-fill" style="width:${pct}%;"></div></div>
-        <div class="p3-progress-text">${done ? 'All paid ✓' : `${paidCount} of ${p.inst.length} paid · <b>${fmt(left)}</b> left`}</div></div>
+      ${(!done && nextIdx>=0) ? `<button type="button" class="btn boss-cta p3-toggle" data-plan="${p.id}" data-i="${nextIdx}">Strike now — ${escapeHtml(fmt(p.inst[nextIdx].amount))}</button>` : ''}
       <div class="p3-insts">
         ${p.inst.map((it,i)=>{
           const paid = pay3Paid(p,i);
@@ -5710,8 +6123,10 @@ function renderPay3(){
     const plan = state.pay3.find(x=>x.id===b.dataset.plan);
     if(!plan) return;
     const i = Number(b.dataset.i);
-    setPay3Paid(plan, i, !pay3Paid(plan, i));
+    const nowPaid = !pay3Paid(plan, i);
+    setPay3Paid(plan, i, nowPaid);
     renderPay3();
+    if(nowPaid) showBossStrike(plan, i);
   });
   el.querySelectorAll('.p3-del').forEach(b=>b.onclick = ()=>{
     const id = b.closest('.p3-card').dataset.plan;
