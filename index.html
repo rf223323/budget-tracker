@@ -3146,32 +3146,6 @@ function renderMonth(){
     </div>
 
     <div class="panel">
-      <div class="panel-head">
-        <h2>Incoming</h2>
-        <button class="btn small" id="addIncomeBtn">+ Add incoming</button>
-      </div>
-      <table class="responsive-table income-table">
-        <thead><tr><th>Source</th><th style="width:136px;">Category</th><th style="width:128px;">Schedule</th><th style="width:94px;">Amount</th><th style="width:130px;">Status</th><th style="width:106px;">Recurring</th><th style="width:36px;"></th></tr></thead>
-        <tbody id="incomeBody"></tbody>
-      </table>
-    </div>
-
-    <div class="panel">
-      <div class="panel-head">
-        <h2>Outgoings</h2>
-        <button class="btn small" id="addOutgoingBtn">+ Add outgoing</button>
-      </div>
-      <table class="responsive-table">
-        <thead><tr><th>Name</th><th style="width:140px;">Category</th><th style="width:76px;">Day</th><th style="width:120px;">Amount</th><th style="width:116px;">Status</th><th style="width:110px;">Recurring</th><th style="width:36px;"></th></tr></thead>
-        <tbody id="outgoingBody"></tbody>
-      </table>
-      <div class="formula-note">
-        <b>Current Balance</b> = Starting Balance + Incoming marked Done − Weekly Budget marked Done − Outgoings marked Done − Savings (if Done) − Stocks &amp; Shares (if Done).<br>
-        <b>Total Left Over</b> = Starting Balance + all Incoming − Weekly Budget − all Outgoings − Savings − Stocks &amp; Shares (regardless of status) — this becomes next month's Starting Balance.
-      </div>
-    </div>
-
-    <div class="panel">
       <div class="panel-head"><h2>Weekly Budget</h2><span class="hint">amount for each week of the month</span></div>
       <div class="weekly-grid">
         ${['week1','week2','week3','week4'].map((wk,i)=>`
@@ -3208,6 +3182,33 @@ function renderMonth(){
         </div>
       </div>
     </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Incoming</h2>
+        <button class="btn small" id="addIncomeBtn">+ Add incoming</button>
+      </div>
+      <table class="responsive-table income-table">
+        <thead><tr><th>Source</th><th style="width:136px;">Category</th><th style="width:128px;">Schedule</th><th style="width:94px;">Amount</th><th style="width:130px;">Status</th><th style="width:106px;">Recurring</th><th style="width:36px;"></th></tr></thead>
+        <tbody id="incomeBody"></tbody>
+      </table>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Outgoings</h2>
+        <button class="btn small" id="addOutgoingBtn">+ Add outgoing</button>
+      </div>
+      <table class="responsive-table">
+        <thead><tr><th>Name</th><th style="width:140px;">Category</th><th style="width:76px;">Day</th><th style="width:120px;">Amount</th><th style="width:116px;">Status</th><th style="width:110px;">Recurring</th><th style="width:36px;"></th></tr></thead>
+        <tbody id="outgoingBody"></tbody>
+      </table>
+      <div class="formula-note">
+        <b>Current Balance</b> = Starting Balance + Incoming marked Done − Weekly Budget marked Done − Outgoings marked Done − Savings (if Done) − Stocks &amp; Shares (if Done).<br>
+        <b>Total Left Over</b> = Starting Balance + all Incoming − Weekly Budget − all Outgoings − Savings − Stocks &amp; Shares (regardless of status) — this becomes next month's Starting Balance.
+      </div>
+    </div>
+
   `;
 
   const quickAddAmount = document.getElementById('quickAddAmount');
