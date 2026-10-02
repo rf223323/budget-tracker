@@ -459,8 +459,8 @@
   .rc-row input{width:auto;flex-shrink:0;}
   .rc-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px;}
   .rc-name{font-size:13.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .rc-bar{height:6px;border-radius:6px;background:color-mix(in srgb, var(--muted) 20%, transparent);overflow:hidden;display:block;}
-  .rc-bar-fill{display:block;height:100%;border-radius:6px;}
+  .rc-bar{height:6px;border-radius:999px;background:color-mix(in srgb, var(--text) 10%, transparent);display:block;}
+  .rc-bar-fill{display:block;height:100%;min-width:6px;border-radius:999px;background:var(--c);box-shadow:0 0 10px color-mix(in srgb, var(--c) 70%, transparent);}
   .rc-amts{display:flex;flex-direction:column;align-items:flex-end;white-space:nowrap;font-size:13.5px;}
   .rc-amts small{font-size:11px;color:var(--muted);}
   .rc-whatif{margin-top:12px;font-size:13px;color:var(--text);}
@@ -558,8 +558,8 @@
   .sync-dot-pending{background:var(--amber);}
   .cat-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
   .cat-bar-label{width:150px;flex-shrink:0;font-size:13px;display:flex;align-items:center;}
-  .cat-bar-track{flex:1;min-width:80px;background:var(--bg);border-radius:6px;height:16px;overflow:hidden;border:1px solid var(--border);}
-  .cat-bar-fill{height:100%;border-radius:6px;transition:width .2s;}
+  .cat-bar-track{flex:1;min-width:80px;background:color-mix(in srgb, var(--text) 10%, transparent);border-radius:999px;height:8px;}
+  .cat-bar-fill{height:100%;min-width:8px;border-radius:999px;background:var(--c);box-shadow:0 0 12px color-mix(in srgb, var(--c) 70%, transparent);transition:width .2s;}
   .cat-bar-amt{width:120px;flex-shrink:0;text-align:right;font-size:13px;font-weight:600;}
   .cat-bar-pct{color:var(--muted);font-weight:400;font-size:11.5px;}
   .seg-toggle{display:flex;gap:2px;padding:4px;background:var(--panel);border:1px solid var(--border);border-radius:14px;}
@@ -1009,7 +1009,12 @@ const CATEGORY_ICONS = {
 // Categories for money coming in (kept separate from spending categories).
 const INCOME_CATEGORIES = ['Uncategorized','Salary','From friend','From partner','Selling goods'];
 function guessIncomeCategory(name){ return /salary|wage|payroll|\bpay\b/i.test(name||'') ? 'Salary' : 'Uncategorized'; }
-function categoryColor(cat){ return CATEGORY_COLORS[cat] || CATEGORY_COLORS['Other']; }
+// Some themes swap a category colour that clashes with their palette (purple on Ember's warm black).
+const THEME_CATEGORY_COLORS = { ember: {'Bills & Utilities':'#ff7a59'} };
+function categoryColor(cat){
+  const o = THEME_CATEGORY_COLORS[state && state.theme];
+  return (o && o[cat]) || CATEGORY_COLORS[cat] || CATEGORY_COLORS['Other'];
+}
 function categoryIcon(cat){ return CATEGORY_ICONS[cat] || CATEGORY_ICONS['Other']; }
 // Line icons (24px grid, drawn as strokes) for the coloured tiles beside each row.
 const CATEGORY_ICON_PATHS = {
@@ -3655,7 +3660,7 @@ function renderMonthCategoryBreakdown(m){
   barsEl.innerHTML = rows.map(r=>`
     <div class="cat-bar-row">
       <div class="cat-bar-label">${catTile(r.category,'inl')}${escapeHtml(r.category)}</div>
-      <div class="cat-bar-track"><div class="cat-bar-fill" style="width:${max?(r.amount/max*100).toFixed(1):0}%;background:${categoryColor(r.category)};"></div></div>
+      <div class="cat-bar-track"><div class="cat-bar-fill" style="width:${max?(r.amount/max*100).toFixed(1):0}%;--c:${categoryColor(r.category)};"></div></div>
       <div class="cat-bar-amt">${fmt(r.amount)} <span class="cat-bar-pct">(${total?Math.round(r.amount/total*100):0}%)</span></div>
     </div>
   `).join('');
@@ -4091,7 +4096,7 @@ function renderCategoryBreakdown(){
   bars.innerHTML = rows.map(r=>`
     <div class="cat-bar-row">
       <div class="cat-bar-label">${catTile(r.category,'inl')}${escapeHtml(r.category)}</div>
-      <div class="cat-bar-track"><div class="cat-bar-fill" style="width:${max?(r.amount/max*100).toFixed(1):0}%;background:${categoryColor(r.category)};"></div></div>
+      <div class="cat-bar-track"><div class="cat-bar-fill" style="width:${max?(r.amount/max*100).toFixed(1):0}%;--c:${categoryColor(r.category)};"></div></div>
       <div class="cat-bar-amt">${fmt(r.amount)} <span class="cat-bar-pct">(${total?Math.round(r.amount/total*100):0}%)</span></div>
     </div>
   `).join('');
@@ -4143,7 +4148,7 @@ function renderCategoryDeltas(monthKey, mode, elId, kind){
       const good = isIncome ? up : !up;
       return `<div class="delta-row">
         <span class="delta-arrow ${good?'delta-down':'delta-up'}">${up?'▲':'▼'}</span>
-        <span class="delta-icon">${categoryIcon(d.category)}</span>
+        ${catTile(d.category)}
         <span class="delta-text">${text}</span>
       </div>`;
     }).join('')}
@@ -4656,7 +4661,7 @@ function renderQuarterly(){
         ${qs.catRows.slice(0,6).map(r=>`
           <div class="cat-bar-row">
             <div class="cat-bar-label">${catTile(r.category,'inl')}${escapeHtml(r.category)}</div>
-            <div class="cat-bar-track"><div class="cat-bar-fill" style="width:${qs.catRows[0].amount?(r.amount/qs.catRows[0].amount*100).toFixed(1):0}%;background:${categoryColor(r.category)};"></div></div>
+            <div class="cat-bar-track"><div class="cat-bar-fill" style="width:${qs.catRows[0].amount?(r.amount/qs.catRows[0].amount*100).toFixed(1):0}%;--c:${categoryColor(r.category)};"></div></div>
             <div class="cat-bar-amt">${fmt(r.amount)}</div>
           </div>
         `).join('')}
@@ -5447,7 +5452,7 @@ function recurringSummaryHtml(m){
         ${items.map(o=>`<label class="rc-row">
           <input type="checkbox" class="rc-check" data-id="${o.id}" ${recurWhatIf.has(o.id)?'checked':''}>
           ${catTile(o.category||'Uncategorized','sm')}
-          <span class="rc-main"><span class="rc-name">${escapeHtml(o.name||'Unnamed')}${o._from?` <small class="rc-from">from ${escapeHtml(monthLabelFromKey(o._from).split(' ')[0])}</small>`:''}</span><span class="rc-bar"><span class="rc-bar-fill" style="width:${(o.amount/max*100).toFixed(1)}%;background:${categoryColor(o.category||'Uncategorized')};"></span></span></span>
+          <span class="rc-main"><span class="rc-name">${escapeHtml(o.name||'Unnamed')}${o._from?` <small class="rc-from">from ${escapeHtml(monthLabelFromKey(o._from).split(' ')[0])}</small>`:''}</span><span class="rc-bar"><span class="rc-bar-fill" style="width:${(o.amount/max*100).toFixed(1)}%;--c:${categoryColor(o.category||'Uncategorized')};"></span></span></span>
           <span class="rc-amts"><b>${escapeHtml(fmt(o.amount))}</b><small>${escapeHtml(fmt(o.amount*12))} / yr</small></span>
         </label>`).join('')}
       </div>
