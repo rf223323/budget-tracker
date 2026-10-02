@@ -109,6 +109,17 @@
   .card .v.pos{color:var(--green);}
   .card .v.neg{color:var(--red);}
   .card .sub{font-size:11.5px;color:var(--muted);margin-top:4px;}
+  .spark{position:relative;height:26px;margin:10px 4px 0 0;color:var(--muted);}
+  .spark.good{color:var(--green);}
+  .spark.bad{color:var(--red);}
+  .spark svg{display:block;width:100%;height:100%;overflow:visible;}
+  .spark .spark-line{fill:none;stroke:currentColor;stroke-width:1.6;vector-effect:non-scaling-stroke;stroke-linejoin:round;stroke-linecap:round;}
+  .spark .spark-area{fill:currentColor;opacity:.12;stroke:none;}
+  .spark-dot{position:absolute;right:0;width:6px;height:6px;border-radius:50%;background:currentColor;transform:translate(50%,-50%);box-shadow:0 0 0 3px color-mix(in srgb, currentColor 22%, transparent);}
+  @keyframes sparkReveal{from{clip-path:inset(-4px 100% -4px -4px);}to{clip-path:inset(-4px -6px -4px -4px);}}
+  @keyframes sparkDot{from{opacity:0;}to{opacity:1;}}
+  .spark.anim svg{animation:sparkReveal .75s ease both;animation-delay:calc(var(--i, 0) * 60ms + .25s);}
+  .spark.anim .spark-dot{animation:sparkDot .3s ease both;animation-delay:calc(var(--i, 0) * 60ms + .9s);}
   .trend-arrow{font-size:11.5px;font-weight:700;margin-top:6px;}
   .trend-arrow.trend-good{color:var(--green);}
   .trend-arrow.trend-bad{color:var(--red);}
@@ -162,6 +173,29 @@
   .empty{color:var(--muted);font-size:13px;text-align:center;padding:22px 10px;}
 
   .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.35);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:50;}
+  .modal.recap-modal{width:min(460px,92vw);max-height:88vh;overflow-y:auto;padding:26px 24px;}
+  .recap-eyebrow{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);font-weight:700;}
+  .recap-title{font-size:24px;font-weight:800;margin:4px 0 2px;}
+  .recap-sub{font-size:12.5px;color:var(--muted);}
+  .recap-hero{margin:18px 0 14px;padding:18px;border-radius:14px;text-align:center;border:1px solid color-mix(in srgb, var(--accent) 30%, var(--border));background:linear-gradient(135deg, color-mix(in srgb, var(--accent) 18%, transparent), color-mix(in srgb, var(--accent2) 14%, transparent));}
+  .recap-hero .lbl{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:600;}
+  .recap-hero .big{font-size:34px;font-weight:800;margin-top:4px;}
+  .recap-hero .big.pos{color:var(--green);}
+  .recap-hero .big.neg{color:var(--red);}
+  .recap-hero .note{font-size:12px;color:var(--muted);margin-top:4px;}
+  .recap-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:14px;}
+  .recap-tile{background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:11px 12px;}
+  .recap-tile .k{font-size:10.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em;}
+  .recap-tile .v{font-size:15px;font-weight:700;margin-top:3px;}
+  .recap-rows{display:flex;flex-direction:column;gap:8px;}
+  .recap-row{display:flex;align-items:center;gap:11px;padding:10px 12px;background:var(--panel2);border:1px solid var(--border);border-radius:12px;}
+  .recap-row .rl{flex:1;min-width:0;}
+  .recap-row .rt{font-size:11px;color:var(--muted);}
+  .recap-row .rv{font-size:13.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .recap-row .ramt{font-size:13.5px;font-weight:700;text-align:right;white-space:nowrap;}
+  .recap-row .ramt small{display:block;font-size:11px;font-weight:600;color:var(--muted);}
+  .recap-empty{text-align:center;color:var(--muted);font-size:13px;padding:18px 0 6px;}
+  @media (max-width:520px){.recap-btn-text{display:none;}.recap-tile{padding:10px 9px;}.recap-tile .v{font-size:13px;}}
   .toast-stack{position:fixed;right:18px;bottom:18px;z-index:200;display:flex;flex-direction:column-reverse;gap:10px;pointer-events:none;}
   .toast{pointer-events:auto;display:flex;align-items:center;gap:12px;background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;box-shadow:0 12px 32px rgba(0,0,0,.35);max-width:320px;
     opacity:0;transform:translateY(10px) scale(.98);transition:opacity .25s ease,transform .25s ease;
@@ -399,6 +433,7 @@
           <div class="label" id="monthLabel">—</div>
           <button id="nextMonth">›</button>
         </div>
+        <button class="btn secondary" id="recapBtn" title="Recap of this month">✨<span class="recap-btn-text"> Recap</span></button>
         <button class="btn" id="newMonthBtn">+ New Month</button>
       </div>
     </div>
@@ -894,6 +929,49 @@ function trendArrowHtml(cur, prev, goodDirection){
   const good = goodDirection==='up' ? up : !up;
   const arrow = up ? '▲' : '▼';
   return `<div class="trend-arrow ${good?'trend-good':'trend-bad'}">${arrow} ${Math.abs(Math.round(diffPct))}% vs last month</div>`;
+}
+// Up to the last 6 tracked months (ending at forKey) of one figure, oldest
+// first. pick(monthObj, totals) returns the number to plot for each month.
+function sparkSeries(forKey, pick){
+  const keys = Object.keys(state.months).sort();
+  const idx = keys.indexOf(forKey);
+  if(idx<0) return [];
+  return keys.slice(Math.max(0, idx-5), idx+1).map(k=>pick(state.months[k], monthTotals(state.months[k])));
+}
+// A tiny trend line for a summary card. The line and end dot are green/red
+// by whether the latest move is good news for that metric (goodDirection as
+// in trendArrowHtml), grey when flat. Needs at least two months of history.
+function sparklineHtml(values, goodDirection, animate){
+  if(values.length<2) return '';
+  const min = Math.min(...values), max = Math.max(...values);
+  const span = max-min;
+  const pts = values.map((v,i)=>({
+    x: i/(values.length-1)*100,
+    y: span<0.005 ? 12 : 21 - ((v-min)/span)*18
+  }));
+  const line = pts.map((p,i)=>`${i?'L':'M'}${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(' ');
+  const area = `${line} L100,24 L0,24 Z`;
+  const diff = values[values.length-1] - values[values.length-2];
+  const tone = Math.abs(diff)<0.005 ? 'flat' : ((goodDirection==='up' ? diff>0 : diff<0) ? 'good' : 'bad');
+  const last = pts[pts.length-1];
+  const label = `Last ${values.length} months: ${values.map(fmt).join(' → ')}`;
+  return `<div class="spark ${tone}${animate?' anim':''}" title="${escapeHtml(label)}">
+    <svg viewBox="0 0 100 24" preserveAspectRatio="none" aria-hidden="true"><path class="spark-area" d="${area}"/><path class="spark-line" d="${line}"/></svg>
+    <span class="spark-dot" style="top:${(last.y/24*100).toFixed(1)}%;"></span>
+  </div>`;
+}
+// Spark strip for one Month Tracker card. field picks the figure to plot.
+const CARD_SPARKS = {
+  sb:  {pick:(m)=>Number(m.startingBalance)||0, dir:'up'},
+  lb:  {pick:(m,t)=>t.liveBalance, dir:'up'},
+  tlo: {pick:(m,t)=>t.totalLeftOver, dir:'up'},
+  inc: {pick:(m,t)=>t.allIncoming, dir:'up'},
+  wk:  {pick:(m,t)=>t.weeklyTotal, dir:'down'},
+  out: {pick:(m,t)=>t.allOutgoing, dir:'down'}
+};
+function cardSparkHtml(forKey, name, animate){
+  const c = CARD_SPARKS[name];
+  return sparklineHtml(sparkSeries(forKey, c.pick), c.dir, animate);
 }
 // mode: 'all' = every outgoing regardless of status, 'done' = only what's actually been spent.
 function categoryBreakdown(m, mode){
@@ -1572,12 +1650,12 @@ function renderMonth(){
     </div>
 
     <div class="grid">
-      <div class="card stagger-card" style="--i:0;"><div class="k">Starting Balance</div><div class="v"><input type="number" step="0.01" id="startingBalanceInput" value="${m.startingBalance}" style="font-size:19px;font-weight:700;padding:4px 6px;"></div><div class="sub">carried from last month</div></div>
-      <div class="card highlight stagger-card" style="--i:1;"><div class="k">Current Balance</div><div class="v"><input type="number" step="0.01" id="liveBalanceInput" value="${t.liveBalance}" style="font-size:19px;font-weight:700;padding:4px 6px;color:${t.liveBalance>=0?'var(--green)':'var(--red)'};"></div><div class="sub" id="liveBalanceSub">${t.adjustment ? `${fmt(t.adjustment)} manual adjustment · <a href="#" id="clearAdjustment" style="color:var(--red);text-decoration:underline;">clear</a>` : 'edit directly for deviations — updates as items are marked Done'}</div><div id="liveBalanceTrend">${trendArrowHtml(t.liveBalance, pt&&pt.liveBalance, 'up')}</div></div>
-      <div class="card stagger-card" style="--i:2;"><div class="k">Total Left Over</div><div class="v ${t.totalLeftOver>=0?'pos':'neg'}" id="totalLeftOverVal">${fmt(t.totalLeftOver)}</div><div class="sub">→ next month's starting balance</div><div id="totalLeftOverTrend">${trendArrowHtml(t.totalLeftOver, pt&&pt.totalLeftOver, 'up')}</div></div>
-      <div class="card stagger-card" style="--i:3;"><div class="k">Incoming</div><div class="v pos" id="incomingVal">${fmt(t.allIncoming)}</div><div class="sub" id="incomingSub">${fmt(t.doneIncoming)} done</div><div id="incomingTrend">${trendArrowHtml(t.allIncoming, pt&&pt.allIncoming, 'up')}</div></div>
-      <div class="card stagger-card" style="--i:4;"><div class="k">Weekly Budget</div><div class="v neg" id="weeklyVal">${fmt(t.weeklyTotal)}</div><div class="sub" id="weeklySub">${fmt(t.doneWeekly)} done</div><div id="weeklyTrend">${trendArrowHtml(t.weeklyTotal, pt&&pt.weeklyTotal, 'down')}</div></div>
-      <div class="card stagger-card" style="--i:5;"><div class="k">Outgoings</div><div class="v neg" id="outgoingVal">${fmt(t.allOutgoing)}</div><div class="sub" id="outgoingSub">${fmt(t.doneOutgoing)} done</div><div id="outgoingTrend">${trendArrowHtml(t.allOutgoing, pt&&pt.allOutgoing, 'down')}</div></div>
+      <div class="card stagger-card" style="--i:0;"><div class="k">Starting Balance</div><div class="v"><input type="number" step="0.01" id="startingBalanceInput" value="${m.startingBalance}" style="font-size:19px;font-weight:700;padding:4px 6px;"></div><div class="sub">carried from last month</div><div id="sparkSb">${cardSparkHtml(state.currentMonthKey,'sb',true)}</div></div>
+      <div class="card highlight stagger-card" style="--i:1;"><div class="k">Current Balance</div><div class="v"><input type="number" step="0.01" id="liveBalanceInput" value="${t.liveBalance}" style="font-size:19px;font-weight:700;padding:4px 6px;color:${t.liveBalance>=0?'var(--green)':'var(--red)'};"></div><div class="sub" id="liveBalanceSub">${t.adjustment ? `${fmt(t.adjustment)} manual adjustment · <a href="#" id="clearAdjustment" style="color:var(--red);text-decoration:underline;">clear</a>` : 'edit directly for deviations — updates as items are marked Done'}</div><div id="liveBalanceTrend">${trendArrowHtml(t.liveBalance, pt&&pt.liveBalance, 'up')}</div><div id="sparkLb">${cardSparkHtml(state.currentMonthKey,'lb',true)}</div></div>
+      <div class="card stagger-card" style="--i:2;"><div class="k">Total Left Over</div><div class="v ${t.totalLeftOver>=0?'pos':'neg'}" id="totalLeftOverVal">${fmt(t.totalLeftOver)}</div><div class="sub">→ next month's starting balance</div><div id="totalLeftOverTrend">${trendArrowHtml(t.totalLeftOver, pt&&pt.totalLeftOver, 'up')}</div><div id="sparkTlo">${cardSparkHtml(state.currentMonthKey,'tlo',true)}</div></div>
+      <div class="card stagger-card" style="--i:3;"><div class="k">Incoming</div><div class="v pos" id="incomingVal">${fmt(t.allIncoming)}</div><div class="sub" id="incomingSub">${fmt(t.doneIncoming)} done</div><div id="incomingTrend">${trendArrowHtml(t.allIncoming, pt&&pt.allIncoming, 'up')}</div><div id="sparkInc">${cardSparkHtml(state.currentMonthKey,'inc',true)}</div></div>
+      <div class="card stagger-card" style="--i:4;"><div class="k">Weekly Budget</div><div class="v neg" id="weeklyVal">${fmt(t.weeklyTotal)}</div><div class="sub" id="weeklySub">${fmt(t.doneWeekly)} done</div><div id="weeklyTrend">${trendArrowHtml(t.weeklyTotal, pt&&pt.weeklyTotal, 'down')}</div><div id="sparkWk">${cardSparkHtml(state.currentMonthKey,'wk',true)}</div></div>
+      <div class="card stagger-card" style="--i:5;"><div class="k">Outgoings</div><div class="v neg" id="outgoingVal">${fmt(t.allOutgoing)}</div><div class="sub" id="outgoingSub">${fmt(t.doneOutgoing)} done</div><div id="outgoingTrend">${trendArrowHtml(t.allOutgoing, pt&&pt.allOutgoing, 'down')}</div><div id="sparkOut">${cardSparkHtml(state.currentMonthKey,'out',true)}</div></div>
     </div>
 
     <div class="panel">
@@ -1927,6 +2005,16 @@ function renderMonth(){
     document.getElementById('outgoingVal').textContent = fmt(t2.allOutgoing);
     document.getElementById('outgoingSub').textContent = `${fmt(t2.doneOutgoing)} done`;
     document.getElementById('outgoingTrend').innerHTML = trendArrowHtml(t2.allOutgoing, pt2&&pt2.allOutgoing, 'down');
+    [['sparkSb','sb'],['sparkLb','lb'],['sparkTlo','tlo'],['sparkInc','inc'],['sparkWk','wk'],['sparkOut','out']].forEach(([id,name])=>{
+      const el = document.getElementById(id);
+      const sig = JSON.stringify(sparkSeries(state.currentMonthKey, CARD_SPARKS[name].pick));
+      // First refresh after a render just records what the template already drew,
+      // so the draw-in animation isn't cut short; later ones redraw only on change.
+      if(el.dataset.sig===sig) return;
+      const firstPass = el.dataset.sig===undefined;
+      el.dataset.sig = sig;
+      if(!firstPass) el.innerHTML = cardSparkHtml(state.currentMonthKey, name, false);
+    });
     renderMonthCategoryBreakdown(m);
   }
 }
@@ -2908,6 +2996,97 @@ function importJson(e){
   reader.readAsText(file);
 }
 
+// ---------------- Month recap ----------------
+// Gathers the highlights for one tracked month: headline figures, its biggest
+// category and single spend, and how spending compares to the month before.
+function monthRecapData(key){
+  const m = state.months[key];
+  if(!m) return null;
+  const t = monthTotals(m);
+  const keys = Object.keys(state.months).sort();
+  const idx = keys.indexOf(key);
+  const prevKey = idx>0 ? keys[idx-1] : null;
+  const pt = prevKey ? monthTotals(state.months[prevKey]) : null;
+  const spent = round2(t.allOutgoing + t.weeklyTotal);
+  const earned = t.allIncoming;
+  const saved = round2(t.savingsAmount + t.stocksAmount);
+  const net = round2(t.totalLeftOver - (Number(m.startingBalance)||0));
+  const cats = categoryBreakdown(m, 'all');
+  const catTotal = cats.reduce((s,r)=>s+r.amount,0);
+  const topCat = cats[0] ? {...cats[0], pct: catTotal ? Math.round(cats[0].amount/catTotal*100) : 0} : null;
+  const biggest = m.outgoings.filter(o=>(Number(o.amount)||0)>0).sort((a,b)=>b.amount-a.amount)[0] || null;
+  const prevSpent = pt ? round2(pt.allOutgoing + pt.weeklyTotal) : null;
+  const spendChangePct = prevSpent>=0.01 ? Math.round((spent-prevSpent)/prevSpent*100) : null;
+  return {key, prevKey, spent, earned, saved, net, topCat, biggest, spendChangePct, active: spent>0 || earned>0};
+}
+function closeRecapModal(){
+  const bg = document.getElementById('modalBg');
+  bg.classList.remove('open');
+  bg.onclick = null;
+  document.getElementById('modalBox').className = 'modal';
+}
+function openRecapModal(key, opts){
+  opts = opts||{};
+  const d = monthRecapData(key);
+  if(!d) return;
+  const bg = document.getElementById('modalBg');
+  const box = document.getElementById('modalBox');
+  box.className = 'modal recap-modal';
+  const rows = [];
+  if(d.topCat){
+    rows.push(`<div class="recap-row stagger-card" style="--i:4;">
+      <span class="cat-dd-chip" style="background:${categoryColor(d.topCat.category)};">${categoryIcon(d.topCat.category)}</span>
+      <div class="rl"><div class="rt">Top category</div><div class="rv">${escapeHtml(d.topCat.category)}</div></div>
+      <div class="ramt">${fmt(d.topCat.amount)}<small>${d.topCat.pct}% of categorised</small></div></div>`);
+  }
+  if(d.biggest){
+    const bc = d.biggest.category || 'Uncategorized';
+    rows.push(`<div class="recap-row stagger-card" style="--i:5;">
+      <span class="cat-dd-chip" style="background:${categoryColor(bc)};">${categoryIcon(bc)}</span>
+      <div class="rl"><div class="rt">Biggest single spend</div><div class="rv">${escapeHtml(d.biggest.name||'Unnamed')}</div></div>
+      <div class="ramt">${fmt(d.biggest.amount)}<small>${escapeHtml(bc)}</small></div></div>`);
+  }
+  if(d.spendChangePct!==null){
+    const up = d.spendChangePct>0;
+    const flat = d.spendChangePct===0;
+    rows.push(`<div class="recap-row stagger-card" style="--i:6;">
+      <span class="cat-dd-chip" style="background:var(--panel);border:1px solid var(--border);">${flat?'＝':up?'▲':'▼'}</span>
+      <div class="rl"><div class="rt">Spending vs ${monthLabelFromKey(d.prevKey)}</div><div class="rv" style="color:${flat?'var(--muted)':up?'var(--red)':'var(--green)'};">${flat?'No change':`${up?'Up':'Down'} ${Math.abs(d.spendChangePct)}%`}</div></div></div>`);
+  }
+  if(d.earned>0 && d.saved>0){
+    rows.push(`<div class="recap-row stagger-card" style="--i:7;">
+      <span class="cat-dd-chip" style="background:var(--accent);color:var(--on-accent);">💰</span>
+      <div class="rl"><div class="rt">Savings rate</div><div class="rv">Put away ${Math.round(d.saved/d.earned*100)}% of income</div></div>
+      <div class="ramt">${fmt(d.saved)}</div></div>`);
+  }
+  box.innerHTML = `
+    <div class="recap-eyebrow">Month recap</div>
+    <div class="recap-title">${monthLabelFromKey(d.key)}</div>
+    <div class="recap-sub">${opts.fromNewMonth ? 'Here\'s how that month wrapped up.' : 'Your month in review.'}</div>
+    ${d.active ? `
+      <div class="recap-hero stagger-card" style="--i:0;">
+        <div class="lbl">Net change this month</div>
+        <div class="big ${d.net>=0?'pos':'neg'}" id="recapNet">${fmt(0)}</div>
+        <div class="note">${d.net>=0?'You ended the month ahead.':'You spent more than came in.'}</div>
+      </div>
+      <div class="recap-tiles">
+        <div class="recap-tile stagger-card" style="--i:1;"><div class="k">Earned</div><div class="v" style="color:var(--green);">${fmt(d.earned)}</div></div>
+        <div class="recap-tile stagger-card" style="--i:2;"><div class="k">Spent</div><div class="v" style="color:var(--red);">${fmt(d.spent)}</div></div>
+        <div class="recap-tile stagger-card" style="--i:3;"><div class="k">Saved</div><div class="v">${fmt(d.saved)}</div></div>
+      </div>
+      <div class="recap-rows">${rows.join('')}</div>`
+    : `<div class="recap-empty">Nothing tracked in this month yet — add some income or outgoings and the recap will fill in.</div>`}
+    <div class="actions"><button class="btn small" id="recapClose">${opts.fromNewMonth ? 'Continue' : 'Close'}</button></div>`;
+  bg.classList.add('open');
+  bg.onclick = e=>{ if(e.target===bg) closeRecapModal(); };
+  document.getElementById('recapClose').onclick = closeRecapModal;
+  if(d.active){
+    const netEl = document.getElementById('recapNet');
+    netEl.dataset.animValue = '0';
+    setTimeout(()=>animateNumberText(netEl, d.net, 900), 150);
+  }
+}
+
 // ---------------- modal ----------------
 function openConfirmModal(title, body, onConfirm){
   const bg = document.getElementById('modalBg');
@@ -2952,7 +3131,9 @@ document.querySelectorAll('.nav-item').forEach(n=>{
 });
 document.getElementById('prevMonth').onclick = ()=>{ state.currentMonthKey = shiftKey(state.currentMonthKey,-1); ensureMonth(state.currentMonthKey); save(); render(); };
 document.getElementById('nextMonth').onclick = ()=>{ state.currentMonthKey = shiftKey(state.currentMonthKey,1); ensureMonth(state.currentMonthKey); save(); render(); };
+document.getElementById('recapBtn').onclick = ()=>openRecapModal(state.currentMonthKey);
 document.getElementById('newMonthBtn').onclick = ()=>{
+  const leavingKey = state.currentMonthKey;
   const current = ensureMonth(state.currentMonthKey);
   const leftOver = monthTotals(current).totalLeftOver;
   const nextKey = shiftKey(state.currentMonthKey, 1);
@@ -2963,6 +3144,8 @@ document.getElementById('newMonthBtn').onclick = ()=>{
   state.currentMonthKey = nextKey;
   save();
   render();
+  const recap = monthRecapData(leavingKey);
+  if(recap && recap.active) openRecapModal(leavingKey, {fromNewMonth:true});
 };
 document.getElementById('themeSelect').onchange = e=>{
   state.theme = e.target.value;
