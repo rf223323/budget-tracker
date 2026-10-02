@@ -290,6 +290,56 @@
   .modal h3{margin:0 0 14px;font-size:16px;}
   .modal .actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;}
 
+  /* Main card: greeting, balance, income/outgoings and safe-to-spend in one place. */
+  .hero-card{border-radius:calc(var(--radius) + 6px);padding:24px 26px 20px;margin-bottom:20px;border:1px solid color-mix(in srgb, var(--accent) 38%, var(--border));background:linear-gradient(135deg, color-mix(in srgb, var(--accent) 30%, var(--panel)) 0%, color-mix(in srgb, var(--accent) 8%, var(--panel)) 55%, var(--panel) 100%);box-shadow:var(--shadow);}
+  .hero-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1.5fr);gap:32px;align-items:center;}
+  .hero-hi{font-size:16px;font-weight:800;}
+  .hero-date{font-size:12.5px;color:var(--muted);margin-top:1px;}
+  .hero-label{margin-top:20px;font-size:12.5px;font-weight:600;color:var(--muted);}
+  .hero-bal{display:flex;align-items:baseline;gap:3px;margin-top:2px;}
+  .hero-cur{font-size:50px;font-weight:800;letter-spacing:-.035em;line-height:1.05;color:var(--muted);}
+  .hero-card .hero-bal-input{display:block;flex:1;min-width:0;width:100%;margin-top:0;padding:0;border:none;background:none;outline:none;box-shadow:none;font:inherit;font-size:50px;font-weight:800;letter-spacing:-.035em;line-height:1.05;color:var(--text);}
+  .hero-card .hero-bal-input:focus{border-bottom:1px dashed var(--muted);}
+  .hero-sub{font-size:11.5px;color:var(--muted);margin-top:4px;}
+  .hero-payday{display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:5px 11px;border-radius:999px;background:color-mix(in srgb, var(--panel) 70%, transparent);border:1px solid var(--border);font-size:12px;font-weight:700;}
+  .hero-payday svg{width:13px;height:13px;}
+  .hero-payday:empty{display:none;}
+  .hero-chips{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;}
+  .hero-chip{padding:16px 18px;border-radius:18px;background:color-mix(in srgb, var(--panel) 70%, transparent);border:1px solid color-mix(in srgb, var(--text) 8%, var(--border));}
+  .hc-k{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:var(--muted);}
+  .hc-dot{width:9px;height:9px;border-radius:50%;background:var(--d);box-shadow:0 0 9px var(--d);}
+  .hc-v{margin-top:7px;font-size:26px;font-weight:800;letter-spacing:-.015em;}
+  .hc-s{margin-top:3px;font-size:12px;color:var(--muted);}
+  .hc-bar{margin-top:12px;height:5px;border-radius:999px;background:color-mix(in srgb, var(--text) 12%, transparent);overflow:hidden;}
+  .hc-bar i{display:block;height:100%;background:var(--d);border-radius:999px;transition:width .4s ease;}
+  .hero-card .safe-spend{margin:18px 0 0;padding:16px 0 0;background:none;border:none;border-top:1px solid color-mix(in srgb, var(--text) 10%, transparent);border-radius:0;box-shadow:none;}
+  @media (max-width:860px){
+    .hero-card{padding:18px 16px 16px;}
+    .hero-grid{grid-template-columns:1fr;gap:16px;}
+    .hero-label{margin-top:14px;}
+    .hero-card .hero-bal-input,.hero-cur{font-size:40px;}
+    .hero-chips{gap:10px;}
+    .hero-chip{padding:12px;border-radius:16px;}
+    .hc-v{font-size:19px;margin-top:5px;}
+    .hc-s{font-size:11px;}
+    .hc-bar{margin-top:9px;}
+    .hero-card .safe-spend{padding:14px 0 0;margin-top:14px;}
+    .grid-3 .card:nth-child(3){grid-column:1 / -1;}
+  }
+  /* Quick Add */
+  .qa-seg{margin-bottom:14px;}
+  .qa-fields{display:grid;grid-template-columns:160px minmax(0,1fr);gap:10px;}
+  .qa-amount{display:flex;align-items:center;gap:6px;height:48px;padding:0 14px;border-radius:14px;background:var(--bg);border:1px solid var(--border);}
+  .qa-amount:focus-within,.qa-fields > input:focus{border-color:var(--accent);}
+  .qa-amount .qa-cur{font-size:18px;font-weight:800;color:var(--muted);}
+  .quick-add-panel .qa-amount input{flex:1;min-width:0;max-width:none;width:100%;padding:0;border:none;background:none;outline:none;box-shadow:none;font:inherit;font-size:18px;font-weight:800;color:var(--text);}
+  .quick-add-panel .qa-fields > input{height:48px;max-width:none;border-radius:14px;padding:0 14px;font-size:13.5px;}
+  .qa-foot{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:14px;}
+  .qa-btns{display:flex;align-items:center;gap:8px;}
+  .qa-scan{display:inline-flex;align-items:center;gap:7px;cursor:pointer;margin:0;}
+  .qa-scan svg{width:15px;height:15px;}
+  .qa-meta{display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap;}
+  .hero-ico{width:15px;height:15px;vertical-align:-3px;}
   .safe-spend{display:flex;gap:24px;align-items:center;flex-wrap:wrap;background:linear-gradient(135deg, color-mix(in srgb, var(--accent) 12%, var(--panel)), color-mix(in srgb, var(--accent2) 8%, var(--panel)));}
   .ss-main{min-width:210px;flex:0 1 260px;}
   .ss-label{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:700;}
@@ -703,11 +753,11 @@
     .spark{height:30px;margin-top:8px;}
     .card .k{font-size:10.5px;}
     .quick-add-panel .panel-head .hint{display:none;}
-    .quick-add-panel .qa-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:stretch;}
-    .quick-add-panel .qa-row #quickAddReason{grid-column:1 / -1;max-width:none !important;min-width:0 !important;}
-    .quick-add-panel .qa-row .cat-dd{grid-column:1;max-width:none;width:100%;}
-    .quick-add-panel .qa-row .btn{grid-column:2;}
-    .quick-add-panel .qa-actions{flex-direction:row;flex-wrap:wrap;align-items:center;margin-top:10px !important;}
+    .qa-fields{grid-template-columns:128px minmax(0,1fr);gap:8px;}
+    .qa-foot{display:grid;grid-template-columns:1fr;gap:10px;}
+    .quick-add-panel .cat-dd{max-width:none;width:100%;}
+    .qa-btns{display:grid;grid-template-columns:1fr 1fr;}
+    .qa-btns .btn{justify-content:center;text-align:center;}
     .ss-toggle{display:inline-flex;align-items:center;gap:6px;margin-top:10px;background:none;border:none;padding:0;font:inherit;font-size:12px;font-weight:600;color:var(--accent);cursor:pointer;}
     .ss-caret{display:inline-block;transition:transform .15s ease;}
     .safe-spend.open .ss-caret{transform:rotate(180deg);}
@@ -845,7 +895,7 @@
           <div class="label" id="monthLabel">—</div>
           <button id="nextMonth">›</button>
         </div>
-        <button class="btn secondary" id="recapBtn" title="Recap of this month">✨<span class="recap-btn-text"> Recap</span></button>
+        <button class="btn secondary" id="recapBtn" title="Recap of this month"><svg class="hero-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg><span class="recap-btn-text"> Recap</span></button>
         <button class="btn" id="newMonthBtn">+ New Month</button>
       </div>
     </div>
@@ -2906,6 +2956,29 @@ function refreshSafeSpend(){
     `<span class="ss-pair"><span class="ss-op">=</span><span class="ss-chip ss-free"><b>${escapeHtml(fmt(d.free))}</b>Free</span></span>` +
     (d.pendingIncoming>=0.005 ? `<div class="ss-note">${escapeHtml(fmt(d.pendingIncoming))} of income still to arrive isn't counted.</div>` : '');
 }
+// Greeting, date and "payday in N days" for the Month Tracker's main card.
+function refreshHero(){
+  const hi = document.getElementById('heroHi');
+  if(!hi) return;
+  const prof = activeProfileMeta();
+  const name = prof && prof.name && !/^my budget$/i.test(prof.name.trim()) ? prof.name.trim() : '';
+  const now = new Date();
+  const isCurrent = state.currentMonthKey===monthKey(now);
+  hi.textContent = name ? `Hey, ${name}` : 'Hey there';
+  document.getElementById('heroDate').textContent = isCurrent
+    ? now.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'})
+    : monthLabelFromKey(state.currentMonthKey);
+  const pill = document.getElementById('heroPayday');
+  let txt = '';
+  if(isCurrent){
+    const cf = computeCashflow(state.currentMonthKey, 0, 0);
+    if(cf && !cf.past && !cf.noPay){
+      const n = cf.endDay - cf.startDay;
+      txt = n<=0 ? 'Payday today' : n===1 ? 'Payday tomorrow' : `${n} days until payday`;
+    }
+  }
+  pill.innerHTML = txt ? `${iconSvg(CALENDAR_ICON_PATH)}${escapeHtml(txt)}` : '';
+}
 // ---------------- Month Tracker ----------------
 function renderMonth(){
   const m = ensureMonth(state.currentMonthKey);
@@ -2914,35 +2987,74 @@ function renderMonth(){
   const [curYear, curMonthNum] = state.currentMonthKey.split('-').map(Number);
   const el = document.getElementById('view-month');
   el.innerHTML = `
-    <div class="panel safe-spend" id="safeSpend" style="display:none;">
-      <div class="ss-main">
-        <div class="ss-label" id="ssLabel">Safe to spend today</div>
-        <div class="ss-val" id="ssVal">£0.00</div>
-        <div class="ss-sub" id="ssSub"></div>
-        <div class="ss-bar"><div class="ss-bar-fill" id="ssBar"></div></div>
-        <button type="button" class="ss-toggle" id="ssToggle" aria-expanded="false">How it's worked out <span class="ss-caret">▾</span></button>
+    <div class="hero-card" id="heroCard">
+      <div class="hero-grid">
+        <div>
+          <div class="hero-hi" id="heroHi"></div>
+          <div class="hero-date" id="heroDate"></div>
+          <div class="hero-label">Current balance</div>
+          <div class="hero-bal"><span class="hero-cur">${escapeHtml(state.currency)}</span><input type="number" step="0.01" id="liveBalanceInput" class="hero-bal-input" value="${t.liveBalance}" aria-label="Current balance" style="${t.liveBalance>=0?'':'color:var(--red);'}"></div>
+          <div class="hero-sub" id="liveBalanceSub">${t.adjustment ? `${fmt(t.adjustment)} manual adjustment · <a href="#" id="clearAdjustment" style="color:var(--red);text-decoration:underline;">clear</a>` : 'edit directly for deviations — updates as items are marked Done'}</div>
+          <div id="liveBalanceTrend">${trendArrowHtml(t.liveBalance, pt&&pt.liveBalance, 'up')}</div>
+          <div class="hero-payday" id="heroPayday"></div>
+        </div>
+        <div class="hero-chips">
+          <div class="hero-chip">
+            <div class="hc-k"><span class="hc-dot" style="--d:var(--green);"></span>Income</div>
+            <div class="hc-v" id="incomingVal">${fmt(t.allIncoming)}</div>
+            <div class="hc-s" id="incomingSub">${fmt(t.doneIncoming)} received · ${fmt(Math.max(0,round2(t.allIncoming-t.doneIncoming)))} to come</div>
+            <div class="hc-bar"><i id="incBar" style="--d:var(--green);width:${t.allIncoming>0?Math.min(100,Math.round(t.doneIncoming/t.allIncoming*100)):0}%;"></i></div>
+            <div id="incomingTrend">${trendArrowHtml(t.allIncoming, pt&&pt.allIncoming, 'up')}</div>
+          </div>
+          <div class="hero-chip">
+            <div class="hc-k"><span class="hc-dot" style="--d:var(--red);"></span>Outgoings</div>
+            <div class="hc-v" id="outgoingVal">${fmt(t.allOutgoing)}</div>
+            <div class="hc-s" id="outgoingSub">${fmt(t.doneOutgoing)} paid · ${fmt(Math.max(0,round2(t.allOutgoing-t.doneOutgoing)))} to pay</div>
+            <div class="hc-bar"><i id="outBar" style="--d:var(--red);width:${t.allOutgoing>0?Math.min(100,Math.round(t.doneOutgoing/t.allOutgoing*100)):0}%;"></i></div>
+            <div id="outgoingTrend">${trendArrowHtml(t.allOutgoing, pt&&pt.allOutgoing, 'down')}</div>
+          </div>
+        </div>
       </div>
-      <div class="ss-break" id="ssBreak"></div>
+      <div class="panel safe-spend" id="safeSpend" style="display:none;">
+        <div class="ss-main">
+          <div class="ss-label" id="ssLabel">Safe to spend today</div>
+          <div class="ss-val" id="ssVal">£0.00</div>
+          <div class="ss-sub" id="ssSub"></div>
+          <div class="ss-bar"><div class="ss-bar-fill" id="ssBar"></div></div>
+          <button type="button" class="ss-toggle" id="ssToggle" aria-expanded="false">How it's worked out <span class="ss-caret">▾</span></button>
+        </div>
+        <div class="ss-break" id="ssBreak"></div>
+      </div>
     </div>
 
     <div class="panel quick-add-panel">
-      <div class="panel-head"><h2>Quick Add</h2><span class="hint">for one-off spends or money in — added as Done right away</span></div>
-      <div class="field-inline qa-row" style="flex-wrap:wrap;">
-        <select id="quickAddType">
-          <option value="out">I spent</option>
-          <option value="in">I received</option>
-        </select>
-        <input type="number" step="0.01" id="quickAddAmount" placeholder="Amount" style="max-width:120px;">
-        <input type="text" id="quickAddReason" placeholder="Reason (e.g. Bus, Pizza from Sam)" style="max-width:260px;flex:1;min-width:160px;">
-        ${categoryDropdownHtml('quickAddCategory', 'Uncategorized')}
-        ${categoryDropdownHtml('quickAddIncomeCategory', 'Uncategorized', INCOME_CATEGORIES)}
-        <button class="btn small" id="quickAddBtn">+ Add</button>
+      <div class="panel-head"><h2>Quick Add</h2><span class="hint">added as Done right away</span></div>
+      <select id="quickAddType" style="display:none;" aria-hidden="true" tabindex="-1">
+        <option value="out">I spent</option>
+        <option value="in">I received</option>
+      </select>
+      <div class="seg-toggle wide qa-seg" id="quickAddSeg" role="tablist">
+        <button type="button" class="seg-btn active" data-v="out">I spent</button>
+        <button type="button" class="seg-btn" data-v="in">I received</button>
       </div>
-      <div class="field-inline qa-actions" style="margin-top:12px;align-items:center;">
-        <label class="btn secondary small" style="cursor:pointer;margin:0;">
-          📷 Scan Receipt
-          <input type="file" id="receiptInput" accept="image/*" capture="environment" style="display:none;">
-        </label>
+      <div class="qa-fields">
+        <label class="qa-amount"><span class="qa-cur">${escapeHtml(state.currency)}</span><input type="number" step="0.01" id="quickAddAmount" placeholder="0.00" aria-label="Amount"></label>
+        <input type="text" id="quickAddReason" placeholder="What was it for?" aria-label="Reason">
+      </div>
+      <div class="qa-foot">
+        <div class="qa-cat">
+          ${categoryDropdownHtml('quickAddCategory', 'Uncategorized')}
+          ${categoryDropdownHtml('quickAddIncomeCategory', 'Uncategorized', INCOME_CATEGORIES)}
+        </div>
+        <div class="qa-btns">
+          <label class="btn secondary qa-scan">
+            ${iconSvg('M4 8h3l2-3h6l2 3h3v11H4zM12 17a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z')} Scan receipt
+            <input type="file" id="receiptInput" accept="image/*" capture="environment" style="display:none;">
+          </label>
+          <button class="btn" id="quickAddBtn">+ Add</button>
+        </div>
+      </div>
+      <div class="qa-meta">
         <button class="btn secondary small" id="quickAddLogToggle">Show log</button>
         <span class="quick-receipt-status" id="receiptStatus"></span>
       </div>
@@ -2954,13 +3066,10 @@ function renderMonth(){
       </div>
     </div>
 
-    <div class="grid">
+    <div class="grid grid-3">
       <div class="card stagger-card" style="--i:0;"><div class="k">Starting Balance</div><div class="v"><input type="number" step="0.01" id="startingBalanceInput" value="${m.startingBalance}" style="font-size:19px;font-weight:700;padding:4px 6px;"></div><div class="sub sub-verbose">carried from last month</div><div id="sparkSb">${cardSparkHtml(state.currentMonthKey,'sb',true)}</div></div>
-      <div class="card highlight stagger-card" style="--i:1;"><div class="k">Current Balance</div><div class="v"><input type="number" step="0.01" id="liveBalanceInput" value="${t.liveBalance}" style="font-size:19px;font-weight:700;padding:4px 6px;color:${t.liveBalance>=0?'var(--green)':'var(--red)'};"></div><div class="sub sub-verbose" id="liveBalanceSub">${t.adjustment ? `${fmt(t.adjustment)} manual adjustment · <a href="#" id="clearAdjustment" style="color:var(--red);text-decoration:underline;">clear</a>` : 'edit directly for deviations — updates as items are marked Done'}</div><div id="liveBalanceTrend">${trendArrowHtml(t.liveBalance, pt&&pt.liveBalance, 'up')}</div><div id="sparkLb">${cardSparkHtml(state.currentMonthKey,'lb',true)}</div></div>
-      <div class="card stagger-card" style="--i:2;"><div class="k">Total Left Over</div><div class="v ${t.totalLeftOver>=0?'pos':'neg'}" id="totalLeftOverVal">${fmt(t.totalLeftOver)}</div><div class="sub sub-verbose">→ next month's starting balance</div><div id="totalLeftOverTrend">${trendArrowHtml(t.totalLeftOver, pt&&pt.totalLeftOver, 'up')}</div><div id="sparkTlo">${cardSparkHtml(state.currentMonthKey,'tlo',true)}</div></div>
-      <div class="card stagger-card" style="--i:3;"><div class="k">Incoming</div><div class="v pos" id="incomingVal">${fmt(t.allIncoming)}</div><div class="sub" id="incomingSub">${fmt(t.doneIncoming)} done</div><div id="incomingTrend">${trendArrowHtml(t.allIncoming, pt&&pt.allIncoming, 'up')}</div><div id="sparkInc">${cardSparkHtml(state.currentMonthKey,'inc',true)}</div></div>
-      <div class="card stagger-card" style="--i:4;"><div class="k">Weekly Budget</div><div class="v neg" id="weeklyVal">${fmt(t.weeklyTotal)}</div><div class="sub" id="weeklySub">${fmt(t.doneWeekly)} done</div><div id="weeklyTrend">${trendArrowHtml(t.weeklyTotal, pt&&pt.weeklyTotal, 'down')}</div><div id="sparkWk">${cardSparkHtml(state.currentMonthKey,'wk',true)}</div></div>
-      <div class="card stagger-card" style="--i:5;"><div class="k">Outgoings</div><div class="v neg" id="outgoingVal">${fmt(t.allOutgoing)}</div><div class="sub" id="outgoingSub">${fmt(t.doneOutgoing)} done</div><div id="outgoingTrend">${trendArrowHtml(t.allOutgoing, pt&&pt.allOutgoing, 'down')}</div><div id="sparkOut">${cardSparkHtml(state.currentMonthKey,'out',true)}</div></div>
+      <div class="card stagger-card" style="--i:1;"><div class="k">Total Left Over</div><div class="v ${t.totalLeftOver>=0?'pos':'neg'}" id="totalLeftOverVal">${fmt(t.totalLeftOver)}</div><div class="sub sub-verbose">→ next month's starting balance</div><div id="totalLeftOverTrend">${trendArrowHtml(t.totalLeftOver, pt&&pt.totalLeftOver, 'up')}</div><div id="sparkTlo">${cardSparkHtml(state.currentMonthKey,'tlo',true)}</div></div>
+      <div class="card stagger-card" style="--i:2;"><div class="k">Weekly Budget</div><div class="v neg" id="weeklyVal">${fmt(t.weeklyTotal)}</div><div class="sub" id="weeklySub">${fmt(t.doneWeekly)} done</div><div id="weeklyTrend">${trendArrowHtml(t.weeklyTotal, pt&&pt.weeklyTotal, 'down')}</div><div id="sparkWk">${cardSparkHtml(state.currentMonthKey,'wk',true)}</div></div>
     </div>
 
     <div class="panel">
@@ -3025,14 +3134,14 @@ function renderMonth(){
       <div class="panel-head"><h2>Savings &amp; Stocks</h2><span class="hint">money you're setting aside this month</span></div>
       <div class="sv-grid">
         <div class="sv-card">
-          <div class="sv-top"><span class="sv-ico">💰</span><span class="sv-name">Add to Savings</span></div>
+          <div class="sv-top">${iconTile(CATEGORY_ICON_PATHS['Savings & Debt'],'var(--green)','sm')}<span class="sv-name">Add to Savings</span></div>
           <div class="sv-controls">
             <label class="sv-amt"><span class="sv-cur">${escapeHtml(state.currency)}</span><input type="number" step="0.01" id="savingsInput" value="${m.savings.amount}" aria-label="Amount moving into savings"></label>
             ${statusSelectHtml('savings-status', m.savings.status)}
           </div>
         </div>
         <div class="sv-card">
-          <div class="sv-top"><span class="sv-ico">📈</span><span class="sv-name">Move to Stocks &amp; Shares</span></div>
+          <div class="sv-top">${iconTile('M3 17l6-6 4 4 8-8M15 7h6v6','var(--accent)','sm')}<span class="sv-name">Move to Stocks &amp; Shares</span></div>
           <div class="sv-controls">
             <label class="sv-amt"><span class="sv-cur">${escapeHtml(state.currency)}</span><input type="number" step="0.01" id="stocksInput" value="${m.stocks.amount}" aria-label="Amount moving into stocks and shares"></label>
             ${statusSelectHtml('stocks-status', m.stocks.status)}
@@ -3072,9 +3181,13 @@ function renderMonth(){
     const isOut = quickAddType.value==='out';
     quickAddCategory.style.display = isOut ? '' : 'none';
     quickAddIncomeCategory.style.display = isOut ? 'none' : '';
+    document.querySelectorAll('#quickAddSeg .seg-btn').forEach(b=>b.classList.toggle('active', b.dataset.v===quickAddType.value));
   };
   syncQuickAddCategoryVisibility();
   quickAddType.onchange = syncQuickAddCategoryVisibility;
+  document.querySelectorAll('#quickAddSeg .seg-btn').forEach(b=>{
+    b.onclick = ()=>{ quickAddType.value = b.dataset.v; syncQuickAddCategoryVisibility(); };
+  });
   const doQuickAdd = ()=>{
     const amt = Number(quickAddAmount.value);
     if(!amt || amt<=0) return;
@@ -3244,7 +3357,7 @@ function renderMonth(){
     const virtualRows = vInfo.items.map(i=>`
       <tr class="inc-virtual"><td colspan="7">
         <div class="iv-row">
-          <span class="iv-lock" title="Paid last month to fund this month's budget. Edit it in ${escapeHtml(vFrom)}.">🔒</span>
+          <span class="iv-lock" title="Paid last month to fund this month's budget. Edit it in ${escapeHtml(vFrom)}.">${iconSvg('M6 11h12v9H6zM8 11V8a4 4 0 0 1 8 0v3').replace('<svg ','<svg class="hero-ico" ')}</span>
           ${catTile(i.category||'Uncategorized','sm')}
           <div class="iv-main"><div class="iv-name">${escapeHtml(i.name)}</div><div class="iv-sub">from ${escapeHtml(vFrom)} · funds this month's budget</div></div>
           <div class="iv-amt">${escapeHtml(fmt(Number(i.amount)||0))}</div>
@@ -3406,7 +3519,7 @@ function renderMonth(){
     const pt2 = prevTrackedMonthTotals(state.currentMonthKey);
     const lbInput = document.getElementById('liveBalanceInput');
     if(document.activeElement !== lbInput) lbInput.value = t2.liveBalance;
-    lbInput.style.color = t2.liveBalance>=0 ? 'var(--green)' : 'var(--red)';
+    lbInput.style.color = t2.liveBalance>=0 ? '' : 'var(--red)';
     const lbSub = document.getElementById('liveBalanceSub');
     lbSub.innerHTML = t2.adjustment ? `${fmt(t2.adjustment)} manual adjustment · <a href="#" id="clearAdjustment" style="color:var(--red);text-decoration:underline;">clear</a>` : 'edit directly for deviations — updates as items are marked Done';
     const clearLink = document.getElementById('clearAdjustment');
@@ -3420,16 +3533,20 @@ function renderMonth(){
     tlo.className = 'v ' + (t2.totalLeftOver>=0?'pos':'neg');
     document.getElementById('totalLeftOverTrend').innerHTML = trendArrowHtml(t2.totalLeftOver, pt2&&pt2.totalLeftOver, 'up');
     document.getElementById('incomingVal').textContent = fmt(t2.allIncoming);
-    document.getElementById('incomingSub').textContent = `${fmt(t2.doneIncoming)} done`;
+    document.getElementById('incomingSub').textContent = `${fmt(t2.doneIncoming)} received · ${fmt(Math.max(0,round2(t2.allIncoming-t2.doneIncoming)))} to come`;
+    document.getElementById('incBar').style.width = (t2.allIncoming>0 ? Math.min(100,Math.round(t2.doneIncoming/t2.allIncoming*100)) : 0) + '%';
     document.getElementById('incomingTrend').innerHTML = trendArrowHtml(t2.allIncoming, pt2&&pt2.allIncoming, 'up');
     document.getElementById('weeklyVal').textContent = fmt(t2.weeklyTotal);
     document.getElementById('weeklySub').textContent = `${fmt(t2.doneWeekly)} done`;
     document.getElementById('weeklyTrend').innerHTML = trendArrowHtml(t2.weeklyTotal, pt2&&pt2.weeklyTotal, 'down');
     document.getElementById('outgoingVal').textContent = fmt(t2.allOutgoing);
-    document.getElementById('outgoingSub').textContent = `${fmt(t2.doneOutgoing)} done`;
+    document.getElementById('outgoingSub').textContent = `${fmt(t2.doneOutgoing)} paid · ${fmt(Math.max(0,round2(t2.allOutgoing-t2.doneOutgoing)))} to pay`;
+    document.getElementById('outBar').style.width = (t2.allOutgoing>0 ? Math.min(100,Math.round(t2.doneOutgoing/t2.allOutgoing*100)) : 0) + '%';
+    refreshHero();
     document.getElementById('outgoingTrend').innerHTML = trendArrowHtml(t2.allOutgoing, pt2&&pt2.allOutgoing, 'down');
-    [['sparkSb','sb'],['sparkLb','lb'],['sparkTlo','tlo'],['sparkInc','inc'],['sparkWk','wk'],['sparkOut','out']].forEach(([id,name])=>{
+    [['sparkSb','sb'],['sparkTlo','tlo'],['sparkWk','wk']].forEach(([id,name])=>{
       const el = document.getElementById(id);
+      if(!el) return;
       const sig = JSON.stringify(sparkSeries(state.currentMonthKey, CARD_SPARKS[name].pick));
       // First refresh after a render just records what the template already drew,
       // so the draw-in animation isn't cut short; later ones redraw only on change.
@@ -5623,7 +5740,7 @@ function openRecapModal(key, opts){
   }
   if(d.earned>0 && d.saved>0){
     rows.push(`<div class="recap-row stagger-card" style="--i:7;">
-      <span class="cat-dd-chip" style="background:var(--accent);color:var(--on-accent);">💰</span>
+      ${iconTile(CATEGORY_ICON_PATHS['Savings & Debt'],'var(--green)','sm')}
       <div class="rl"><div class="rt">Savings rate</div><div class="rv">Put away ${Math.round(d.saved/d.earned*100)}% of income</div></div>
       <div class="ramt">${fmt(d.saved)}</div></div>`);
   }
