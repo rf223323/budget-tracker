@@ -217,7 +217,7 @@
   .cat-dd-opt:hover{background:color-mix(in srgb, var(--accent) 12%, transparent);}
   .cat-dd-opt.selected{background:color-mix(in srgb, var(--accent) 20%, transparent);font-weight:600;}
   .cell-summary{display:none;}
-  select.funds-select{display:block;margin-top:6px;width:100%;padding:3px 6px;font-size:11px;font-weight:600;color:var(--muted);background:var(--bg);border:1px solid var(--border);border-radius:6px;}
+  select.funds-select{display:inline-block;margin:0;width:auto;max-width:100%;padding:2px 6px;font-size:11px;font-weight:600;color:var(--muted);background:var(--bg);border:1px solid var(--border);border-radius:6px;}
   select.funds-select.next{color:var(--accent);border-color:color-mix(in srgb, var(--accent) 50%, transparent);background:color-mix(in srgb, var(--accent) 8%, transparent);}
   tr.inc-virtual td{padding:6px 0 8px;border:none;}
   .iv-row{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;border:1px dashed color-mix(in srgb, var(--accent) 45%, var(--border));background:color-mix(in srgb, var(--accent) 7%, transparent);}
@@ -250,7 +250,11 @@
   .income-table th,.income-table td{box-sizing:border-box;}
   .income-table td select{width:100%;}
   .income-table .recur-select,.responsive-table .recur-select{padding:7px 4px 7px 8px;}
-  select.funds-select{padding:4px 6px;font-size:11.5px;}
+  select.funds-select{padding:2px 6px;font-size:11.5px;}
+  .name-sub{display:flex;align-items:center;flex-wrap:wrap;gap:4px 10px;margin:4px 0 0 6px;flex:1 1 100%;}
+  .name-sub .schedule-hint{margin:0;}
+  .income-table .name-sub select.funds-select,.responsive-table .name-sub select.funds-select{width:auto;}
+  .income-table td,.responsive-table:not(.income-table) td{vertical-align:middle;}
   .row-input{border:none;background:transparent;padding:4px 6px;width:100%;}
   .row-input:focus{background:var(--panel2);border-radius:6px;}
   .amt-cell{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
@@ -3503,11 +3507,11 @@ function renderMonth(){
         <td class="cell-name">
           <div class="cell-name-flex">
             <input class="row-input inc-name" type="text" value="${escapeHtml(i.name)}">
-            <span class="hint schedule-hint">${scheduleHint(i, curYear, curMonthNum)}</span>
+            <div class="name-sub"><span class="hint schedule-hint">${scheduleHint(i, curYear, curMonthNum)}</span>${fundsSelectHtml('inc-funds', i)}</div>
           </div>
         </td>
         <td class="cell-incat" data-label="Category">${categoryDropdownHtml('inc-category', i.category, INCOME_CATEGORIES)}</td>
-        <td class="cell-sched" data-label="Schedule">${scheduleSelectHtml('inc-schedule', i)}${fundsSelectHtml('inc-funds', i)}</td>
+        <td class="cell-sched" data-label="Schedule">${scheduleSelectHtml('inc-schedule', i)}</td>
         <td data-label="Amount"><input class="row-input inc-amount amt-cell" type="number" step="0.01" value="${i.amount}"></td>
         <td data-label="Status">${statusSelectHtml('inc-status', i.status, {yes:'Received', no:'Not received'})}</td>
         <td data-label="Recurring">${recurringSelectHtml('inc-recur', i.recurring)}</td>
@@ -4821,12 +4825,12 @@ function drawRecurringTable(m, kind){
       <td class="cell-name">
         <div class="cell-name-flex">
           <input class="row-input recur-name-${kind}" type="text" value="${escapeHtml(x.name)}">
-          ${kind==='incoming' ? `<span class="hint schedule-hint">${scheduleHint(x, curYear, curMonthNum)}</span>` : ''}
+          ${kind==='incoming' ? `<div class="name-sub"><span class="hint schedule-hint">${scheduleHint(x, curYear, curMonthNum)}</span>${fundsSelectHtml('recur-funds', x)}</div>` : ''}
         </div>
       </td>
       ${kind==='outgoing'
         ? `<td class="cell-category" data-label="Category">${categoryDropdownHtml(`recur-category-${kind}`, x.category)}</td><td class="cell-day" data-label="Day">${dayInputHtml(`recur-day-${kind}`, x.day)}</td>`
-        : `<td class="cell-incat" data-label="Category">${categoryDropdownHtml(`recur-category-${kind}`, x.category, INCOME_CATEGORIES)}</td><td class="cell-sched" data-label="Schedule">${scheduleSelectHtml(`recur-schedule-${kind}`, x)}${fundsSelectHtml('recur-funds', x)}</td>`}
+        : `<td class="cell-incat" data-label="Category">${categoryDropdownHtml(`recur-category-${kind}`, x.category, INCOME_CATEGORIES)}</td><td class="cell-sched" data-label="Schedule">${scheduleSelectHtml(`recur-schedule-${kind}`, x)}</td>`}
       <td data-label="Amount"><input class="row-input recur-amount-${kind} amt-cell" type="number" step="0.01" value="${x.amount}"></td>
       <td data-label="Status">${statusSelectHtml(`recur-status-${kind}`, x.status, kind==='incoming' ? {yes:'Received', no:'Not received'} : null)}</td>
       <td class="cell-del"><button class="del-btn out-del recur-del-${kind}" aria-label="Delete"><span class="del-x">✕</span><span class="del-label">Delete this ${kind==='incoming'?'income':'outgoing'}</span></button></td>
