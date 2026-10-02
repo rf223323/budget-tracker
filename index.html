@@ -183,6 +183,17 @@
   .cat-dd-opt:hover{background:color-mix(in srgb, var(--accent) 12%, transparent);}
   .cat-dd-opt.selected{background:color-mix(in srgb, var(--accent) 20%, transparent);font-weight:600;}
   .cell-summary{display:none;}
+  select.funds-select{display:block;margin-top:6px;width:100%;padding:3px 6px;font-size:11px;font-weight:600;color:var(--muted);background:var(--bg);border:1px solid var(--border);border-radius:6px;}
+  select.funds-select.next{color:var(--accent);border-color:color-mix(in srgb, var(--accent) 50%, transparent);background:color-mix(in srgb, var(--accent) 8%, transparent);}
+  tr.inc-virtual td{padding:6px 0 8px;border:none;}
+  .iv-row{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;border:1px dashed color-mix(in srgb, var(--accent) 45%, var(--border));background:color-mix(in srgb, var(--accent) 7%, transparent);}
+  .iv-lock{font-size:12px;opacity:.8;}
+  .iv-main{flex:1;min-width:0;}
+  .iv-name{font-size:13.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .iv-sub{font-size:11.5px;color:var(--muted);}
+  .iv-amt{font-size:14px;font-weight:700;white-space:nowrap;}
+  .iv-status{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;background:color-mix(in srgb, var(--amber) 18%, transparent);color:var(--amber);white-space:nowrap;}
+  .iv-status.done{background:color-mix(in srgb, var(--green) 18%, transparent);color:var(--green);}
   .sv-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
   .sv-card{background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;}
   .sv-top{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
@@ -692,6 +703,10 @@
     .wk-item.collapsed .week-input,.wk-item.collapsed select{display:none;}
     .wk-item:not(.collapsed) .cs-caret{transform:rotate(180deg);}
     #monthCatDeltas{display:none;}
+    .responsive-table tr.inc-virtual{padding:0;background:none;border:none;margin-bottom:8px;}
+    .responsive-table tr.inc-virtual td{flex:1 1 100%;width:100%;padding:0;}
+    .iv-row{flex-wrap:wrap;row-gap:6px;}
+    .iv-main{flex:1 1 140px;}
     .hide-sm{display:none;}
   }
 </style>
@@ -893,7 +908,7 @@ function freshMonth(startingBalance){
 }
 function carryForwardMonth(prevMonth, startingBalance){
   const m = blankMonth(startingBalance);
-  m.incoming = prevMonth.incoming.filter(i=>i.recurring).map(i=>({id:uid(), name:i.name, amount:i.amount, status:'none', recurring:true, category:i.category||'Uncategorized', day:i.day||null, lastWeekday: i.lastWeekday!=null?i.lastWeekday:null}));
+  m.incoming = prevMonth.incoming.filter(i=>i.recurring).map(i=>({id:uid(), name:i.name, amount:i.amount, status:'none', recurring:true, fundsNext:!!i.fundsNext, category:i.category||'Uncategorized', day:i.day||null, lastWeekday: i.lastWeekday!=null?i.lastWeekday:null}));
   m.outgoings = prevMonth.outgoings.filter(o=>o.recurring).map(o=>({id:uid(), name:o.name, amount:o.amount, status:'none', recurring:true, category:o.category||'Uncategorized', day:o.day||null, lastWeekday: o.lastWeekday!=null?o.lastWeekday:null}));
   ['week1','week2','week3','week4'].forEach(wk=>{
     if(prevMonth.weekly[wk].recurring){
@@ -915,7 +930,7 @@ function syncRecurringForward(sourceMonth, targetMonth){
   const targetIncomingNames = new Set(targetMonth.incoming.map(i=>normName(i.name)));
   sourceMonth.incoming.filter(i=>i.recurring).forEach(i=>{
     if(!targetIncomingNames.has(normName(i.name))){
-      targetMonth.incoming.push({id:uid(), name:i.name, amount:i.amount, status:'none', recurring:true, category:i.category||'Uncategorized', day:i.day||null, lastWeekday: i.lastWeekday!=null?i.lastWeekday:null});
+      targetMonth.incoming.push({id:uid(), name:i.name, amount:i.amount, status:'none', recurring:true, fundsNext:!!i.fundsNext, category:i.category||'Uncategorized', day:i.day||null, lastWeekday: i.lastWeekday!=null?i.lastWeekday:null});
     }
   });
   const targetOutgoingNames = new Set(targetMonth.outgoings.map(o=>normName(o.name)));
@@ -970,8 +985,9 @@ function syncNewRecurringForward(item, fromMonthKey, listKey){
       copy.day = item.day||null;
       copy.lastWeekday = item.lastWeekday!=null?item.lastWeekday:null;
       copy.category = item.category||'Uncategorized';
+      if(listKey==='incoming') copy.fundsNext = !!item.fundsNext;
     } else if(listKey==='incoming'){
-      list.push({id:uid(), name:item.name, amount:item.amount, status:'none', recurring:true, syncSourceId:item.id, category:item.category||'Uncategorized', day:item.day||null, lastWeekday: item.lastWeekday!=null?item.lastWeekday:null});
+      list.push({id:uid(), name:item.name, amount:item.amount, status:'none', recurring:true, syncSourceId:item.id, fundsNext:!!item.fundsNext, category:item.category||'Uncategorized', day:item.day||null, lastWeekday: item.lastWeekday!=null?item.lastWeekday:null});
     } else {
       list.push({id:uid(), name:item.name, amount:item.amount, status:'none', recurring:true, syncSourceId:item.id, category:item.category||'Uncategorized', day:item.day||null, lastWeekday: item.lastWeekday!=null?item.lastWeekday:null});
     }
@@ -1262,9 +1278,40 @@ function ensureMonth(key){
   }
   return state.months[key];
 }
+// Pay-cycle budgeting: an income item flagged fundsNext (e.g. October's last-Friday
+// pay) funds the FOLLOWING tracked month's budget instead of its own. So for a
+// month, its budget income is its own unflagged income plus the previous
+// tracked month's flagged income ("virtual" income). Cash is tracked
+// separately: liveBalance counts money as soon as it's received, whichever
+// month it funds.
+function prevTrackedKey(m){
+  let key = null;
+  for(const k in state.months){ if(state.months[k]===m){ key = k; break; } }
+  if(key===null) return null;
+  let best = null;
+  for(const k in state.months){ if(k<key && (best===null || k>best)) best = k; }
+  return best;
+}
+// {key, items}: the income from the previous tracked month that funds this one.
+function virtualIncomeInfo(m){
+  const key = prevTrackedKey(m);
+  if(key===null) return {key:null, items:[]};
+  return {key, items: state.months[key].incoming.filter(i=>i.fundsNext && !i.transfer)};
+}
 function monthTotals(m){
-  const allIncoming = m.incoming.reduce((s,i)=>s+(Number(i.amount)||0),0);
-  const doneIncoming = m.incoming.filter(i=>i.status==='done').reduce((s,i)=>s+(Number(i.amount)||0),0);
+  const num = x => Number(x)||0;
+  const sumOf = arr => arr.reduce((s,i)=>s+num(i.amount),0);
+  const doneOf = arr => arr.filter(i=>i.status==='done');
+  const own = m.incoming;
+  const ownBudget = own.filter(i=>!i.fundsNext || i.transfer);
+  const ownFlagged = own.filter(i=>i.fundsNext && !i.transfer);
+  const virt = virtualIncomeInfo(m).items;
+  const allIncoming = sumOf(ownBudget) + sumOf(virt);
+  const doneIncoming = sumOf(doneOf(ownBudget)) + sumOf(doneOf(virt));
+  const cashDoneIncoming = sumOf(doneOf(own)) + sumOf(doneOf(virt));
+  const virtualAll = sumOf(virt);
+  const virtualPending = sumOf(virt.filter(i=>i.status!=='done'));
+  const fundsNextOwn = sumOf(ownFlagged);
   const allOutgoing = m.outgoings.reduce((s,o)=>s+(Number(o.amount)||0),0);
   const doneOutgoing = m.outgoings.filter(o=>o.status==='done').reduce((s,o)=>s+(Number(o.amount)||0),0);
   const weekKeys = ['week1','week2','week3','week4'];
@@ -1276,10 +1323,10 @@ function monthTotals(m){
   const doneStocks = m.stocks.status==='done' ? stocksAmount : 0;
   const adjustment = Number(m.adjustment)||0;
 
-  const liveBalance = round2((Number(m.startingBalance)||0) + doneIncoming - doneOutgoing - doneSavings - doneStocks - doneWeekly + adjustment);
+  const liveBalance = round2((Number(m.startingBalance)||0) + cashDoneIncoming - doneOutgoing - doneSavings - doneStocks - doneWeekly + adjustment);
   const totalLeftOver = round2((Number(m.startingBalance)||0) + allIncoming - weeklyTotal - allOutgoing - savingsAmount - stocksAmount + adjustment);
 
-  return {allIncoming:round2(allIncoming), doneIncoming:round2(doneIncoming), allOutgoing:round2(allOutgoing), doneOutgoing:round2(doneOutgoing), weeklyTotal:round2(weeklyTotal), doneWeekly:round2(doneWeekly), savingsAmount:round2(savingsAmount), doneSavings:round2(doneSavings), stocksAmount:round2(stocksAmount), doneStocks:round2(doneStocks), adjustment:round2(adjustment), liveBalance, totalLeftOver};
+  return {allIncoming:round2(allIncoming), doneIncoming:round2(doneIncoming), cashDoneIncoming:round2(cashDoneIncoming), virtualAll:round2(virtualAll), virtualPending:round2(virtualPending), fundsNextOwn:round2(fundsNextOwn), allOutgoing:round2(allOutgoing), doneOutgoing:round2(doneOutgoing), weeklyTotal:round2(weeklyTotal), doneWeekly:round2(doneWeekly), savingsAmount:round2(savingsAmount), doneSavings:round2(doneSavings), stocksAmount:round2(stocksAmount), doneStocks:round2(doneStocks), adjustment:round2(adjustment), liveBalance, totalLeftOver, projectedCash: round2(totalLeftOver + fundsNextOwn)};
 }
 // Totals for whichever tracked month comes right before forKey (chronologically,
 // not necessarily the previous calendar month) — null if there isn't one yet.
@@ -1422,7 +1469,7 @@ function categoryBreakdown(m, mode){
 // pot aren't income, so they're left out.
 function incomeBreakdown(m, mode){
   const totals = {};
-  m.incoming.forEach(i=>{
+  [...m.incoming.filter(i=>!i.fundsNext), ...virtualIncomeInfo(m).items].forEach(i=>{
     if(i.transfer) return;
     if(mode==='done' && i.status!=='done') return;
     const cat = i.category || 'Uncategorized';
@@ -2690,10 +2737,17 @@ function weekSummaryHtml(i, w){
     <span class="cs-status ${w.status==='done'?'done':'none'}" title="${w.status==='done'?'Done':'Not done yet'}">${w.status==='done'?'✓':''}</span>
     <span class="cs-caret">▾</span>`;
 }
+function fundsSelectHtml(cls, item){
+  return `<select class="${cls} funds-select${item.fundsNext?' next':''}" aria-label="Which month this income funds" title="Which month's budget this income pays for. Choose next month if, for example, the pay you receive at the end of this month is what you spend next month.">
+    <option value="this" ${!item.fundsNext?'selected':''}>For this month</option>
+    <option value="next" ${item.fundsNext?'selected':''}>For next month →</option>
+  </select>`;
+}
 function incomeSummaryHtml(i){
   const cat = i.category || 'Uncategorized';
   const bits = [escapeHtml(cat)];
   if(i.recurring) bits.push('↻');
+  if(i.fundsNext) bits.push('funds next month');
   return `<span class="cat-dd-chip" style="background:${categoryColor(cat)};">${categoryIcon(cat)}</span>
     <span class="cs-main"><span class="cs-name">${escapeHtml(i.name||'Unnamed')}</span><span class="cs-sub">${bits.join(' · ')}</span></span>
     <span class="cs-amt">${escapeHtml(fmt(Number(i.amount)||0))}</span>
@@ -3067,7 +3121,19 @@ function renderMonth(){
 
   const incomeBody = document.getElementById('incomeBody');
   function drawIncome(){
-    incomeBody.innerHTML = m.incoming.map(i=>`
+    const vInfo = virtualIncomeInfo(m);
+    const vFrom = vInfo.key ? monthLabelFromKey(vInfo.key).split(' ')[0] : '';
+    const virtualRows = vInfo.items.map(i=>`
+      <tr class="inc-virtual"><td colspan="7">
+        <div class="iv-row">
+          <span class="iv-lock" title="Paid last month to fund this month's budget. Edit it in ${escapeHtml(vFrom)}.">🔒</span>
+          <span class="cat-dd-chip" style="background:${categoryColor(i.category||'Uncategorized')};">${categoryIcon(i.category||'Uncategorized')}</span>
+          <div class="iv-main"><div class="iv-name">${escapeHtml(i.name)}</div><div class="iv-sub">from ${escapeHtml(vFrom)} · funds this month's budget</div></div>
+          <div class="iv-amt">${escapeHtml(fmt(Number(i.amount)||0))}</div>
+          <span class="iv-status${i.status==='done'?' done':''}">${i.status==='done'?'Received ✓':'Expected'}</span>
+        </div>
+      </td></tr>`).join('');
+    incomeBody.innerHTML = virtualRows + m.incoming.map(i=>`
       <tr data-id="${i.id}" class="out-row inc-row${expandedIncRows.has(i.id)?'':' collapsed'}">
         <td class="cell-summary" role="button" tabindex="0" aria-label="Show or hide details">${incomeSummaryHtml(i)}</td>
         <td class="cell-name">
@@ -3077,14 +3143,15 @@ function renderMonth(){
           </div>
         </td>
         <td class="cell-incat" data-label="Category">${categoryDropdownHtml('inc-category', i.category, INCOME_CATEGORIES)}</td>
-        <td class="cell-sched" data-label="Schedule">${scheduleSelectHtml('inc-schedule', i)}</td>
+        <td class="cell-sched" data-label="Schedule">${scheduleSelectHtml('inc-schedule', i)}${fundsSelectHtml('inc-funds', i)}</td>
         <td data-label="Amount"><input class="row-input inc-amount amt-cell" type="number" step="0.01" value="${i.amount}"></td>
         <td data-label="Status">${statusSelectHtml('inc-status', i.status)}</td>
         <td data-label="Recurring">${recurringSelectHtml('inc-recur', i.recurring)}</td>
         <td class="cell-del"><button class="del-btn inc-del" aria-label="Delete income"><span class="del-x">✕</span><span class="del-label">Delete this income</span></button></td>
       </tr>
-    `).join('') || `<tr><td colspan="7" class="empty">No incoming added yet</td></tr>`;
-    incomeBody.querySelectorAll('tr').forEach(tr=>{
+    `).join('');
+    if(!incomeBody.innerHTML.trim()) incomeBody.innerHTML = `<tr><td colspan="7" class="empty">No incoming added yet</td></tr>`;
+    incomeBody.querySelectorAll('tr:not(.inc-virtual)').forEach(tr=>{
       const id = tr.dataset.id;
       const item = m.incoming.find(x=>x.id===id);
       if(!item) return;
@@ -3112,6 +3179,12 @@ function renderMonth(){
       const recurSel = tr.querySelector('.inc-recur');
       recurSel.onchange = e=>{ item.recurring = (e.target.value==='yes'); if(item.recurring) syncNewRecurringForward(item, state.currentMonthKey, 'incoming'); else stopRecurringInLaterMonths(m, 'incoming', item); save(); e.target.className = `inc-recur recur-select ${item.recurring?'recur-yes':'recur-no'}`; refreshSummary(); };
       initCategoryDropdown(tr.querySelector('.inc-category'), val=>{ item.category = val; propagateOutgoingFieldForward(item, state.currentMonthKey, 'category', 'incoming'); save(); refreshSummary(); });
+      tr.querySelector('.inc-funds').onchange = e=>{
+        item.fundsNext = e.target.value==='next';
+        if(item.recurring) propagateOutgoingFieldForward(item, state.currentMonthKey, 'fundsNext', 'incoming');
+        save();
+        renderMonth();
+      };
       const schedSel = tr.querySelector('.inc-schedule');
       schedSel.onchange = e=>{
         applyScheduleValue(item, e.target.value);
@@ -3514,7 +3587,7 @@ function renderTrend(){
   const todayIdx = idxs.indexOf(keys.indexOf(monthKey(new Date())));
   const chartMarker = todayIdx>=0 ? {index:todayIdx, label:'Today'} : null;
   const actualNetWorth = keys.map((k,i)=>round2(liveBalances[i] + savingsSeries[i] + stocksSeries[i]));
-  const projectedNetWorth = keys.map((k,i)=>round2(totalLeftOvers[i] + plannedSavingsSeries[i] + plannedStocksSeries[i]));
+  const projectedNetWorth = keys.map((k,i)=>round2(totals[i].projectedCash + plannedSavingsSeries[i] + plannedStocksSeries[i]));
   const enough = keys.length>=2;
   const noTrend = '<div class="empty">Track at least two months to see a trend line.</div>';
   const legendHtml = `
@@ -4321,7 +4394,7 @@ function drawRecurringTable(m, kind){
       </td>
       ${kind==='outgoing'
         ? `<td class="cell-category" data-label="Category">${categoryDropdownHtml(`recur-category-${kind}`, x.category)}</td><td class="cell-day" data-label="Day">${dayInputHtml(`recur-day-${kind}`, x.day)}</td>`
-        : `<td class="cell-incat" data-label="Category">${categoryDropdownHtml(`recur-category-${kind}`, x.category, INCOME_CATEGORIES)}</td><td class="cell-sched" data-label="Schedule">${scheduleSelectHtml(`recur-schedule-${kind}`, x)}</td>`}
+        : `<td class="cell-incat" data-label="Category">${categoryDropdownHtml(`recur-category-${kind}`, x.category, INCOME_CATEGORIES)}</td><td class="cell-sched" data-label="Schedule">${scheduleSelectHtml(`recur-schedule-${kind}`, x)}${fundsSelectHtml('recur-funds', x)}</td>`}
       <td data-label="Amount"><input class="row-input recur-amount-${kind} amt-cell" type="number" step="0.01" value="${x.amount}"></td>
       <td data-label="Status">${statusSelectHtml(`recur-status-${kind}`, x.status)}</td>
       <td class="cell-del"><button class="del-btn out-del recur-del-${kind}" aria-label="Delete"><span class="del-x">✕</span><span class="del-label">Delete this ${kind==='incoming'?'income':'outgoing'}</span></button></td>
@@ -4358,6 +4431,13 @@ function drawRecurringTable(m, kind){
     if(catSel) initCategoryDropdown(catSel, val=>{ item.category = val; propagateOutgoingFieldForward(item, state.currentMonthKey, 'category', listKey); save(); refreshSummary(); });
     const dayInp = tr.querySelector(`.recur-day-${kind}`);
     if(dayInp) dayInp.onchange = e=>{ item.day = clampDay(e.target.value); e.target.value = item.day||''; propagateOutgoingFieldForward(item, state.currentMonthKey, 'day'); save(); refreshSummary(); };
+    const fundsSel = tr.querySelector('.recur-funds');
+    if(fundsSel) fundsSel.onchange = e=>{
+      item.fundsNext = e.target.value==='next';
+      propagateOutgoingFieldForward(item, state.currentMonthKey, 'fundsNext', 'incoming');
+      save();
+      renderRecurring();
+    };
     const schedSel = tr.querySelector(`.recur-schedule-${kind}`);
     if(schedSel) schedSel.onchange = e=>{
       applyScheduleValue(item, e.target.value);
@@ -4416,7 +4496,9 @@ function computeCashflow(key, daily, buffer){
   const dim = new Date(y, mo, 0).getDate();
   const isCurrent = key===curKey;
   const startDay = isCurrent ? now.getDate() : 1;
-  const opening = monthTotals(m).liveBalance;
+  const mt = monthTotals(m);
+  // A future month's opening cash includes last month's pay that funds it (it arrives before the month starts).
+  const opening = round2(mt.liveBalance + (isCurrent ? 0 : mt.virtualPending));
   const events = [];
   const unplaced = {outAmt:0, outN:0, inAmt:0, inN:0, lateIn:0};
   m.outgoings.forEach(o=>{
