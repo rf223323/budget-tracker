@@ -109,17 +109,24 @@
   .card .v.pos{color:var(--green);}
   .card .v.neg{color:var(--red);}
   .card .sub{font-size:11.5px;color:var(--muted);margin-top:4px;}
-  .spark{position:relative;height:26px;margin:10px 4px 0 0;color:var(--muted);}
+  .spark{position:relative;height:40px;margin:10px 4px 0 0;color:var(--muted);cursor:crosshair;touch-action:pan-y;}
   .spark.good{color:var(--green);}
   .spark.bad{color:var(--red);}
   .spark svg{display:block;width:100%;height:100%;overflow:visible;}
-  .spark .spark-line{fill:none;stroke:currentColor;stroke-width:1.6;vector-effect:non-scaling-stroke;stroke-linejoin:round;stroke-linecap:round;}
-  .spark .spark-area{fill:currentColor;opacity:.12;stroke:none;}
-  .spark-dot{position:absolute;right:0;width:6px;height:6px;border-radius:50%;background:currentColor;transform:translate(50%,-50%);box-shadow:0 0 0 3px color-mix(in srgb, currentColor 22%, transparent);}
-  @keyframes sparkReveal{from{clip-path:inset(-4px 100% -4px -4px);}to{clip-path:inset(-4px -6px -4px -4px);}}
-  @keyframes sparkDot{from{opacity:0;}to{opacity:1;}}
-  .spark.anim svg{animation:sparkReveal .75s ease both;animation-delay:calc(var(--i, 0) * 60ms + .25s);}
-  .spark.anim .spark-dot{animation:sparkDot .3s ease both;animation-delay:calc(var(--i, 0) * 60ms + .9s);}
+  .spark .spark-line{fill:none;stroke:currentColor;stroke-width:2;vector-effect:non-scaling-stroke;stroke-linejoin:round;stroke-linecap:round;filter:drop-shadow(0 0 3px color-mix(in srgb, currentColor 55%, transparent));}
+  .spark-guide{position:absolute;top:0;bottom:0;width:0;border-left:1px dashed color-mix(in srgb, currentColor 55%, transparent);opacity:0;pointer-events:none;transition:opacity .12s ease;}
+  .spark.hovering .spark-guide{opacity:1;}
+  .spark-pt{position:absolute;width:7px;height:7px;border-radius:50%;background:var(--panel);border:2px solid currentColor;transform:translate(-50%,-50%) scale(0);pointer-events:none;transition:transform .15s ease;}
+  .spark.hovering .spark-pt.on{transform:translate(-50%,-50%) scale(1.25);}
+  .spark-pt.last{transform:translate(-50%,-50%) scale(1);background:currentColor;box-shadow:0 0 0 3px color-mix(in srgb, currentColor 22%, transparent);}
+  .spark.hovering .spark-pt.last:not(.on){transform:translate(-50%,-50%) scale(.8);}
+  .spark-pt.last::after{content:"";position:absolute;inset:-5px;border-radius:50%;border:1.5px solid currentColor;opacity:0;}
+  @keyframes sparkReveal{from{clip-path:inset(-10px 100% -10px -6px);}to{clip-path:inset(-10px -8px -10px -6px);}}
+  @keyframes sparkPop{from{opacity:0;transform:translate(-50%,-50%) scale(0);}to{opacity:1;transform:translate(-50%,-50%) scale(1);}}
+  @keyframes sparkPing{0%{opacity:.7;transform:scale(.6);}100%{opacity:0;transform:scale(1.9);}}
+  .spark.anim svg{animation:sparkReveal .9s cubic-bezier(.4,.1,.2,1) both;animation-delay:calc(var(--i, 0) * 60ms + .25s);}
+  .spark.anim .spark-pt.last{animation:sparkPop .35s cubic-bezier(.3,1.6,.5,1) both;animation-delay:calc(var(--i, 0) * 60ms + 1s);}
+  .spark.anim .spark-pt.last::after{animation:sparkPing 1.1s ease-out 2;animation-delay:calc(var(--i, 0) * 60ms + 1.2s);}
   .trend-arrow{font-size:11.5px;font-weight:700;margin-top:6px;}
   .trend-arrow.trend-good{color:var(--green);}
   .trend-arrow.trend-bad{color:var(--red);}
@@ -938,26 +945,62 @@ function sparkSeries(forKey, pick){
   if(idx<0) return [];
   return keys.slice(Math.max(0, idx-5), idx+1).map(k=>pick(state.months[k], monthTotals(state.months[k])));
 }
-// A tiny trend line for a summary card. The line and end dot are green/red
-// by whether the latest move is good news for that metric (goodDirection as
-// in trendArrowHtml), grey when flat. Needs at least two months of history.
-function sparklineHtml(values, goodDirection, animate){
+// Keys of the months sparkSeries() plots, in the same order.
+function sparkKeys(forKey){
+  const keys = Object.keys(state.months).sort();
+  const idx = keys.indexOf(forKey);
+  return idx<0 ? [] : keys.slice(Math.max(0, idx-5), idx+1);
+}
+function shortMonthLabel(k){
+  const [y,m] = k.split('-').map(Number);
+  return new Date(y, m-1, 1).toLocaleString('en-GB',{month:'short',year:'numeric'});
+}
+// Smooth (monotone) curve through the points: no overshoot, so the line never
+// dips below or above the real values between months.
+function smoothPath(pts){
+  const n = pts.length;
+  const d = [];
+  for(let k=0; k<n-1; k++) d.push((pts[k+1].y-pts[k].y)/(pts[k+1].x-pts[k].x));
+  const m = pts.map((_,k)=>{
+    if(k===0) return d[0];
+    if(k===n-1) return d[n-2];
+    return d[k-1]*d[k] <= 0 ? 0 : 2*d[k-1]*d[k]/(d[k-1]+d[k]);
+  });
+  let path = `M${pts[0].x.toFixed(2)},${pts[0].y.toFixed(2)}`;
+  for(let k=0; k<n-1; k++){
+    const dx = (pts[k+1].x-pts[k].x)/3;
+    path += ` C${(pts[k].x+dx).toFixed(2)},${(pts[k].y+m[k]*dx).toFixed(2)} ${(pts[k+1].x-dx).toFixed(2)},${(pts[k+1].y-m[k+1]*dx).toFixed(2)} ${pts[k+1].x.toFixed(2)},${pts[k+1].y.toFixed(2)}`;
+  }
+  return path;
+}
+// A trend line for a summary card: smooth curve with a fading gradient fill,
+// a glowing line, and a pulsing end dot. The colour is green/red by whether
+// the latest move is good news for that metric (goodDirection as in
+// trendArrowHtml), grey when flat. Hovering/touching scrubs through the months
+// (see the pointermove handler below). Needs at least two months of history.
+let sparkUid = 0;
+function sparklineHtml(values, labels, goodDirection, animate){
   if(values.length<2) return '';
   const min = Math.min(...values), max = Math.max(...values);
   const span = max-min;
   const pts = values.map((v,i)=>({
     x: i/(values.length-1)*100,
-    y: span<0.005 ? 12 : 21 - ((v-min)/span)*18
+    y: span<0.005 ? 20 : 33 - ((v-min)/span)*26
   }));
-  const line = pts.map((p,i)=>`${i?'L':'M'}${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(' ');
-  const area = `${line} L100,24 L0,24 Z`;
+  const line = smoothPath(pts);
+  const area = `${line} L100,40 L0,40 Z`;
   const diff = values[values.length-1] - values[values.length-2];
   const tone = Math.abs(diff)<0.005 ? 'flat' : ((goodDirection==='up' ? diff>0 : diff<0) ? 'good' : 'bad');
-  const last = pts[pts.length-1];
-  const label = `Last ${values.length} months: ${values.map(fmt).join(' → ')}`;
-  return `<div class="spark ${tone}${animate?' anim':''}" title="${escapeHtml(label)}">
-    <svg viewBox="0 0 100 24" preserveAspectRatio="none" aria-hidden="true"><path class="spark-area" d="${area}"/><path class="spark-line" d="${line}"/></svg>
-    <span class="spark-dot" style="top:${(last.y/24*100).toFixed(1)}%;"></span>
+  const gid = 'sg'+(++sparkUid);
+  const data = values.map((v,i)=>[labels[i]||'', v]);
+  return `<div class="spark ${tone}${animate?' anim':''}" data-pts="${escapeHtml(JSON.stringify(data))}" aria-label="Trend over the last ${values.length} months">
+    <svg viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true">
+      <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="currentColor" stop-opacity=".34"/><stop offset="1" stop-color="currentColor" stop-opacity="0"/></linearGradient></defs>
+      <path class="spark-area" d="${area}" fill="url(#${gid})"/>
+      <path class="spark-line" d="${line}"/>
+    </svg>
+    <span class="spark-guide"></span>
+    ${pts.map((p,i)=>`<span class="spark-pt${i===pts.length-1?' last':''}" style="left:${p.x.toFixed(2)}%;top:${(p.y/40*100).toFixed(1)}%;"></span>`).join('')}
   </div>`;
 }
 // Spark strip for one Month Tracker card. field picks the figure to plot.
@@ -971,7 +1014,7 @@ const CARD_SPARKS = {
 };
 function cardSparkHtml(forKey, name, animate){
   const c = CARD_SPARKS[name];
-  return sparklineHtml(sparkSeries(forKey, c.pick), c.dir, animate);
+  return sparklineHtml(sparkSeries(forKey, c.pick), sparkKeys(forKey).map(shortMonthLabel), c.dir, animate);
 }
 // mode: 'all' = every outgoing regardless of status, 'done' = only what's actually been spent.
 function categoryBreakdown(m, mode){
@@ -1518,6 +1561,37 @@ function showChartTooltip(evt, text){
 function hideChartTooltip(){
   if(chartTooltipEl) chartTooltipEl.style.display = 'none';
 }
+// Scrub through a card sparkline: highlights the nearest month's point and
+// shows its value (and change from the month before) in the chart tooltip.
+let activeSpark = null;
+function clearSparkHover(sp){
+  if(!sp) return;
+  sp.classList.remove('hovering');
+  sp.querySelectorAll('.spark-pt.on').forEach(p=>p.classList.remove('on'));
+}
+document.addEventListener('pointermove', e=>{
+  const sp = e.target.closest ? e.target.closest('.spark') : null;
+  if(sp !== activeSpark){ clearSparkHover(activeSpark); activeSpark = sp; }
+  if(!sp){ if(chartTooltipEl && chartTooltipEl.dataset.spark) { hideChartTooltip(); delete chartTooltipEl.dataset.spark; } return; }
+  if(!sp._pts) sp._pts = JSON.parse(sp.dataset.pts);
+  const rect = sp.getBoundingClientRect();
+  const idx = Math.max(0, Math.min(sp._pts.length-1, Math.round((e.clientX-rect.left)/rect.width*(sp._pts.length-1))));
+  const dots = sp.querySelectorAll('.spark-pt');
+  dots.forEach((d,i)=>d.classList.toggle('on', i===idx));
+  sp.classList.add('hovering');
+  sp.querySelector('.spark-guide').style.left = dots[idx].style.left;
+  const [label, val] = sp._pts[idx];
+  let text = `${label}  ${fmt(val)}`;
+  if(idx>0){
+    const diff = round2(val - sp._pts[idx-1][1]);
+    if(Math.abs(diff)>=0.005) text += `  (${diff>0?'+':''}${fmt(diff)})`;
+  }
+  showChartTooltip(e, text);
+  chartTooltipEl.dataset.spark = '1';
+});
+document.addEventListener('pointerout', e=>{
+  if(!e.relatedTarget && activeSpark){ clearSparkHover(activeSpark); activeSpark = null; hideChartTooltip(); }
+});
 function lineChart(container, data, opts={}){
   // Accepts either a flat array of {x,y,label} (single series, default color)
   // or an array of series: {color, name, dashed, points:[{x,y,label}]}
