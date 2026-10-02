@@ -2809,23 +2809,23 @@ function wireChartLegend(container, allSeries){
   });
 }
 
-function donutSlicePath(cx,cy,outerR,innerR,startA,endA){
-  const toRad = d=>d*Math.PI/180;
-  const pt=(r,a)=>[cx+r*Math.cos(toRad(a)), cy+r*Math.sin(toRad(a))];
-  const [x1,y1]=pt(outerR,startA), [x2,y2]=pt(outerR,endA);
-  const [x3,y3]=pt(innerR,endA), [x4,y4]=pt(innerR,startA);
-  const largeArc = (endA-startA) > 180 ? 1 : 0;
-  return `M ${x1} ${y1} A ${outerR} ${outerR} 0 ${largeArc} 1 ${x2} ${y2} L ${x3} ${y3} A ${innerR} ${innerR} 0 ${largeArc} 0 ${x4} ${y4} Z`;
-}
-// Donut chart for a category breakdown: rows = [{category, amount}], sorted desc.
+// Category breakdown drawn as activity rings: one glowing ring per category (the biggest
+// spends first), each sized against the biggest and labelled with its share of the total.
+// rows = [{category, amount}], sorted desc. More than 5 categories → the rest are
+// gathered into a grey "Others" ring.
 function donutChart(container, rows, opts={}){
   const size = opts.size || 220;
-  const cx = size/2, cy = size/2;
-  const outerR = size/2 - 4;
-  const innerR = outerR * 0.6;
   const total = rows.reduce((s,r)=>s+r.amount,0);
-  const panelColor = getComputedStyle(document.body).getPropertyValue('--panel').trim() || '#161d2e';
-  const borderColor = getComputedStyle(document.body).getPropertyValue('--border').trim() || '#2a3552';
+  const CAP = 5;
+  let ringRows = rows.slice(0, CAP);
+  if(rows.length > CAP){
+    const rest = rows.slice(CAP-1);
+    ringRows = [...rows.slice(0, CAP-1), {category:'Others', amount: rest.reduce((s,r)=>s+r.amount,0), others:true}];
+  }
+  const max = ringRows.length ? Math.max(...ringRows.map(r=>r.amount)) : 0;
+  const colorOf = r => r.others ? '#8a93ab' : categoryColor(r.category);
+  const SWEEP = 75;      // each ring is a 270° arc (75% of a circle) so the top-left quadrant is free for labels
+  const R0 = 91, STEP = 12, W = 9;
 
   container.innerHTML = '';
   const wrap = document.createElement('div');
@@ -2833,52 +2833,65 @@ function donutChart(container, rows, opts={}){
   wrap.style.width = size+'px';
   wrap.style.height = size+'px';
 
-  const svg = svgEl('svg', {viewBox:`0 0 ${size} ${size}`, width:size, height:size, style:'display:block;overflow:visible;'});
-  svg.appendChild(svgEl('circle',{cx,cy,r:(outerR+innerR)/2, fill:'none', stroke:borderColor,'stroke-width':outerR-innerR}));
+  const svg = svgEl('svg', {viewBox:'0 0 200 200', width:size, height:size, style:'display:block;overflow:visible;'});
+  const trackColor = 'color-mix(in srgb, var(--text) 10%, transparent)';
 
   const center = document.createElement('div');
   center.className = 'donut-center';
+  center.style.width = '40%';
   const centerValue = document.createElement('div'); centerValue.className='donut-center-value';
   const centerLabel = document.createElement('div'); centerLabel.className='donut-center-label';
+  centerValue.style.fontSize = Math.round(size*0.085)+'px';
+  centerLabel.style.fontSize = Math.max(9, Math.round(size*0.052))+'px';
   center.appendChild(centerValue); center.appendChild(centerLabel);
   const setCenter = (value,label)=>{ centerValue.textContent=value; centerLabel.textContent=label; };
-  setCenter(fmt(total), total ? 'Total' : 'No spending');
+  const resetCenter = ()=>setCenter(total ? fmtCompact(total) : '—', total ? 'Total' : 'No spending');
+  resetCenter();
 
+  const groups = [];
   if(total>0){
-    let angle = -90, idx = 0;
-    const allPaths = [];
-    rows.forEach(r=>{
-      const frac = r.amount/total;
-      const sweep = frac*360;
-      const color = categoryColor(r.category);
-      const pct = Math.round(frac*100);
-      const tipText = `${categoryIcon(r.category)} ${r.category}: ${fmt(r.amount)} (${pct}%)`;
-      const segs = sweep >= 359.99 ? [[angle,angle+180],[angle+180,angle+360]] : [[angle, angle+sweep]];
-      segs.forEach(([a0,a1])=>{
-        const d = donutSlicePath(cx,cy,outerR,innerR,a0,a1);
-        const path = svgEl('path', {d, fill:color, stroke:panelColor, 'stroke-width':2});
-        path.style.cursor = 'pointer';
-        path.style.transition = 'opacity .15s, filter .15s';
-        path.style.animationDelay = (idx*0.05)+'s';
-        allPaths.push(path);
-        path.addEventListener('mouseenter', evt=>{
-          path.style.filter = 'brightness(1.15)';
-          allPaths.forEach(p=>{ if(p!==path) p.style.opacity='0.4'; });
-          setCenter(fmt(r.amount), `${categoryIcon(r.category)} ${r.category} · ${pct}%`);
-          showChartTooltip(evt, tipText);
-        });
-        path.addEventListener('mousemove', evt=>showChartTooltip(evt, tipText));
-        path.addEventListener('mouseleave', ()=>{
-          path.style.filter='';
-          allPaths.forEach(p=>p.style.opacity='1');
-          setCenter(fmt(total), 'Total');
-          hideChartTooltip();
-        });
-        svg.appendChild(path);
-      });
-      angle += sweep;
-      idx++;
+    ringRows.forEach((r,i)=>{
+      const radius = R0 - STEP*i;
+      const color = colorOf(r);
+      const pct = Math.round(r.amount/total*100);
+      const g = svgEl('g', {transform:'rotate(-90 100 100)'});
+      g.style.transition = 'opacity .15s';
+      g.style.cursor = 'pointer';
+      const base = {cx:100, cy:100, r:radius, fill:'none', pathLength:100, 'stroke-linecap':'round'};
+      g.appendChild(svgEl('circle', {...base, stroke:trackColor, 'stroke-width':W, 'stroke-dasharray':`${SWEEP} 100`}));
+      const fill = svgEl('circle', {...base, stroke:color, 'stroke-width':W, 'stroke-dasharray':'0 100'});
+      fill.style.filter = `drop-shadow(0 0 3px ${color})`;
+      fill.style.transition = 'stroke-dasharray .8s cubic-bezier(.4,.1,.2,1)';
+      const dash = `${Math.max(r.amount/max*SWEEP, 2)} 100`;
+      g.appendChild(fill);
+      // roomy invisible hit area so the thin ring is easy to hover or tap
+      g.appendChild(svgEl('circle', {...base, stroke:'transparent', 'stroke-width':W+3, 'stroke-dasharray':`${SWEEP} 100`, style:'pointer-events:stroke;'}));
+      requestAnimationFrame(()=>requestAnimationFrame(()=>fill.setAttribute('stroke-dasharray', dash)));
+      groups.push(g);
+      svg.appendChild(g);
+      // percentage label at the start of the ring (12 o'clock), in the free quadrant
+      const t = svgEl('text', {x:95, y:100 - radius + 3.7, 'text-anchor':'end', 'font-size':10.2, 'font-weight':800, fill:color});
+      t.style.pointerEvents = 'none';
+      t.textContent = pct+'%';
+      svg.appendChild(t);
+
+      const tipText = `${r.others ? '' : categoryIcon(r.category)+' '}${r.category}: ${fmt(r.amount)} (${pct}%)`;
+      const select = evt=>{
+        groups.forEach(o=>{ o.style.opacity = o===g ? '1' : '0.35'; });
+        setCenter(fmtCompact(r.amount), r.category);
+        if(evt && evt.pointerType!=='touch') showChartTooltip(evt, tipText);
+      };
+      const clear = ()=>{ groups.forEach(o=>o.style.opacity='1'); resetCenter(); hideChartTooltip(); };
+      g.addEventListener('pointerenter', select);
+      g.addEventListener('pointermove', evt=>{ if(evt.pointerType!=='touch') showChartTooltip(evt, tipText); });
+      g.addEventListener('pointerleave', evt=>{ if(evt.pointerType!=='touch') clear(); });
+      g.addEventListener('pointerdown', evt=>{ if(evt.pointerType==='touch'){ evt.stopPropagation(); select(evt); } });
+      container._ringClear = clear;
     });
+    // tapping anywhere else on touch screens goes back to the total
+    svg.addEventListener('pointerdown', evt=>{ if(evt.pointerType==='touch' && container._ringClear) container._ringClear(); });
+  } else {
+    svg.appendChild(svgEl('circle', {cx:100, cy:100, r:R0, fill:'none', stroke:trackColor, 'stroke-width':W}));
   }
 
   wrap.appendChild(svg);
@@ -3650,7 +3663,7 @@ function renderMonthCategoryBreakdown(m){
   const rows = categoryBreakdown(m, monthCatMode);
   const total = rows.reduce((s,r)=>s+r.amount,0);
   totalEl.textContent = rows.length ? `${fmt(total)} ${monthCatMode==='done'?'spent so far':'budgeted'}` : '';
-  donutChart(donutEl, rows, {size: window.innerWidth<=700 ? 150 : 180});
+  donutChart(donutEl, rows, {size: window.innerWidth<=700 ? 170 : 210});
   renderCategoryDeltas(state.currentMonthKey, monthCatMode, 'monthCatDeltas');
   if(!rows.length){
     barsEl.innerHTML = '<div class="empty">No outgoings for this month yet.</div>';
@@ -4086,7 +4099,7 @@ function renderCategoryBreakdown(){
   const rows = isIncome ? incomeBreakdown(m, categoryBreakdownMode) : categoryBreakdown(m, categoryBreakdownMode);
   const total = rows.reduce((s,r)=>s+r.amount,0);
   totalEl.textContent = rows.length ? `${fmt(total)} ${isIncome ? (categoryBreakdownMode==='done'?'received so far':'expected') : (categoryBreakdownMode==='done'?'spent so far':'budgeted')}` : '';
-  donutChart(donutEl, rows, {size:220});
+  donutChart(donutEl, rows, {size:250});
   renderCategoryDeltas(categoryBreakdownMonth, categoryBreakdownMode, undefined, categoryBreakdownKind);
   if(!rows.length){
     bars.innerHTML = `<div class="empty">No ${isIncome?'income':'outgoings'} for this month yet.</div>`;
