@@ -254,7 +254,16 @@
   .name-sub{display:flex;align-items:center;flex-wrap:wrap;gap:4px 10px;margin:4px 0 0 6px;flex:1 1 100%;}
   .name-sub .schedule-hint{margin:0;}
   .income-table .name-sub select.funds-select,.responsive-table .name-sub select.funds-select{width:auto;}
-  .income-table td,.responsive-table:not(.income-table) td{vertical-align:middle;}
+  @media (min-width:861px){
+    /* Desktop rows: every control starts on the same line and is the same height; the small
+       "Next: …" line simply hangs under the name. */
+    .responsive-table tr.out-row td{vertical-align:top;padding-top:10px;padding-bottom:10px;}
+    .responsive-table tr.out-row td .row-input,.responsive-table tr.out-row td.cell-day input,.responsive-table tr.out-row td select:not(.funds-select){height:40px;box-sizing:border-box;}
+    .responsive-table tr.out-row td .cat-dd-trigger{min-height:40px;box-sizing:border-box;}
+    .responsive-table tr.out-row td .status-toggle{height:40px;padding-top:0;padding-bottom:0;}
+    .responsive-table tr.out-row td.cell-del{vertical-align:top;padding-top:10px;}
+    .responsive-table tr.out-row td.cell-del .del-btn{height:40px;display:inline-flex;align-items:center;}
+  }
   .row-input{border:none;background:transparent;padding:4px 6px;width:100%;}
   .row-input:focus{background:var(--panel2);border-radius:6px;}
   .amt-cell{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
