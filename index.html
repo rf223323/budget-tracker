@@ -173,6 +173,17 @@
   select{
     background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:7px 9px;font-size:12.5px;font-family:inherit;font-weight:600;cursor:pointer;
   }
+  .stog{display:block;}
+  .status-toggle{display:inline-flex;align-items:center;gap:7px;width:100%;justify-content:center;padding:7px 10px;border-radius:999px;border:1px solid color-mix(in srgb, var(--amber) 45%, transparent);background:color-mix(in srgb, var(--amber) 8%, transparent);color:var(--amber);font:inherit;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap;transition:background .15s ease,color .15s ease,border-color .15s ease,transform .1s ease;}
+  .status-toggle:active{transform:scale(.96);}
+  .status-toggle .st-dot{width:16px;height:16px;border-radius:50%;border:2px solid currentColor;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .status-toggle .st-dot svg{width:10px;height:10px;opacity:0;}
+  .status-toggle.paid{border-color:color-mix(in srgb, var(--green) 50%, transparent);background:color-mix(in srgb, var(--green) 14%, transparent);color:var(--green);}
+  .status-toggle.paid .st-dot{background:var(--green);border-color:var(--green);color:#06281a;}
+  .status-toggle.paid .st-dot svg{opacity:1;}
+  .weekly-item .stog{margin-bottom:8px;}
+  .cs-status{position:relative;cursor:pointer;}
+  .cs-status::before{content:'';position:absolute;inset:-12px;}
   select.status-done{color:var(--green);border-color:color-mix(in srgb, var(--green) 50%, transparent);background:color-mix(in srgb, var(--green) 8%, transparent);}
   select.status-none{color:var(--amber);border-color:color-mix(in srgb, var(--amber) 40%, transparent);background:color-mix(in srgb, var(--amber) 6%, transparent);}
   select.recur-yes{color:var(--accent);border-color:color-mix(in srgb, var(--accent) 50%, transparent);background:color-mix(in srgb, var(--accent) 8%, transparent);}
@@ -2328,12 +2339,38 @@ function parseReceiptText(rawText, confidence=100){
   }
   return {amount, reason, category: guessCategoryFromText(lowerText)};
 }
-function statusSelectHtml(cls, value){
-  return `<select class="${cls} status-select status-${value}">
-    <option value="none" ${value==='none'?'selected':''}>None</option>
-    <option value="done" ${value==='done'?'selected':''}>Done</option>
-  </select>`;
+// Paid / Not paid is a one-tap button; a hidden <select> sits beside it so every
+// existing change handler (which reads select.value) keeps working untouched.
+function statusSelectHtml(cls, value, opts){
+  opts = opts || {};
+  const yes = opts.yes || 'Paid', no = opts.no || 'Not paid';
+  const done = value==='done';
+  return `<span class="stog"><select class="${cls} status-select status-${value}" ${opts.attrs||''} data-yes="${yes}" data-no="${no}" style="display:none;" tabindex="-1" aria-hidden="true">
+    <option value="none" ${!done?'selected':''}>${no}</option>
+    <option value="done" ${done?'selected':''}>${yes}</option>
+  </select><button type="button" class="status-toggle${done?' paid':''}" aria-pressed="${done}"><span class="st-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><span class="st-txt">${done?yes:no}</span></button></span>`;
 }
+function syncStatusToggle(sel){
+  const btn = sel.parentElement && sel.parentElement.querySelector('.status-toggle');
+  if(!btn) return;
+  const done = sel.value==='done';
+  btn.classList.toggle('paid', done);
+  btn.setAttribute('aria-pressed', done);
+  btn.querySelector('.st-txt').textContent = done ? sel.dataset.yes : sel.dataset.no;
+}
+// Flips a status select and fires its normal change handler.
+function toggleStatusSelect(sel){
+  if(!sel) return;
+  sel.value = sel.value==='done' ? 'none' : 'done';
+  sel.dispatchEvent(new Event('change', {bubbles:true}));
+  syncStatusToggle(sel);
+}
+document.addEventListener('click', e=>{
+  const btn = e.target.closest && e.target.closest('.status-toggle');
+  if(!btn) return;
+  e.preventDefault();
+  toggleStatusSelect(btn.parentElement.querySelector('select'));
+});
 function recurringSelectHtml(cls, isRecurring){
   return `<select class="${cls} recur-select ${isRecurring?'recur-yes':'recur-no'}">
     <option value="no" ${!isRecurring?'selected':''}>One-off</option>
@@ -3089,7 +3126,7 @@ function renderMonth(){
         <button class="btn small" id="addIncomeBtn">+ Add incoming</button>
       </div>
       <table class="responsive-table income-table">
-        <thead><tr><th>Source</th><th style="width:136px;">Category</th><th style="width:128px;">Schedule</th><th style="width:94px;">Amount</th><th style="width:88px;">Status</th><th style="width:106px;">Recurring</th><th style="width:36px;"></th></tr></thead>
+        <thead><tr><th>Source</th><th style="width:136px;">Category</th><th style="width:128px;">Schedule</th><th style="width:94px;">Amount</th><th style="width:130px;">Status</th><th style="width:106px;">Recurring</th><th style="width:36px;"></th></tr></thead>
         <tbody id="incomeBody"></tbody>
       </table>
     </div>
@@ -3100,7 +3137,7 @@ function renderMonth(){
         <button class="btn small" id="addOutgoingBtn">+ Add outgoing</button>
       </div>
       <table class="responsive-table">
-        <thead><tr><th>Name</th><th style="width:140px;">Category</th><th style="width:76px;">Day</th><th style="width:120px;">Amount</th><th style="width:100px;">Status</th><th style="width:110px;">Recurring</th><th style="width:36px;"></th></tr></thead>
+        <thead><tr><th>Name</th><th style="width:140px;">Category</th><th style="width:76px;">Day</th><th style="width:120px;">Amount</th><th style="width:116px;">Status</th><th style="width:110px;">Recurring</th><th style="width:36px;"></th></tr></thead>
         <tbody id="outgoingBody"></tbody>
       </table>
       <div class="formula-note">
@@ -3117,10 +3154,7 @@ function renderMonth(){
             <div class="wk-summary" role="button" tabindex="0" aria-label="Show or hide details">${weekSummaryHtml(i, m.weekly[wk])}</div>
             <label>Week ${i+1}</label>
             <input type="number" step="0.01" class="week-input" data-week="${wk}" value="${m.weekly[wk].amount}" style="margin-bottom:8px;">
-            <select class="week-status status-select status-${m.weekly[wk].status}" data-week="${wk}" style="margin-bottom:8px;">
-              <option value="none" ${m.weekly[wk].status==='none'?'selected':''}>None</option>
-              <option value="done" ${m.weekly[wk].status==='done'?'selected':''}>Done</option>
-            </select>
+            ${statusSelectHtml('week-status', m.weekly[wk].status, {attrs:`data-week="${wk}"`})}
             <select class="week-recur recur-select ${m.weekly[wk].recurring?'recur-yes':'recur-no'}" data-week="${wk}">
               <option value="no" ${!m.weekly[wk].recurring?'selected':''}>One-off</option>
               <option value="yes" ${m.weekly[wk].recurring?'selected':''}>Recurring</option>
@@ -3309,7 +3343,7 @@ function renderMonth(){
       item.classList.toggle('collapsed', !open);
       if(open) expandedWeeks.add(wk); else expandedWeeks.delete(wk);
     };
-    summary.onclick = toggle;
+    summary.onclick = e=>{ if(e.target.closest('.cs-status')){ toggleStatusSelect(item.querySelector('.stog select')); return; } toggle(); };
     summary.onkeydown = e=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); toggle(); } };
   });
   el.querySelectorAll('.week-input').forEach(inp=>{
@@ -3376,7 +3410,7 @@ function renderMonth(){
         <td class="cell-incat" data-label="Category">${categoryDropdownHtml('inc-category', i.category, INCOME_CATEGORIES)}</td>
         <td class="cell-sched" data-label="Schedule">${scheduleSelectHtml('inc-schedule', i)}${fundsSelectHtml('inc-funds', i)}</td>
         <td data-label="Amount"><input class="row-input inc-amount amt-cell" type="number" step="0.01" value="${i.amount}"></td>
-        <td data-label="Status">${statusSelectHtml('inc-status', i.status)}</td>
+        <td data-label="Status">${statusSelectHtml('inc-status', i.status, {yes:'Received', no:'Not received'})}</td>
         <td data-label="Recurring">${recurringSelectHtml('inc-recur', i.recurring)}</td>
         <td class="cell-del"><button class="del-btn inc-del" aria-label="Delete income"><span class="del-x">✕</span><span class="del-label">Delete this income</span></button></td>
       </tr>
@@ -3393,7 +3427,7 @@ function renderMonth(){
         tr.classList.toggle('collapsed', !open);
         if(open) expandedIncRows.add(id); else expandedIncRows.delete(id);
       };
-      summary.onclick = toggleRow;
+      summary.onclick = e=>{ if(e.target.closest('.cs-status')){ toggleStatusSelect(tr.querySelector('.stog select')); return; } toggleRow(); };
       summary.onkeydown = e=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); toggleRow(); } };
       tr.querySelector('.inc-name').oninput = e=>{ item.name=e.target.value; save(); refreshSummary(); };
       tr.querySelector('.inc-name').onchange = ()=>{
@@ -3462,7 +3496,7 @@ function renderMonth(){
         tr.classList.toggle('collapsed', !open);
         if(open) expandedOutRows.add(id); else expandedOutRows.delete(id);
       };
-      summary.onclick = toggleRow;
+      summary.onclick = e=>{ if(e.target.closest('.cs-status')){ toggleStatusSelect(tr.querySelector('.stog select')); return; } toggleRow(); };
       summary.onkeydown = e=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); toggleRow(); } };
       tr.querySelector('.out-name').oninput = e=>{ item.name=e.target.value; save(); refreshSummary(); };
       tr.querySelector('.out-name').onchange = ()=>{
@@ -4606,7 +4640,7 @@ function recurringTableHtml(kind){
   const catTh = kind==='outgoing' ? '<th style="width:140px;">Category</th><th style="width:76px;">Day</th>' : '<th style="width:136px;">Category</th><th style="width:128px;">Schedule</th>';
   return `
     <table class="responsive-table${kind==='incoming'?' income-table':''}">
-      <thead><tr><th>${label}</th>${catTh}<th style="width:120px;">Amount</th><th style="width:100px;">Status</th><th style="width:36px;"></th></tr></thead>
+      <thead><tr><th>${label}</th>${catTh}<th style="width:120px;">Amount</th><th style="width:130px;">Status</th><th style="width:36px;"></th></tr></thead>
       <tbody class="recur-body-${kind}"></tbody>
     </table>
   `;
@@ -4631,7 +4665,7 @@ function drawRecurringTable(m, kind){
         ? `<td class="cell-category" data-label="Category">${categoryDropdownHtml(`recur-category-${kind}`, x.category)}</td><td class="cell-day" data-label="Day">${dayInputHtml(`recur-day-${kind}`, x.day)}</td>`
         : `<td class="cell-incat" data-label="Category">${categoryDropdownHtml(`recur-category-${kind}`, x.category, INCOME_CATEGORIES)}</td><td class="cell-sched" data-label="Schedule">${scheduleSelectHtml(`recur-schedule-${kind}`, x)}${fundsSelectHtml('recur-funds', x)}</td>`}
       <td data-label="Amount"><input class="row-input recur-amount-${kind} amt-cell" type="number" step="0.01" value="${x.amount}"></td>
-      <td data-label="Status">${statusSelectHtml(`recur-status-${kind}`, x.status)}</td>
+      <td data-label="Status">${statusSelectHtml(`recur-status-${kind}`, x.status, kind==='incoming' ? {yes:'Received', no:'Not received'} : null)}</td>
       <td class="cell-del"><button class="del-btn out-del recur-del-${kind}" aria-label="Delete"><span class="del-x">✕</span><span class="del-label">Delete this ${kind==='incoming'?'income':'outgoing'}</span></button></td>
     </tr>
   `).join('') || `<tr><td colspan="${colspan}" class="empty">No recurring ${kind==='incoming'?'incoming':'outgoings'} yet</td></tr>`;
@@ -4647,7 +4681,7 @@ function drawRecurringTable(m, kind){
       tr.classList.toggle('collapsed', !open);
       if(open) expandedRecurRows.add(id); else expandedRecurRows.delete(id);
     };
-    summary.onclick = toggleRow;
+    summary.onclick = e=>{ if(e.target.closest('.cs-status')){ toggleStatusSelect(tr.querySelector('.stog select')); return; } toggleRow(); };
     summary.onkeydown = e=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); toggleRow(); } };
     tr.querySelector(`.recur-name-${kind}`).oninput = e=>{ item.name=e.target.value; syncNewRecurringForward(item, state.currentMonthKey, listKey); save(); refreshSummary(); };
     tr.querySelector(`.recur-name-${kind}`).onchange = ()=>{
