@@ -638,6 +638,19 @@
   .hero-bgfx.bg-hue{animation:bgDrift 14s ease-in-out infinite alternate, bgHue 18s ease-in-out infinite alternate;}
   @keyframes bgHue{to{filter:hue-rotate(45deg);}}
   @media (prefers-reduced-motion:reduce){.acc-twinkle,.acc-beat,.acc-wave,.acc-note,.acc-spark,.acc-halo,.acc-eye,.acc-blink,.acc-breathe,.acc-sway,.acc-flow,.acc-flapL,.acc-flapR,.acc-flap,.acc-shine,.acc-shineY,.acc-rock,.hero-bgfx.bg-anim,.hero-bgfx.bg-pulse,.hero-bgfx.bg-hue{animation:none !important;}.acc-twinkle,.acc-note,.acc-spark{opacity:.75;}.acc-wave{opacity:0;}}
+  .acc-runes{animation:accRunes 4.5s linear infinite;}
+  @keyframes accRunes{to{stroke-dashoffset:-35.2;}}
+  .acc-ringglow{animation:accRingGlow 2.6s ease-in-out infinite;}
+  @keyframes accRingGlow{0%,100%{filter:drop-shadow(0 0 2px #ffb21a);}50%{filter:drop-shadow(0 0 7px #ffd25a);}}
+  .acc-crystal{transform-box:fill-box;transform-origin:center;animation:accCrystal 2.2s ease-in-out infinite;}
+  @keyframes accCrystal{0%,100%{filter:drop-shadow(0 0 2px #bfe8ff);transform:scale(1);}50%{filter:drop-shadow(0 0 8px #e8f6ff);transform:scale(1.12);}}
+  .acc-pupil{animation:accPupil 5.5s ease-in-out infinite;}
+  @keyframes accPupil{0%,100%{transform:translateX(0);}22%{transform:translateX(-7px);}55%{transform:translateX(7px);}78%{transform:translateX(0);}}
+  .acc-eyeglow{animation:accEyeGlow 2.4s ease-in-out infinite;}
+  @keyframes accEyeGlow{0%,100%{filter:drop-shadow(0 0 3px #ff6a14);}50%{filter:drop-shadow(0 0 9px #ffb21a);}}
+  .acc-whl{animation:accWingH 2.2s ease-in-out infinite;}
+  @keyframes accWingH{0%,100%{transform:rotate(0);}50%{transform:rotate(-7deg);}}
+  @media (prefers-reduced-motion:reduce){.acc-runes,.acc-ringglow,.acc-crystal,.acc-pupil,.acc-eyeglow,.acc-whl{animation:none !important;}}
   .hero-bgfx{position:absolute;inset:0;border-radius:inherit;z-index:-1;opacity:.42;pointer-events:none;}
   [data-theme="paper"] .hero-bgfx,[data-theme="soft"] .hero-bgfx{opacity:.28;}
   .hero-title{display:inline-block;margin-top:3px;padding:2px 9px;border-radius:999px;font-size:10.5px;font-weight:800;letter-spacing:.04em;color:var(--tc,var(--accent));background:color-mix(in srgb, var(--tc,var(--accent)) 16%, transparent);}
@@ -3885,7 +3898,11 @@ const WARDROBE = {
     // anime-inspired
     {id:'redscarf',name:'Red scarf',r:'c'},{id:'harness',name:'Maneuver gear',r:'c'},
     {id:'horns',name:'Devil horns',r:'r'},{id:'grin',name:'Shark grin',r:'r'},{id:'cloak',name:'Scout cloak',r:'r'},{id:'steam',name:'Titan steam',r:'r'},
-    {id:'blades',name:'Twin blades',r:'s'}
+    {id:'blades',name:'Twin blades',r:'s'},
+    // fantasy-quest inspired
+    {id:'pipe',name:'Long pipe',r:'c'},{id:'leafpin',name:'Leaf brooch',r:'c'},
+    {id:'circlet',name:'Elven circlet',r:'r'},{id:'dwarfhelm',name:'Dwarven helm',r:'r'},{id:'staff',name:"Wizard's staff",r:'r'},
+    {id:'goldring',name:'Golden ring',r:'s'},{id:'fireeye',name:'Burning eye',r:'s'},{id:'wingedhelm',name:'Winged helm',r:'s'}
   ],
   bg:[
     {id:'dusk',name:'Dusk',r:'c',css:'linear-gradient(160deg,#3a2a5a,#e0705a)'},
@@ -3898,13 +3915,17 @@ const WARDROBE = {
     {id:'lava',name:'Lava lake',r:'s',css:'radial-gradient(60% 40% at 30% 80%,#ff7a2a,transparent),radial-gradient(50% 35% at 75% 70%,#ffb23a,transparent),#2a0a08'},
     {id:'wall',name:'Stone wall',r:'c',css:'linear-gradient(160deg,#4a5568,#c7b79a)'},
     {id:'bloodmoon',name:'Blood moon',r:'r',css:'radial-gradient(50% 40% at 78% 22%,rgba(255,170,90,.55),transparent),linear-gradient(160deg,#1a0508,#7a0f1f)'},
-    {id:'wallsdawn',name:'Dawn over the walls',r:'s',css:'linear-gradient(180deg,#14213d 0%,#5b4b8a 40%,#ff8f6b 78%,#ffd9a0 100%)'}
+    {id:'wallsdawn',name:'Dawn over the walls',r:'s',css:'linear-gradient(180deg,#14213d 0%,#5b4b8a 40%,#ff8f6b 78%,#ffd9a0 100%)'},
+    {id:'peaks',name:'Misty peaks',r:'c',css:'linear-gradient(170deg,#2c3a50,#8aa0b8 60%,#dfe6ee)'},
+    {id:'shire',name:'Shire dawn',r:'r',css:'linear-gradient(170deg,#274a2a,#6fae58 55%,#ffe29a)'},
+    {id:'doom',name:'Mountain of fire',r:'s',css:'radial-gradient(60% 45% at 50% 100%,rgba(255,120,30,.9),transparent),linear-gradient(180deg,#120606,#4a0d0a)'}
   ],
   title:[
     {id:'penny',name:'Penny Pincher',r:'c'},{id:'early',name:'Early Bird',r:'c'},
     {id:'slayer',name:'Bill Slayer',r:'r'},{id:'keeper',name:'Streak Keeper',r:'r'},
     {id:'lord',name:'Ember Lord',r:'s'},{id:'tamer',name:'Dragon Tamer',r:'s'},
-    {id:'scout',name:'Scout',r:'c'},{id:'hunter',name:'Devil Hunter',r:'r'},{id:'titanslayer',name:'Titan Slayer',r:'s'}
+    {id:'scout',name:'Scout',r:'c'},{id:'hunter',name:'Devil Hunter',r:'r'},{id:'titanslayer',name:'Titan Slayer',r:'s'},
+    {id:'wanderer',name:'Wanderer',r:'c'},{id:'fellowship',name:'Fellowship',r:'r'},{id:'ringbearer',name:'Ring-bearer',r:'s'}
   ]
 };
 const WARD_KIND_NAME = {acc:'Ember accessory', bg:'Card background', title:'Title'};
@@ -4005,6 +4026,40 @@ Object.assign(ACC_ART, (()=>{
   A.wings.back = `<g transform="translate(56 62) scale(.78) translate(-56 -62)"><g class="acc-flap l">${wing(-1)}</g><g class="acc-flap r">${wing(1)}</g></g>`;
   A.cape.back = `<g class="acc-sway">${A.cape.back}</g>`.replace('<circle cx="24" cy="90" r="1.6"/>','<circle class="acc-twinkle" cx="24" cy="90" r="1.6"/>').replace('<circle cx="80" cy="96" r="1.6"/>','<circle class="acc-twinkle" style="animation-delay:.7s" cx="80" cy="96" r="1.6"/>').replace('<circle cx="88" cy="80" r="1.2"/>','<circle class="acc-twinkle" style="animation-delay:1.4s" cx="88" cy="80" r="1.2"/>').replace('<circle cx="34" cy="100" r="1.2"/>','<circle class="acc-twinkle" style="animation-delay:2s" cx="34" cy="100" r="1.2"/>');
   A.blades.back = `<g class="acc-rock l">${blade(-32,'accBladeL')}</g><g class="acc-rock r">${blade(32,'accBladeR')}</g>` + star(21,21,4.4,'acc-twinkle',0,'#fff') + star(87,21,4.4,'acc-twinkle',1.1,'#fff');
+})();
+// Fantasy-quest inspired accessories (rings, elves, dwarves, wizards, a burning eye): original art in the same style as the rest.
+(()=>{
+  const A = ACC_ART, o = ACC_O, sw = 1.7;
+  const RM = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const star = (x,y,r,cls,delay,fill)=>`<path class="${cls||'acc-twinkle'}" style="animation-delay:${delay||0}s" d="M${x},${y-r} L${x+r*.28},${y-r*.28} L${x+r},${y} L${x+r*.28},${y+r*.28} L${x},${y+r} L${x-r*.28},${y+r*.28} L${x-r},${y} L${x-r*.28},${y-r*.28}Z" fill="${fill||'#fff'}"/>`;
+  const gdefs = `<defs><linearGradient id="accShG2" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".95"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>`;
+  const sweep = (id,d,x,y,w,h,delay)=> RM ? '' : `${gdefs}<clipPath id="${id}"><path d="${d}"/></clipPath><g clip-path="url(#${id})"><g class="acc-shine" style="animation-delay:${delay||0}s"><rect x="${x}" y="${y}" width="${w}" height="${h}" fill="url(#accShG2)" transform="skewX(-22)"/></g></g>`;
+  const domeD = 'M34,54 C34,34 42,22 54,22 C66,22 74,34 74,54Z';
+
+  // ---- common ----
+  A.pipe = {front:`<g fill="#fff" opacity=".6" style="filter:blur(.6px)"><circle cx="85" cy="58" r="3.2"/><circle cx="89" cy="50" r="4.2"/><circle cx="85" cy="41" r="5.2"/></g><path d="M66,82 Q74,86 80,80" fill="none" stroke="${o}" stroke-width="5.4" stroke-linecap="round"/><path d="M66,82 Q74,86 80,80" fill="none" stroke="#8a5a30" stroke-width="3" stroke-linecap="round"/><path d="M78,68 L78,80 Q78,87 85,87 Q92,87 92,80 L92,68Z" fill="#7a4a2a" stroke="${o}" stroke-width="${sw}" stroke-linejoin="round"/><rect x="76.4" y="65.4" width="17.2" height="4.6" rx="2.2" fill="#5a3418" stroke="${o}" stroke-width="1.4"/><circle cx="85" cy="66.6" r="2.2" fill="#ff7a1a"/><path d="M80,74 L80,82" stroke="#a8743f" stroke-width="1.6" stroke-linecap="round" opacity=".8"/>`};
+  A.leafpin = {front:`<g transform="translate(46 74) rotate(-28)"><path d="M0,-12 C9,-8 9,6 0,13 C-9,6 -9,-8 0,-12Z" fill="#5fae4c" stroke="${o}" stroke-width="${sw}" stroke-linejoin="round"/><path d="M0,-10 L0,11 M0,-3 L4.4,-7 M0,3 L4.4,-1 M0,-3 L-4.4,-7 M0,3 L-4.4,-1" fill="none" stroke="#2f6a2a" stroke-width="1.2" stroke-linecap="round"/><path d="M-3,-6 C-5,-2 -5,2 -3,5" fill="none" stroke="#a6e08e" stroke-width="1.4" stroke-linecap="round" opacity=".8"/><circle cx="0" cy="14" r="2" fill="#d6dce8" stroke="${o}" stroke-width="1.1"/></g>`};
+
+  // ---- rare ----
+  A.circlet = {front:`<path d="M34,46 Q54,34 74,46" fill="none" stroke="${o}" stroke-width="5.6" stroke-linecap="round"/><path d="M34,46 Q54,34 74,46" fill="none" stroke="#e8eef8" stroke-width="3" stroke-linecap="round"/><path d="M36,45 Q54,33.4 72,45" fill="none" stroke="#fff" stroke-width="1" stroke-linecap="round" opacity=".8"/><path d="M34,46 C28,46 26,40 29,36 C32,40 34,42 36,44Z M74,46 C80,46 82,40 79,36 C76,40 74,42 72,44Z" fill="#b8d8f0" stroke="${o}" stroke-width="1.2" stroke-linejoin="round"/><path d="M54,30.4 L58.6,37.6 L54,43.4 L49.4,37.6Z" fill="#6fd0ff" stroke="${o}" stroke-width="1.5" stroke-linejoin="round"/><path d="M54,32.6 L56,37.4 L54,41" fill="none" stroke="#fff" stroke-width="1" stroke-linecap="round" opacity=".85"/>${sweep('accCircletClip','M34,46 Q54,34 74,46 L74,50 Q54,38 34,50Z',28,26,6,28,.5)}${star(54,30,3,'acc-twinkle',0,'#fff')}${star(30,34,2,'acc-twinkle',1,'#cfe9ff')}${star(78,34,2,'acc-twinkle',1.7,'#cfe9ff')}`};
+  A.dwarfhelm = {front:`<path d="M54,13 L59,24 L49,24Z" fill="#aab4c8" stroke="${o}" stroke-width="${sw}" stroke-linejoin="round"/><path d="${domeD}" fill="#8f9ab0" stroke="${o}" stroke-width="${sw}" stroke-linejoin="round"/><path d="M40,38 C42,31 47,27 52,26" fill="none" stroke="#d6deec" stroke-width="2.2" stroke-linecap="round" opacity=".85"/><rect x="31" y="49" width="46" height="7" rx="2.6" fill="#6a748a" stroke="${o}" stroke-width="${sw}"/><g fill="#d6deec" stroke="${o}" stroke-width=".9"><circle cx="38" cy="52.5" r="1.7"/><circle cx="46" cy="52.5" r="1.7"/><circle cx="62" cy="52.5" r="1.7"/><circle cx="70" cy="52.5" r="1.7"/></g><path d="M50.6,56 L50.6,70 Q54,74 57.4,70 L57.4,56Z" fill="#7a859b" stroke="${o}" stroke-width="${sw}" stroke-linejoin="round"/><path d="M33,56 L37,72 L46,66 L46,56Z M75,56 L71,72 L62,66 L62,56Z" fill="#7a859b" stroke="${o}" stroke-width="${sw}" stroke-linejoin="round"/><g class="acc-eye"><path d="M40,60 L47,60 M61,60 L68,60" stroke="#ffb030" stroke-width="2.6" stroke-linecap="round" style="filter:drop-shadow(0 0 3px #ff8a1a)"/></g>${sweep('accHelmClip',domeD,22,10,8,46,1.2)}`};
+  A.staff = {front:`<path d="M85,98 L82,28" stroke="${o}" stroke-width="6.4" stroke-linecap="round"/><path d="M85,98 L82,28" stroke="#8a5a30" stroke-width="3.8" stroke-linecap="round"/><path d="M84.6,92 L83.4,40" stroke="#b07a44" stroke-width="1.2" stroke-linecap="round" opacity=".8"/><path d="M82,30 C73,28 72,16 80,13 C88,16 90,28 82,30" fill="none" stroke="${o}" stroke-width="6" stroke-linecap="round"/><path d="M82,30 C73,28 72,16 80,13 C88,16 90,28 82,30" fill="none" stroke="#8a5a30" stroke-width="3.2" stroke-linecap="round"/><g class="acc-crystal"><circle cx="81" cy="20.4" r="5.6" fill="#e6f6ff" stroke="#6ab8ff" stroke-width="1.6"/><circle cx="79.6" cy="18.8" r="1.8" fill="#fff"/></g>${star(70,12,2.6,'acc-twinkle',.2,'#d6f0ff')}${star(92,18,2.2,'acc-twinkle',1,'#d6f0ff')}${star(76,4,2,'acc-twinkle',1.8,'#fff')}`};
+
+  // ---- super rare ----
+  // Golden ring: a glowing band circling the flame, with an engraved inscription that glows and drifts round it.
+  const ringE = `cx="56" cy="64" rx="42" ry="11"`;
+  A.goldring = {
+    back:`<g class="acc-ringglow"><ellipse ${ringE} fill="none" stroke="${o}" stroke-width="8"/><ellipse ${ringE} fill="none" stroke="#ffc83a" stroke-width="5"/><ellipse ${ringE} fill="none" stroke="#fff0a0" stroke-width="1.2" opacity=".7" transform="translate(0 -1.4)"/><ellipse class="acc-runes" ${ringE} fill="none" stroke="#ff6a14" stroke-width="1.5" stroke-dasharray="2.4 3.4" stroke-linecap="round"/></g>`,
+    front:`<g class="acc-ringglow"><path d="M14,64 A42,11 0 0 0 98,64" fill="none" stroke="${o}" stroke-width="8"/><path d="M14,64 A42,11 0 0 0 98,64" fill="none" stroke="#ffc83a" stroke-width="5"/><path d="M16,66 A40,10 0 0 0 96,66" fill="none" stroke="#fff0a0" stroke-width="1.2" opacity=".7"/><path class="acc-runes" d="M14,64 A42,11 0 0 0 98,64" fill="none" stroke="#ff6a14" stroke-width="1.5" stroke-dasharray="2.4 3.4" stroke-linecap="round"/></g>` + star(97,60,2.6,'acc-twinkle',0,'#fff6c8') + star(15,60,2,'acc-twinkle',1.2,'#fff6c8')
+  };
+  // Burning eye: a great slit-pupilled eye of fire set into the flame's body that looks around and blinks.
+  A.fireeye = {front:`<defs><linearGradient id="accEyeG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe27a"/><stop offset=".55" stop-color="#ff9a1a"/><stop offset="1" stop-color="#e8330a"/></linearGradient><clipPath id="accEyeClip"><path d="M34,58 Q56,36 78,58 Q56,80 34,58Z"/></clipPath></defs><g class="acc-eyeglow"><g class="acc-blink"><path d="M34,58 Q56,36 78,58 Q56,80 34,58Z" fill="url(#accEyeG)" stroke="${o}" stroke-width="${sw}" stroke-linejoin="round"/><g clip-path="url(#accEyeClip)"><g class="acc-pupil"><ellipse cx="56" cy="58" rx="4.4" ry="14" fill="#2a0806" stroke="#ff3a10" stroke-width="1.6"/><ellipse cx="54.4" cy="52" rx="1.2" ry="3" fill="#fff" opacity=".6"/></g></g><path d="M34,58 Q56,36 78,58" fill="none" stroke="${o}" stroke-width="3.2" stroke-linecap="round"/></g></g><path d="M44,36 L46,28 L50,35Z M56,32 L58,22 L62,32Z M66,36 L70,28 L70,38Z" fill="#ff8a1a" stroke="${o}" stroke-width="1.2" stroke-linejoin="round"/>`};
+  // Winged helm: a bright silver helm with swept-back wings.
+  const wingH = `<path d="M37,48 C24,46 14,36 10,20 C18,24 24,26 31,32 C26,24 24,18 25,12 C32,20 36,28 39,36Z" fill="#f4f7fc" stroke="${o}" stroke-width="${sw}" stroke-linejoin="round"/><path d="M30,38 C24,34 19,30 15,24 M34,42 C27,40 22,37 18,33" fill="none" stroke="#c4cee0" stroke-width="1.4" stroke-linecap="round"/>`;
+  A.wingedhelm = {
+    back:`<g class="acc-whl" style="transform-box:fill-box;transform-origin:100% 100%">${wingH}</g><g class="acc-whr" transform="translate(108 0) scale(-1 1)"><g class="acc-whl" style="transform-box:fill-box;transform-origin:100% 100%;animation-delay:.2s">${wingH}</g></g>`,
+    front:`<path d="${domeD}" fill="#dfe6f2" stroke="${o}" stroke-width="${sw}" stroke-linejoin="round"/><path d="M40,38 C42,31 47,27 52,26" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" opacity=".9"/><rect x="31" y="49" width="46" height="6" rx="2.4" fill="#e8c14a" stroke="${o}" stroke-width="${sw}"/><path d="M50.8,55 L50.8,66 Q54,70 57.2,66 L57.2,55Z" fill="#c4cee0" stroke="${o}" stroke-width="${sw}" stroke-linejoin="round"/><path d="M33,55 L36,68 L45,62 L45,55Z M75,55 L72,68 L63,62 L63,55Z" fill="#c4cee0" stroke="${o}" stroke-width="${sw}" stroke-linejoin="round"/><path d="M54,32 L57,38 L54,44 L51,38Z" fill="#6fd0ff" stroke="${o}" stroke-width="1.3" stroke-linejoin="round"/>${sweep('accWHelmClip',domeD,22,10,8,46,.7)}${star(54,31,2.4,'acc-twinkle',0,'#fff')}`
+  };
 })();
 function accArt(id, layer, P){
   const a = ACC_ART[id]; if(!a || !a[layer]) return '';
@@ -4437,7 +4492,7 @@ function refreshHero(){
     if(ht){ ht.textContent = tIt ? tIt.name : ''; if(tIt) ht.style.setProperty('--tc', WARD_RARITY[tIt.r].col); }
     const bgIt = wardEquipped('bg') ? wardItem('bg', wardEquipped('bg')) : null;
     const fx = document.getElementById('heroBgfx');
-    if(fx){ fx.style.background = bgIt ? bgIt.css : ''; fx.className = 'hero-bgfx' + (bgIt && bgIt.r!=='c' ? (bgIt.id==='lava'||bgIt.id==='bloodmoon' ? ' bg-pulse' : bgIt.id==='aurora' ? ' bg-anim bg-hue' : ' bg-anim') : ''); }
+    if(fx){ fx.style.background = bgIt ? bgIt.css : ''; fx.className = 'hero-bgfx' + (bgIt && bgIt.r!=='c' ? (bgIt.id==='lava'||bgIt.id==='bloodmoon'||bgIt.id==='doom' ? ' bg-pulse' : bgIt.id==='aurora' ? ' bg-anim bg-hue' : ' bg-anim') : ''); }
     renderSpinStrip(); }
   document.getElementById('heroDate').textContent = isCurrent
     ? now.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'})
