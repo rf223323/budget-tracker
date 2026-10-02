@@ -2141,6 +2141,8 @@ function incomeBreakdown(m, mode){
 const PAY3_PROVIDERS = {
   klarna:{label:'Klarna · Pay in 3', n:3, every:'month'},
   clearpay:{label:'Clearpay · Pay in 4', n:4, every:'14d'},
+  paypal:{label:'PayPal · Pay in 3', n:3, every:'month'},
+  flex:{label:'Flex · Pay in 3', n:3, every:'month'},
   custom:{label:'Custom', n:3, every:'month'}
 };
 function pad2(n){ return String(n).padStart(2,'0'); }
