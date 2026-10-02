@@ -593,31 +593,51 @@
   @keyframes accBolt{0%,70%,100%{opacity:.25;}10%,30%,50%{opacity:1;}}
   @media (prefers-reduced-motion:reduce){.acc-steam,.acc-bolt path{animation:none;}.acc-steam{opacity:.7;}}
   .acc-twinkle{transform-box:fill-box;transform-origin:center;animation:accTwinkle 2.4s ease-in-out infinite;}
-  @keyframes accTwinkle{0%,100%{opacity:.1;transform:scale(.4);}50%{opacity:1;transform:scale(1.15);}}
+  @keyframes accTwinkle{0%,100%{opacity:.1;transform:scale(.4) rotate(0);}50%{opacity:1;transform:scale(1.15) rotate(45deg);}}
   .acc-beat{transform-box:fill-box;transform-origin:center;animation:accBeat 1s ease-in-out infinite;}
   @keyframes accBeat{0%,100%{transform:scale(1);}45%{transform:scale(1.09);}}
+  .acc-wave{animation:accWave 1.8s ease-out infinite;opacity:0;}
+  .acc-wave.l{--wx:-3px;} .acc-wave.r{--wx:3px;}
+  @keyframes accWave{0%{transform:translateX(0);opacity:0;}20%{opacity:.9;}100%{transform:translateX(var(--wx));opacity:0;}}
   .acc-note{animation:accNote 2.8s ease-in-out infinite;opacity:0;}
   @keyframes accNote{0%{transform:translateY(5px);opacity:0;}25%{opacity:1;}100%{transform:translateY(-15px) translateX(2px);opacity:0;}}
   .acc-spark{animation:accSpark 2.2s ease-out infinite;opacity:0;}
-  @keyframes accSpark{0%{transform:translateY(3px);opacity:0;}25%{opacity:1;}100%{transform:translateY(-11px);opacity:0;}}
+  @keyframes accSpark{0%{transform:translateY(3px) translateX(0);opacity:0;}25%{opacity:1;}100%{transform:translateY(-12px) translateX(2px);opacity:0;}}
   .acc-halo{animation:accHalo 2.8s ease-in-out infinite;}
   @keyframes accHalo{0%,100%{transform:translateY(0);filter:drop-shadow(0 0 2px #ffd66e);opacity:.8;}50%{transform:translateY(-1.8px);filter:drop-shadow(0 0 7px #ffd66e);opacity:1;}}
   .acc-eye{animation:accEye 1.9s ease-in-out infinite;}
   @keyframes accEye{0%,100%{filter:drop-shadow(0 0 2px #ffe27a);}50%{filter:drop-shadow(0 0 8px #fff3a0) brightness(1.3);}}
+  .acc-blink{transform-box:fill-box;transform-origin:center;animation:accBlink 4.6s infinite;}
+  @keyframes accBlink{0%,90%,100%{transform:scaleY(1);}94%{transform:scaleY(.08);}}
+  .acc-breathe{transform-box:fill-box;transform-origin:50% 0%;animation:accBreathe 2.6s ease-in-out infinite;}
+  @keyframes accBreathe{0%,100%{transform:scaleY(1);}50%{transform:scaleY(1.07);}}
   .acc-sway{transform-box:fill-box;transform-origin:50% 0;animation:accSway 3.8s ease-in-out infinite;}
   @keyframes accSway{0%,100%{transform:skewX(-3deg);}50%{transform:skewX(3deg);}}
-  .acc-flap{transform-box:fill-box;animation:accFlap 1.6s ease-in-out infinite;}
+  .acc-flow{transform-box:fill-box;transform-origin:50% 0%;animation:accFlow 3.2s ease-in-out infinite;}
+  @keyframes accFlow{0%,100%{transform:skewX(-4deg) scaleY(1);}50%{transform:skewX(4deg) scaleY(1.04);}}
+  .acc-flapL,.acc-flapR{transform-box:fill-box;transform-origin:50% 0%;animation:accFlapL 3.2s ease-in-out infinite;}
+  .acc-flapR{animation-name:accFlapR;animation-delay:.25s;}
+  @keyframes accFlapL{0%,100%{transform:rotate(1.5deg);}50%{transform:rotate(-4deg);}}
+  @keyframes accFlapR{0%,100%{transform:rotate(-1.5deg);}50%{transform:rotate(4deg);}}
+  .acc-flap{transform-box:fill-box;animation:accFlap 1.5s ease-in-out infinite;}
   .acc-flap.l{transform-origin:100% 60%;}
-  .acc-flap.r{transform-origin:0% 60%;animation-name:accFlapR;}
-  @keyframes accFlap{0%,100%{transform:rotate(0) scaleX(1);}50%{transform:rotate(-10deg) scaleX(.84);}}
-  @keyframes accFlapR{0%,100%{transform:rotate(0) scaleX(1);}50%{transform:rotate(10deg) scaleX(.84);}}
+  .acc-flap.r{transform-origin:0% 60%;animation-name:accFlapR2;}
+  @keyframes accFlap{0%,100%{transform:rotate(8deg) scaleX(.98);}35%{transform:rotate(-16deg) scaleX(.8);}}
+  @keyframes accFlapR2{0%,100%{transform:rotate(-8deg) scaleX(.98);}35%{transform:rotate(16deg) scaleX(.8);}}
+  .acc-shine{animation:accShine 3.8s ease-in-out infinite;}
+  @keyframes accShine{0%{transform:translateX(-14px);}55%,100%{transform:translateX(52px);}}
+  .acc-shineY{animation:accShineY 4.2s ease-in-out infinite;}
+  @keyframes accShineY{0%{transform:translateY(0);}55%,100%{transform:translateY(80px);}}
+  .acc-rock{transform-box:fill-box;transform-origin:50% 90%;animation:accRock 3.4s ease-in-out infinite;}
+  .acc-rock.r{animation-delay:.4s;}
+  @keyframes accRock{0%,100%{transform:rotate(-1.6deg);}50%{transform:rotate(1.6deg);}}
   .hero-bgfx.bg-anim{background-size:170% 170% !important;animation:bgDrift 16s ease-in-out infinite alternate;}
   @keyframes bgDrift{from{background-position:0% 25%;}to{background-position:100% 75%;}}
   .hero-bgfx.bg-pulse{animation:bgPulse 4.5s ease-in-out infinite alternate;}
   @keyframes bgPulse{from{filter:brightness(.82);}to{filter:brightness(1.35);}}
   .hero-bgfx.bg-hue{animation:bgDrift 14s ease-in-out infinite alternate, bgHue 18s ease-in-out infinite alternate;}
   @keyframes bgHue{to{filter:hue-rotate(45deg);}}
-  @media (prefers-reduced-motion:reduce){.acc-twinkle,.acc-beat,.acc-note,.acc-spark,.acc-halo,.acc-eye,.acc-sway,.acc-flap,.hero-bgfx.bg-anim,.hero-bgfx.bg-pulse,.hero-bgfx.bg-hue{animation:none !important;}.acc-twinkle,.acc-note,.acc-spark{opacity:.75;}}
+  @media (prefers-reduced-motion:reduce){.acc-twinkle,.acc-beat,.acc-wave,.acc-note,.acc-spark,.acc-halo,.acc-eye,.acc-blink,.acc-breathe,.acc-sway,.acc-flow,.acc-flapL,.acc-flapR,.acc-flap,.acc-shine,.acc-shineY,.acc-rock,.hero-bgfx.bg-anim,.hero-bgfx.bg-pulse,.hero-bgfx.bg-hue{animation:none !important;}.acc-twinkle,.acc-note,.acc-spark{opacity:.75;}.acc-wave{opacity:0;}}
   .hero-bgfx{position:absolute;inset:0;border-radius:inherit;z-index:-1;opacity:.42;pointer-events:none;}
   [data-theme="paper"] .hero-bgfx,[data-theme="soft"] .hero-bgfx{opacity:.28;}
   .hero-title{display:inline-block;margin-top:3px;padding:2px 9px;border-radius:999px;font-size:10.5px;font-weight:800;letter-spacing:.04em;color:var(--tc,var(--accent));background:color-mix(in srgb, var(--tc,var(--accent)) 16%, transparent);}
@@ -3947,26 +3967,43 @@ Object.assign(ACC_ART, (()=>{
   };
   return {harness:gear, grin, steam};
 })());
-// Rare and super rare accessories move: each gets a small looping animation (CSS classes live in the stylesheet).
+// Rare and super rare accessories move: layered, eased loops (CSS classes plus a few SMIL paths). Skipped entirely under reduced motion.
 (()=>{
   const A = ACC_ART, o = ACC_O, sw = 1.7;
+  const RM = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
   const star = (x,y,r,cls,delay,fill)=>`<path class="${cls||'acc-twinkle'}" style="animation-delay:${delay||0}s" d="M${x},${y-r} L${x+r*.28},${y-r*.28} L${x+r},${y} L${x+r*.28},${y+r*.28} L${x},${y+r} L${x-r*.28},${y+r*.28} L${x-r},${y} L${x-r*.28},${y-r*.28}Z" fill="${fill||'#fff'}"/>`;
   const note = (x,y,d)=>`<g class="acc-note" style="animation-delay:${d}s"><ellipse cx="${x}" cy="${y}" rx="2.6" ry="1.9" fill="#bfe0ff" transform="rotate(-20 ${x} ${y})"/><path d="M${x+2.2},${y-.6} L${x+2.2},${y-8.4} L${x+6},${y-6.6}" fill="none" stroke="#bfe0ff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></g>`;
   const wing = s=>`<path d="M${56+s*24},60 C${56+s*60},20 ${56+s*70},58 ${56+s*52},64 C${56+s*66},66 ${56+s*60},82 ${56+s*44},76 C${56+s*54},88 ${56+s*40},94 ${56+s*28},82Z" fill="#fff" stroke="${o}" stroke-width="${sw}" stroke-linejoin="round"/><path d="M${56+s*34},64 C${56+s*50},54 ${56+s*56},60 ${56+s*50},66 M${56+s*34},74 C${56+s*46},68 ${56+s*50},74 ${56+s*44},78" fill="none" stroke="#cfd8ea" stroke-width="1.5" stroke-linecap="round"/>`;
-  // rare
+  // a bright band that sweeps across a shape every few seconds (clipped to the shape)
+  const defs = `<defs><linearGradient id="accShG" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".95"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><linearGradient id="accShV" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".95"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>`;
+  const sweep = (id, d, x, y, w, h, delay)=> RM ? '' : `${defs}<clipPath id="${id}"><path d="${d}"/></clipPath><g clip-path="url(#${id})"><g class="acc-shine" style="animation-delay:${delay||0}s"><rect x="${x}" y="${y}" width="${w}" height="${h}" fill="url(#accShG)" transform="skewX(-22)"/></g></g>`;
+  // a small light that travels round an ellipse
+  const orbit = (cx,cy,rx,ry,dur,r,fill,begin)=> RM ? '' : `<circle r="${r}" fill="${fill}" style="filter:drop-shadow(0 0 2px ${fill})"><animateMotion dur="${dur}s" begin="${begin||0}s" repeatCount="indefinite" path="M${cx-rx},${cy} a${rx},${ry} 0 1 0 ${2*rx},0 a${rx},${ry} 0 1 0 ${-2*rx},0"/></circle>`;
+  const tooth = (x,y,dir,len,w)=>`<path d="M${x},${y} l${w/2},${dir*len} l${w/2},${-dir*len}Z" fill="#fff6e8" stroke="${o}" stroke-width="1" stroke-linejoin="round"/>`;
+  const blade = (a,id)=>`<g transform="translate(54 74) rotate(${a})"><path d="M-3.4,-62 L3.4,-62 L4.6,4 L-4.6,4Z" fill="#dfe6f2" stroke="${o}" stroke-width="${sw}" stroke-linejoin="round"/><path d="M-0.6,-58 L-0.6,0" stroke="#fff" stroke-width="1.4" stroke-linecap="round" opacity=".8"/>${RM?'':`${defs}<clipPath id="${id}"><path d="M-3.4,-62 L3.4,-62 L4.6,4 L-4.6,4Z"/></clipPath><g clip-path="url(#${id})"><g class="acc-shineY"><rect x="-6" y="-70" width="12" height="16" fill="url(#accShV)"/></g></g>`}<rect x="-8" y="4" width="16" height="4.4" rx="1.6" fill="#8a6a2a" stroke="${o}" stroke-width="1.5"/><rect x="-3.2" y="8.4" width="6.4" height="17" rx="2" fill="#5a3a22" stroke="${o}" stroke-width="1.5"/></g>`;
+
+  // ---- rare ----
   A.phones.front = A.phones.front.replace('<rect x="20" y="54" width="13"','<rect class="acc-beat" x="20" y="54" width="13"').replace('<rect x="76" y="54" width="13"','<rect class="acc-beat" style="animation-delay:.5s" x="76" y="54" width="13"')
-    + note(18,50,0) + note(94,48,1.3);
-  A.wizard.front += star(70,8,3.2,'acc-twinkle',0,'#ffe08a') + star(40,24,2.6,'acc-twinkle',.9,'#d6c4ff') + star(80,26,2.2,'acc-twinkle',1.7,'#ffe08a');
-  A.halo.front = A.halo.front.replace('<ellipse cx="62" cy="14" rx="17"','<ellipse class="acc-halo" cx="62" cy="14" rx="17"');
-  A.patch.front += star(42,56,3,'acc-twinkle',.3,'#fff');
-  A.horns.front += `<circle class="acc-spark" cx="35" cy="14" r="1.5" fill="#ffb15a"/><circle class="acc-spark" style="animation-delay:.9s" cx="73" cy="14" r="1.5" fill="#ffb15a"/><circle class="acc-spark" style="animation-delay:1.7s" cx="38" cy="18" r="1.1" fill="#ffd66e"/>`;
-  A.grin.front = A.grin.front.replace('<g style="filter:drop-shadow(0 0 3px #ffe27a)">','<g class="acc-eye">') + star(60,66,2.6,'acc-twinkle',.6,'#fff');
-  A.cloak.back = `<g class="acc-sway">${A.cloak.back}</g>`;
-  // super rare
-  A.crown.front += star(54,31,2.4,'acc-twinkle',0,'#fff') + star(42,40,2,'acc-twinkle',.8,'#fff') + star(66,40,2,'acc-twinkle',1.5,'#fff') + star(36,26,2.2,'acc-twinkle',1.1,'#ffe08a') + star(72,24,2.6,'acc-twinkle',.4,'#ffe08a');
+    + `<g fill="none" stroke="#8cc8ff" stroke-width="1.8" stroke-linecap="round"><path class="acc-wave l" d="M17,58 Q12,65 17,72"/><path class="acc-wave l" style="animation-delay:.6s" d="M17,58 Q12,65 17,72"/><path class="acc-wave r" d="M92,58 Q97,65 92,72"/><path class="acc-wave r" style="animation-delay:.6s" d="M92,58 Q97,65 92,72"/></g>`
+    + note(14,48,0) + note(98,46,1.4);
+  A.wizard.front += orbit(55,41,24,6,3.6,1.9,'#ffe08a') + orbit(55,41,24,6,3.6,1.3,'#d6c4ff',1.8) + star(70,8,3.2,'acc-twinkle',0,'#ffe08a') + star(42,22,2.6,'acc-twinkle',.9,'#d6c4ff') + star(78,24,2.2,'acc-twinkle',1.7,'#ffe08a');
+  A.halo.front = A.halo.front.replace('<ellipse cx="62" cy="14" rx="17"','<ellipse class="acc-halo" cx="62" cy="14" rx="17"') + `<g transform="translate(-9 9)">${orbit(62,14,17,5,3.2,1.8,'#fff6c8')}</g>`;
+  A.patch.front += star(42,56,3,'acc-twinkle',.3,'#fff') + (RM ? '' : `<clipPath id="accPatchClip"><ellipse cx="46" cy="60" rx="9.5" ry="8"/></clipPath><g clip-path="url(#accPatchClip)">${defs}<g class="acc-shine" style="animation-delay:1s"><rect x="30" y="48" width="6" height="30" fill="url(#accShG)" transform="skewX(-22)"/></g></g>`);
+  A.horns.front += [[35,14,0,1.5],[73,14,.7,1.5],[38,18,1.4,1.1],[70,18,2,1.1],[34,20,2.6,1]].map(([x,y,d,r])=>`<circle class="acc-spark" style="animation-delay:${d}s" cx="${x}" cy="${y}" r="${r}" fill="#ffb15a"/>`).join('');
+  A.grin = {front:`<g class="acc-eye"><path class="acc-blink" d="M37,46 L52,52 L37,53Z" fill="#fff0a0" stroke="${o}" stroke-width="1.5" stroke-linejoin="round"/><path class="acc-blink" d="M71,46 L56,52 L71,53Z" fill="#fff0a0" stroke="${o}" stroke-width="1.5" stroke-linejoin="round"/></g><g class="acc-breathe"><path d="M31,60 Q54,98 77,60 Q54,70 31,60Z" fill="#3a0c14" stroke="${o}" stroke-width="${sw}" stroke-linejoin="round"/><path d="M37,66 Q54,84 71,66 Q54,74 37,66Z" fill="#8a1a28"/>${[0,1,2,3,4,5].map(i=>tooth(33.4+i*7.2,60.8+Math.sin(i/5*Math.PI)*3.6,1,7.6-Math.abs(i-2.5)*.7,6.4)).join('')}${[0,1,2,3,4].map(i=>tooth(37+i*7.2,78-Math.abs(i-2)*3.4,-1,5.6,6)).join('')}</g>` + star(59,66,2.6,'acc-twinkle',.6,'#fff')};
+
+  // Scout cloak: a hooded cloak around the flame. The hood frames it from behind, the cloak flows below and the hem ripples.
+  const hemBody = ph=>`M26,84 C20,94 16,100 14,${ph?108:106} ${ph?'Q22,102 30,108 Q38,102 46,108 Q56,103 66,108 Q74,102 82,108 Q90,103 98,108':'Q22,110 30,105 Q38,111 46,105 Q56,111 66,105 Q74,110 82,105 Q90,110 98,106'} C96,100 92,94 86,84Z`;
+  A.cloak = {
+    back:`<g class="acc-flow"><path d="M56,12 C76,16 94,34 94,58 C94,72 90,80 86,86 L26,86 C22,80 18,72 18,58 C18,34 36,16 56,12Z" fill="#3b6b3c" stroke="${o}" stroke-width="${sw}" stroke-linejoin="round"/><path d="${hemBody(0)}" fill="#3b6b3c" stroke="${o}" stroke-width="${sw}" stroke-linejoin="round">${RM?'':`<animate attributeName="d" dur="2.6s" repeatCount="indefinite" values="${hemBody(0)};${hemBody(1)};${hemBody(0)}"/>`}</path><ellipse cx="56" cy="56" rx="29" ry="36" fill="#17301c"/><path d="M30,90 C28,96 26,101 24,106 M82,90 C84,96 86,101 88,106 M44,92 C43,98 42,102 41,106 M68,92 C69,98 70,102 71,106" fill="none" stroke="#2a512c" stroke-width="2" stroke-linecap="round" opacity=".85"/><path d="M30,24 C24,32 21,42 21,52" fill="none" stroke="#6aa862" stroke-width="2" stroke-linecap="round" opacity=".6"/></g>`,
+    front:`<path d="M27,80 Q56,98 85,80" fill="none" stroke="${o}" stroke-width="9" stroke-linecap="round"/><path d="M27,80 Q56,98 85,80" fill="none" stroke="#4f8a45" stroke-width="5.6" stroke-linecap="round"/><path d="M31,79 Q56,95 81,79" fill="none" stroke="#7ab86c" stroke-width="1.5" stroke-linecap="round" opacity=".8"/><circle cx="56" cy="91" r="3.8" fill="#e8c14a" stroke="${o}" stroke-width="1.4"/><circle cx="56" cy="91" r="1.4" fill="#fff3b0"/>`
+  };
+
+  // ---- super rare ----
+  A.crown.front += `<g transform="translate(-9 19)">${sweep('accCrownClip','M46,28 L46,10 L55,19 L63,4 L71,19 L80,10 L80,28Z',40,0,9,34,.4)}</g>` + star(54,31,2.4,'acc-twinkle',0,'#fff') + star(42,40,2,'acc-twinkle',.8,'#fff') + star(66,40,2,'acc-twinkle',1.5,'#fff') + star(36,26,2.2,'acc-twinkle',1.1,'#ffe08a') + star(72,24,2.6,'acc-twinkle',.4,'#ffe08a');
   A.wings.back = `<g transform="translate(56 62) scale(.78) translate(-56 -62)"><g class="acc-flap l">${wing(-1)}</g><g class="acc-flap r">${wing(1)}</g></g>`;
   A.cape.back = `<g class="acc-sway">${A.cape.back}</g>`.replace('<circle cx="24" cy="90" r="1.6"/>','<circle class="acc-twinkle" cx="24" cy="90" r="1.6"/>').replace('<circle cx="80" cy="96" r="1.6"/>','<circle class="acc-twinkle" style="animation-delay:.7s" cx="80" cy="96" r="1.6"/>').replace('<circle cx="88" cy="80" r="1.2"/>','<circle class="acc-twinkle" style="animation-delay:1.4s" cx="88" cy="80" r="1.2"/>').replace('<circle cx="34" cy="100" r="1.2"/>','<circle class="acc-twinkle" style="animation-delay:2s" cx="34" cy="100" r="1.2"/>');
-  A.blades.back += star(21,21,4.4,'acc-twinkle',0,'#fff') + star(87,21,4.4,'acc-twinkle',1.1,'#fff');
+  A.blades.back = `<g class="acc-rock l">${blade(-32,'accBladeL')}</g><g class="acc-rock r">${blade(32,'accBladeR')}</g>` + star(21,21,4.4,'acc-twinkle',0,'#fff') + star(87,21,4.4,'acc-twinkle',1.1,'#fff');
 })();
 function accArt(id, layer, P){
   const a = ACC_ART[id]; if(!a || !a[layer]) return '';
