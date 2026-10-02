@@ -5705,14 +5705,12 @@ let p3FormOpen = null;
 // ---------------- Debt monsters (boss fights) ----------------
 let bossUid = 0;
 const BOSS_KINDS = ['mimic','card','dragon','bat','kraken','piggy','skull','golem'];
-const BOSS_SUFFIX = {mimic:'Mimic', card:'Plastic Fiend', dragon:'Dragon', bat:'Bat', kraken:'Kraken', piggy:'Piggy', skull:'Collector', golem:'Golem'};
 const BOSS_COLOR = {mimic:'#f2c14e', card:'#8b6dff', dragon:'#3ec98a', bat:'#a46bff', kraken:'#ff5fa8', piggy:'#ff8fb2', skull:'#7dffc8', golem:'#ff8a3c'};
 function bossHash(str){ let h = 7; for(let i=0;i<str.length;i++) h = (h*31 + str.charCodeAt(i)) >>> 0; return h; }
 // Each plan always gets the same monster, picked from its id.
 function bossLook(plan){
   const kind = BOSS_KINDS[bossHash(plan.id || plan.name || 'x') % BOSS_KINDS.length];
-  const clean = String(plan.name||'Boss').trim().split(/\s+/)[0].replace(/[^\p{L}\p{N}'&-]/gu,'') || 'Debt';
-  return {kind, col:BOSS_COLOR[kind], title:`The ${clean.charAt(0).toUpperCase()+clean.slice(1)} ${BOSS_SUFFIX[kind]}`};
+  return {kind, col:BOSS_COLOR[kind], title:BOSS2[kind].name};
 }
 // mood: fight (full health) | hurt | weak (one hit from defeat) | dead
 function bossMood(paidCount, n){
@@ -5933,7 +5931,7 @@ function showBossStrike(plan, idx){
       <div class="bo-dmg">${defeated ? '<span class="bo-tick"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>DEFEATED' : '-'+escapeHtml(fmt(amt))}</div>
     </div>
     <div class="bo-title">${escapeHtml(look.title)}</div>
-    <div class="bo-sub">${defeated ? `${escapeHtml(plan.name)} is paid off — ${escapeHtml(fmt(plan.total))} cleared` : `Hit ${paidCount} of ${n} landed${nextIdx>=0 ? ' · next ' + fmtDay(plan.inst[nextIdx].date) : ''}`}</div>
+    <div class="bo-sub">${defeated ? `${escapeHtml(plan.name)} is paid off — ${escapeHtml(fmt(plan.total))} cleared` : `${escapeHtml(plan.name)} · hit ${paidCount} of ${n} landed${nextIdx>=0 ? ' · next ' + fmtDay(plan.inst[nextIdx].date) : ''}`}</div>
     <div class="bo-panel">
       <div class="boss-hp-h"><span>HP</span><span>${defeated ? '' : `<s>${escapeHtml(fmt(round2(left+amt)))}</s> `}<b>${escapeHtml(fmt(left))}</b> / ${escapeHtml(fmt(plan.total))}</span></div>
       <div class="boss-hp">${bossHpSegs(plan, idx)}</div>
