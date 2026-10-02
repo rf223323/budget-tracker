@@ -301,6 +301,54 @@
   .trend-tab:hover{color:var(--text);}
   .trend-tab.active{color:var(--text);border-bottom-color:var(--accent);}
   .ss-toggle{display:none;}
+  body{color-scheme:dark;}
+  body[data-theme="paper"],body[data-theme="soft"]{color-scheme:light;}
+  input[type=date]{background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:7px 9px;font-size:13px;font-family:inherit;}
+  .p3-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:center;}
+  .p3-form #p3Name{grid-column:1 / -1;}
+  .p3-form input[type=date]{width:100%;}
+  .p3-form .sv-amt{margin:0;}
+  .p3-custom{grid-column:1 / -1;display:flex;gap:14px;flex-wrap:wrap;align-items:center;font-size:12.5px;color:var(--muted);}
+  .p3-custom input{width:70px;margin-left:6px;}
+  .p3-custom select{margin-left:6px;}
+  .p3-check{grid-column:1 / -1;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer;}
+  .p3-check input{width:auto;}
+  .p3-preview{grid-column:1 / -1;font-size:12.5px;color:var(--muted);line-height:1.5;}
+  .p3-form .btn{grid-column:1 / -1;justify-self:start;}
+  .p3-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:22px 0 10px;}
+  .p3-card{margin-bottom:14px;}
+  .p3-done{opacity:.65;}
+  .p3-head{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+  .p3-title{flex:1;min-width:0;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .p3-name{font-size:16px;font-weight:700;}
+  .p3-badge{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:999px;background:color-mix(in srgb, var(--accent) 20%, transparent);color:var(--text);}
+  .p3-total{font-size:15px;font-weight:700;}
+  .p3-progress{margin-bottom:12px;}
+  .p3-bar{height:6px;border-radius:6px;background:color-mix(in srgb, var(--muted) 25%, transparent);overflow:hidden;}
+  .p3-bar-fill{height:100%;background:linear-gradient(90deg, var(--accent), var(--accent2));border-radius:6px;transition:width .4s ease;}
+  .p3-progress-text{font-size:12px;color:var(--muted);margin-top:6px;}
+  .p3-insts{display:flex;flex-direction:column;gap:6px;}
+  .p3-inst{display:flex;align-items:center;gap:12px;background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:8px 10px;}
+  .p3-inst.overdue{border-color:color-mix(in srgb, var(--red) 55%, var(--border));}
+  .p3-dot{width:24px;height:24px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:800;border:2px solid color-mix(in srgb, var(--amber) 70%, transparent);color:var(--muted);}
+  .p3-inst.paid .p3-dot{background:var(--green);border-color:var(--green);color:#06281a;}
+  .p3-date{flex:1;font-size:13.5px;font-weight:600;min-width:0;}
+  .p3-inst.paid .p3-date,.p3-inst.paid .p3-amt{color:var(--muted);}
+  .p3-tag{margin-left:8px;font-size:10px;font-weight:800;text-transform:uppercase;color:var(--red);}
+  .p3-amt{font-size:14px;font-weight:700;white-space:nowrap;}
+  .p3-toggle{min-width:92px;}
+  .rc-list{display:flex;flex-direction:column;gap:8px;}
+  .rc-row{display:flex;align-items:center;gap:11px;cursor:pointer;}
+  .rc-row input{width:auto;flex-shrink:0;}
+  .rc-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px;}
+  .rc-name{font-size:13.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .rc-bar{height:6px;border-radius:6px;background:color-mix(in srgb, var(--muted) 20%, transparent);overflow:hidden;display:block;}
+  .rc-bar-fill{display:block;height:100%;border-radius:6px;}
+  .rc-amts{display:flex;flex-direction:column;align-items:flex-end;white-space:nowrap;font-size:13.5px;}
+  .rc-amts small{font-size:11px;color:var(--muted);}
+  .rc-whatif{margin-top:12px;font-size:13px;color:var(--text);}
+  .rc-whatif:empty{display:none;}
+  @media (max-width:700px){.p3-toggle{min-width:84px;}.p3-inst{gap:9px;padding:8px;}.p3-date{font-size:13px;}}
   .trend-range{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
   .trend-range .hint{font-size:12px;color:var(--muted);}
   .trend-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:20px;}
@@ -611,6 +659,10 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
       Recurring
     </div>
+    <div class="nav-item" data-view="pay3">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19"/><path d="M6.5 15h4"/></svg>
+      Pay in 3
+    </div>
     <div class="nav-item" data-view="pots">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 8a4 4 0 0 0-4-4h-1.2a5 5 0 0 0-9.3 2.1C4 6.4 3 7.9 3 9.5 3 11.4 4.6 13 6.5 13H7v3a2 2 0 0 0 2 2h1v3h6v-4a5 5 0 0 0 3-4.6V11a3 3 0 0 0 1-2.3z"/><circle cx="16.5" cy="8.5" r=".6" fill="currentColor" stroke="none"/></svg>
       Pots
@@ -675,6 +727,7 @@
     <div id="view-trend" class="view hidden"></div>
     <div id="view-quarterly" class="view hidden"></div>
     <div id="view-recurring" class="view hidden"></div>
+    <div id="view-pay3" class="view hidden"></div>
     <div id="view-pots" class="view hidden"></div>
     <div id="view-settings" class="view hidden"></div>
 
@@ -865,7 +918,8 @@ function defaultState(){
     theme: 'midnight',
     currentMonthKey: key,
     months: {},
-    pots: { savings:{manualLedger:[]}, stocks:{manualLedger:[]} }
+    pots: { savings:{manualLedger:[]}, stocks:{manualLedger:[]} },
+    pay3: []
   };
   state.months[key] = freshMonth(0);
   return state;
@@ -875,6 +929,7 @@ function normalizeState(){
   if(state.theme==='dark') state.theme = 'midnight';
   if(state.theme==='light') state.theme = 'paper';
   if(!THEME_NAMES.includes(state.theme)) state.theme = 'midnight';
+  if(!Array.isArray(state.pay3)) state.pay3 = [];
   if(!state.pots) state.pots = {};
   if(!state.pots.savings) state.pots.savings = {manualLedger:[]};
   if(!state.pots.stocks) state.pots.stocks = {manualLedger:[]};
@@ -1127,6 +1182,7 @@ function ensureMonth(key){
     } else {
       state.months[key] = freshMonth(0);
     }
+    syncPay3IntoMonth(key);
     save();
   }
   return state.months[key];
@@ -1301,6 +1357,99 @@ function incomeBreakdown(m, mode){
   rows.sort((a,b)=>b.amount-a.amount);
   return rows;
 }
+// ---------------- Pay in 3 (buy-now-pay-later instalment plans) ----------------
+// A plan is {id, name, provider, total, every, inst:[{date:'YYYY-MM-DD', amount, paid}]}.
+// Every instalment is mirrored as a real outgoing (category "Pay in 3", with a Day)
+// in the month it falls due, so it flows into totals, safe-to-spend, Upcoming
+// Bills and the heatmap. The outgoing's Done status is the source of truth once
+// it exists; plan.inst[i].paid is the fallback and is kept in step.
+const PAY3_PROVIDERS = {
+  klarna:{label:'Klarna · Pay in 3', n:3, every:'month'},
+  clearpay:{label:'Clearpay · Pay in 4', n:4, every:'14d'},
+  custom:{label:'Custom', n:3, every:'month'}
+};
+function pad2(n){ return String(n).padStart(2,'0'); }
+function ymd(d){ return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate()); }
+function parseYmd(str){ const [y,m,d] = str.split('-').map(Number); return new Date(y, m-1, d); }
+function addMonthsClamped(date, n){
+  const d = new Date(date.getFullYear(), date.getMonth()+n, 1);
+  const dim = new Date(d.getFullYear(), d.getMonth()+1, 0).getDate();
+  d.setDate(Math.min(date.getDate(), dim));
+  return d;
+}
+// Splits total into n instalments to the penny (any odd pennies go on the first ones).
+function buildPay3Schedule(total, n, every, firstDate, firstPaid){
+  const cents = Math.round(total*100);
+  const base = Math.floor(cents/n);
+  const rem = cents - base*n;
+  return Array.from({length:n}, (_,i)=>{
+    const date = every==='month'
+      ? addMonthsClamped(firstDate, i)
+      : new Date(firstDate.getFullYear(), firstDate.getMonth(), firstDate.getDate() + i*(every==='28d'?28:14));
+    return {date: ymd(date), amount: (base + (i<rem?1:0))/100, paid: i===0 && !!firstPaid};
+  });
+}
+function pay3LinkedItem(plan, i){
+  const m = state.months[plan.inst[i].date.slice(0,7)];
+  return m ? m.outgoings.find(o=>o.pay3Id===plan.id && o.pay3Idx===i) : null;
+}
+function pay3Paid(plan, i){
+  const linked = pay3LinkedItem(plan, i);
+  return linked ? linked.status==='done' : !!plan.inst[i].paid;
+}
+function setPay3Paid(plan, i, paid){
+  plan.inst[i].paid = paid;
+  const linked = pay3LinkedItem(plan, i);
+  if(linked) linked.status = paid ? 'done' : 'none';
+  save();
+}
+// Adds any missing instalment outgoings to a month that exists.
+function syncPay3IntoMonth(key){
+  const m = state.months[key];
+  if(!m || !Array.isArray(state.pay3)) return false;
+  let changed = false;
+  state.pay3.forEach(plan=>{
+    plan.inst.forEach((it,i)=>{
+      if(it.date.slice(0,7)!==key) return;
+      if(m.outgoings.some(o=>o.pay3Id===plan.id && o.pay3Idx===i)) return;
+      m.outgoings.push({id:uid(), name:`${plan.name} (${i+1}/${plan.inst.length})`, amount:it.amount, status: it.paid?'done':'none', recurring:false, category:'Pay in 3', day:Number(it.date.slice(8)), pay3Id:plan.id, pay3Idx:i});
+      changed = true;
+    });
+  });
+  return changed;
+}
+// Pull paid state from linked outgoings (they may have been ticked in the
+// Month Tracker), then make sure every existing month has its instalments.
+function syncPay3All(){
+  let changed = false;
+  state.pay3.forEach(plan=>plan.inst.forEach((it,i)=>{
+    const linked = pay3LinkedItem(plan, i);
+    if(linked && (linked.status==='done') !== !!it.paid){ it.paid = linked.status==='done'; changed = true; }
+  }));
+  Object.keys(state.months).forEach(k=>{ if(syncPay3IntoMonth(k)) changed = true; });
+  if(changed) save();
+}
+function removePay3Links(planId){
+  Object.values(state.months).forEach(m=>{ m.outgoings = m.outgoings.filter(o=>o.pay3Id!==planId); });
+}
+function pay3Summary(){
+  const today = ymd(new Date());
+  const thisMonth = monthKey(new Date());
+  let owed = 0, dueThisMonth = 0, next = null, active = 0;
+  state.pay3.forEach(plan=>{
+    let planActive = false;
+    plan.inst.forEach((it,i)=>{
+      if(pay3Paid(plan,i)) return;
+      planActive = true;
+      owed += it.amount;
+      if(it.date.slice(0,7)===thisMonth) dueThisMonth += it.amount;
+      if(!next || it.date < next.date) next = {date:it.date, amount:it.amount, name:plan.name, overdue: it.date < today};
+    });
+    if(planActive) active++;
+  });
+  return {owed:round2(owed), dueThisMonth:round2(dueThisMonth), next, active};
+}
+
 // ---------------- Pots (Savings / Stocks & Shares) ----------------
 function potBalance(potKey){
   let auto = 0;
@@ -2232,7 +2381,7 @@ function render(){
   const activeProfile = profilesMeta.profiles.find(p=>p.id===profilesMeta.activeId);
   document.getElementById('sfAvatar').textContent = ((activeProfile && activeProfile.name || '?').trim().charAt(0) || '?').toUpperCase();
   renderSyncIndicator();
-  const titles = {month:'Month Tracker', calendar:'Calendar', trend:'Trend', quarterly:'Quarterly', recurring:'Recurring', pots:'Pots', settings:'Settings'};
+  const titles = {month:'Month Tracker', calendar:'Calendar', trend:'Trend', quarterly:'Quarterly', recurring:'Recurring', pay3:'Pay in 3', pots:'Pots', settings:'Settings'};
   document.getElementById('viewTitle').textContent = titles[currentView];
   document.querySelectorAll('.view').forEach(v=>v.classList.add('hidden'));
   document.getElementById('view-'+currentView).classList.remove('hidden');
@@ -2241,6 +2390,7 @@ function render(){
   if(currentView==='trend') renderTrend();
   if(currentView==='quarterly') renderQuarterly();
   if(currentView==='recurring') renderRecurring();
+  if(currentView==='pay3') renderPay3();
   if(currentView==='pots') renderPots();
   if(currentView==='settings') renderSettings();
 }
@@ -3924,10 +4074,199 @@ function drawRecurringTable(m, kind){
     };
   });
 }
+// ---------------- Pay in 3 page ----------------
+let p3FormOpen = null;
+function renderPay3(){
+  syncPay3All();
+  if(p3FormOpen===null) p3FormOpen = state.pay3.length===0;
+  const el = document.getElementById('view-pay3');
+  const sum = pay3Summary();
+  const today = ymd(new Date());
+  const fmtDate = str => parseYmd(str).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
+  const info = state.pay3.map(p=>{
+    const paidCount = p.inst.filter((_,i)=>pay3Paid(p,i)).length;
+    const nextIdx = p.inst.findIndex((_,i)=>!pay3Paid(p,i));
+    return {p, paidCount, done: paidCount===p.inst.length, nextDate: nextIdx>=0 ? p.inst[nextIdx].date : '9999'};
+  });
+  const active = info.filter(x=>!x.done).sort((a,b)=>a.nextDate.localeCompare(b.nextDate));
+  const completed = info.filter(x=>x.done);
+
+  const card = ({p, paidCount, done})=>{
+    const left = round2(p.inst.reduce((a,it,i)=>a + (pay3Paid(p,i) ? 0 : it.amount), 0));
+    const pct = Math.round(paidCount/p.inst.length*100);
+    const prov = PAY3_PROVIDERS[p.provider] ? PAY3_PROVIDERS[p.provider].label.split(' · ')[0] : 'Custom';
+    return `<div class="panel p3-card${done?' p3-done':''}" data-plan="${p.id}">
+      <div class="p3-head">
+        <div class="p3-title"><span class="p3-name">${escapeHtml(p.name)}</span><span class="p3-badge">${escapeHtml(prov)}</span></div>
+        <div class="p3-total">${fmt(p.total)}</div>
+        <button class="del-btn p3-del" aria-label="Delete plan" title="Delete plan">✕</button>
+      </div>
+      <div class="p3-progress"><div class="p3-bar"><div class="p3-bar-fill" style="width:${pct}%;"></div></div>
+        <div class="p3-progress-text">${done ? 'All paid ✓' : `${paidCount} of ${p.inst.length} paid · <b>${fmt(left)}</b> left`}</div></div>
+      <div class="p3-insts">
+        ${p.inst.map((it,i)=>{
+          const paid = pay3Paid(p,i);
+          const overdue = !paid && it.date < today;
+          return `<div class="p3-inst${paid?' paid':''}${overdue?' overdue':''}">
+            <span class="p3-dot">${paid?'✓':i+1}</span>
+            <div class="p3-date">${fmtDate(it.date)}${overdue?'<span class="p3-tag">Overdue</span>':''}</div>
+            <div class="p3-amt">${fmt(it.amount)}</div>
+            <button type="button" class="btn secondary small p3-toggle" data-plan="${p.id}" data-i="${i}">${paid?'Paid ✓':'Mark paid'}</button>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  };
+
+  el.innerHTML = `
+    <div class="trend-kpis p3-kpis">
+      <div class="card trend-kpi"><div class="k">Still to pay</div><div class="v ${sum.owed>0?'neg':''}">${fmt(sum.owed)}</div><div class="sub">across ${sum.active} active plan${sum.active!==1?'s':''}</div></div>
+      <div class="card trend-kpi"><div class="k">Next payment</div><div class="v">${sum.next ? fmt(sum.next.amount) : '—'}</div><div class="sub">${sum.next ? `${escapeHtml(sum.next.name)} · ${fmtDate(sum.next.date)}${sum.next.overdue?' · overdue':''}` : 'nothing due'}</div></div>
+      <div class="card trend-kpi"><div class="k">Due this month</div><div class="v">${fmt(sum.dueThisMonth)}</div><div class="sub">still unpaid</div></div>
+      <div class="card trend-kpi"><div class="k">Plans</div><div class="v">${info.length}</div><div class="sub">${completed.length} finished</div></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Add a plan</h2><button class="btn small ${p3FormOpen?'secondary':''}" id="p3FormToggle">${p3FormOpen?'Close':'+ New plan'}</button><span class="hint">instalments appear as bills in the month they're due</span></div>
+      <div id="p3FormWrap" class="${p3FormOpen?'':'hidden'}">
+      <div class="p3-form">
+        <input type="text" id="p3Name" placeholder="What did you buy? (e.g. Headphones)">
+        <select id="p3Provider">${Object.entries(PAY3_PROVIDERS).map(([k,v])=>`<option value="${k}">${v.label}</option>`).join('')}</select>
+        <label class="sv-amt"><span class="sv-cur">${escapeHtml(state.currency)}</span><input type="number" step="0.01" min="0" id="p3Total" placeholder="Total price"></label>
+        <input type="date" id="p3Date" value="${today}" aria-label="First payment date">
+        <div id="p3Custom" class="p3-custom hidden">
+          <label>Instalments <input type="number" id="p3N" min="2" max="12" value="3"></label>
+          <label>Every <select id="p3Every"><option value="14d">2 weeks</option><option value="28d">4 weeks</option><option value="month" selected>Month</option></select></label>
+        </div>
+        <label class="p3-check"><input type="checkbox" id="p3FirstPaid" checked> First payment already taken</label>
+        <div class="p3-preview" id="p3Preview"></div>
+        <button class="btn" id="p3Add">Add plan</button>
+      </div>
+      </div>
+    </div>
+
+    ${active.length ? `<div class="p3-section-title">Active</div>${active.map(card).join('')}` : ''}
+    ${completed.length ? `<div class="p3-section-title">Finished</div>${completed.map(card).join('')}` : ''}
+    ${!info.length ? '<div class="panel"><div class="empty">No plans yet — add a purchase above and each instalment will show up in your Month Tracker as a "Pay in 3" bill.</div></div>' : ''}
+  `;
+
+  // --- form
+  const $ = id => document.getElementById(id);
+  const readSchedule = ()=>{
+    const prov = $('p3Provider').value;
+    const total = Number($('p3Total').value);
+    const n = prov==='custom' ? Math.max(2, Math.min(12, Math.round(Number($('p3N').value)||3))) : PAY3_PROVIDERS[prov].n;
+    const every = prov==='custom' ? $('p3Every').value : PAY3_PROVIDERS[prov].every;
+    if(!$('p3Date').value || !(total>0)) return {prov, total, n, every, inst:null};
+    return {prov, total, n, every, inst: buildPay3Schedule(total, n, every, parseYmd($('p3Date').value), $('p3FirstPaid').checked)};
+  };
+  const updatePreview = ()=>{
+    $('p3Custom').classList.toggle('hidden', $('p3Provider').value!=='custom');
+    const r = readSchedule();
+    $('p3Preview').innerHTML = r.inst
+      ? `${r.n} × ${escapeHtml(fmt(r.inst[0].amount))}${r.inst.some(i=>i.amount!==r.inst[0].amount)?' (approx.)':''} · ${r.inst.map(i=>fmtDate(i.date).replace(/^\w+ /,'')).join(', ')}`
+      : 'Enter the total and first payment date to see the schedule.';
+  };
+  ['p3Provider','p3Total','p3Date','p3N','p3Every','p3FirstPaid'].forEach(id=>{ $(id).addEventListener('input', updatePreview); $(id).addEventListener('change', updatePreview); });
+  $('p3Date').addEventListener('change', ()=>{ $('p3FirstPaid').checked = $('p3Date').value <= today; updatePreview(); });
+  updatePreview();
+  $('p3FormToggle').onclick = ()=>{ p3FormOpen = !p3FormOpen; renderPay3(); };
+  $('p3Add').onclick = ()=>{
+    const r = readSchedule();
+    if(!r.inst){ $('p3Total').focus(); return; }
+    state.pay3.push({id:uid(), name: $('p3Name').value.trim() || 'Purchase', provider:r.prov, total:round2(r.total), every:r.every, inst:r.inst});
+    syncPay3All();
+    save();
+    showToast('Plan added', `${r.n} instalments tracked`);
+    p3FormOpen = false;
+    renderPay3();
+  };
+
+  // --- cards
+  el.querySelectorAll('.p3-toggle').forEach(b=>b.onclick = ()=>{
+    const plan = state.pay3.find(x=>x.id===b.dataset.plan);
+    if(!plan) return;
+    const i = Number(b.dataset.i);
+    setPay3Paid(plan, i, !pay3Paid(plan, i));
+    renderPay3();
+  });
+  el.querySelectorAll('.p3-del').forEach(b=>b.onclick = ()=>{
+    const id = b.closest('.p3-card').dataset.plan;
+    const idx = state.pay3.findIndex(x=>x.id===id);
+    if(idx<0) return;
+    const plan = state.pay3[idx];
+    removePay3Links(id);
+    state.pay3.splice(idx, 1);
+    save();
+    renderPay3();
+    showUndoToast(plan.name, ()=>{
+      state.pay3.splice(Math.min(idx, state.pay3.length), 0, plan);
+      syncPay3All();
+      save();
+      render();
+    });
+  });
+}
+
+// ---------------- Recurring costs summary (subscriptions overview) ----------------
+const recurWhatIf = new Set();
+function recurringSummaryHtml(m){
+  const items = m.outgoings.filter(o=>o.recurring && (Number(o.amount)||0)>0).sort((a,b)=>b.amount-a.amount);
+  if(!items.length) return '';
+  const monthly = round2(items.reduce((a,o)=>a+Number(o.amount),0));
+  const subs = items.filter(o=>o.category==='Subscriptions');
+  const subsMonthly = round2(subs.reduce((a,o)=>a+Number(o.amount),0));
+  const max = items[0].amount;
+  return `
+    <div class="trend-kpis rc-kpis">
+      <div class="card trend-kpi"><div class="k">Recurring / month</div><div class="v">${fmt(monthly)}</div><div class="sub">${items.length} recurring outgoing${items.length!==1?'s':''}</div></div>
+      <div class="card trend-kpi"><div class="k">Recurring / year</div><div class="v">${fmt(monthly*12)}</div><div class="sub">if nothing changes</div></div>
+      <div class="card trend-kpi"><div class="k">Subscriptions / year</div><div class="v">${fmt(subsMonthly*12)}</div><div class="sub">${subs.length} item${subs.length!==1?'s':''} · ${fmt(subsMonthly)} a month</div></div>
+      <div class="card trend-kpi"><div class="k">Biggest</div><div class="v">${fmt(items[0].amount)}</div><div class="sub">${escapeHtml(items[0].name)}</div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h2>Where your recurring money goes</h2><span class="hint">tick any to see what you'd save by cancelling</span></div>
+      <div class="rc-list">
+        ${items.map(o=>`<label class="rc-row">
+          <input type="checkbox" class="rc-check" data-id="${o.id}" ${recurWhatIf.has(o.id)?'checked':''}>
+          <span class="cat-dd-chip" style="background:${categoryColor(o.category||'Uncategorized')};">${categoryIcon(o.category||'Uncategorized')}</span>
+          <span class="rc-main"><span class="rc-name">${escapeHtml(o.name||'Unnamed')}</span><span class="rc-bar"><span class="rc-bar-fill" style="width:${(o.amount/max*100).toFixed(1)}%;background:${categoryColor(o.category||'Uncategorized')};"></span></span></span>
+          <span class="rc-amts"><b>${escapeHtml(fmt(o.amount))}</b><small>${escapeHtml(fmt(o.amount*12))} / yr</small></span>
+        </label>`).join('')}
+      </div>
+      <div class="rc-whatif" id="rcWhatIf"></div>
+    </div>`;
+}
+function updateRecurWhatIf(m){
+  const el = document.getElementById('rcWhatIf');
+  if(!el) return;
+  const items = m.outgoings.filter(o=>o.recurring && recurWhatIf.has(o.id));
+  const monthly = round2(items.reduce((a,o)=>a+(Number(o.amount)||0),0));
+  el.innerHTML = items.length
+    ? `Cancel ${items.length} and you'd save <b>${fmt(monthly)}</b> a month — <b>${fmt(monthly*12)}</b> a year.`
+    : '';
+}
+function refreshRecurringSummary(){
+  const box = document.getElementById('recurSummary');
+  if(!box) return;
+  const m = state.months[state.currentMonthKey];
+  if(!m) return;
+  // Forget ticks for items that no longer exist
+  const ids = new Set(m.outgoings.map(o=>o.id));
+  [...recurWhatIf].forEach(id=>{ if(!ids.has(id)) recurWhatIf.delete(id); });
+  box.innerHTML = recurringSummaryHtml(m);
+  box.querySelectorAll('.rc-check').forEach(c=>c.onchange = ()=>{
+    if(c.checked) recurWhatIf.add(c.dataset.id); else recurWhatIf.delete(c.dataset.id);
+    updateRecurWhatIf(m);
+  });
+  updateRecurWhatIf(m);
+}
+
 function renderRecurring(){
   const m = ensureMonth(state.currentMonthKey);
   const el = document.getElementById('view-recurring');
   el.innerHTML = `
+    <div id="recurSummary"></div>
     <div class="formula-note" style="margin-bottom:18px;">
       Anything marked <b>Recurring</b> carries into every new month automatically — same name and amount, Status reset to None — until you switch it to One-off or delete it. Editing an item here edits it directly in <b>${monthLabelFromKey(state.currentMonthKey)}</b>'s Month Tracker.
     </div>
@@ -3948,6 +4287,10 @@ function renderRecurring(){
   `;
   drawRecurringTable(m, 'incoming');
   drawRecurringTable(m, 'outgoing');
+  refreshRecurringSummary();
+  // Keep the summary in step as rows are edited (the summary's own ticks are left alone).
+  const afterEdit = e=>{ if(!e.target.closest('#recurSummary')) setTimeout(refreshRecurringSummary, 0); };
+  el.oninput = afterEdit; el.onchange = afterEdit; el.onclick = afterEdit;
   document.getElementById('addRecurIncomeBtn').onclick = ()=>{
     const item = {id:uid(), name:'New recurring income', amount:0, status:'none', recurring:true, category:'Uncategorized'};
     m.incoming.push(item);
