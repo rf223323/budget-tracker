@@ -324,10 +324,25 @@
   .hero-payday svg{width:13px;height:13px;}
   .hero-payday:empty{display:none;}
   .hero-chips{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;}
-  .hero-chip{padding:16px 18px;border-radius:18px;background:color-mix(in srgb, var(--panel) 70%, transparent);border:1px solid color-mix(in srgb, var(--text) 8%, var(--border));}
+  .hero-chip{padding:14px 16px;border-radius:18px;background:color-mix(in srgb, var(--panel) 70%, transparent);border:1px solid color-mix(in srgb, var(--text) 8%, var(--border));}
   .hc-k{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:var(--muted);}
   .hc-dot{width:9px;height:9px;border-radius:50%;background:var(--d);box-shadow:0 0 9px var(--d);}
-  .hc-v{margin-top:7px;font-size:26px;font-weight:800;letter-spacing:-.015em;}
+  .hc-v{margin-top:6px;font-size:24px;font-weight:800;letter-spacing:-.015em;}
+  .hc-trend{margin-left:auto;}
+  .hc-trend .trend-arrow{margin:0;font-size:11px;}
+  .hero-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin-top:20px;border-top:1px solid color-mix(in srgb, var(--text) 10%, transparent);}
+  .hs{padding:14px 18px 2px;min-width:0;}
+  .hs + .hs{border-left:1px solid color-mix(in srgb, var(--text) 10%, transparent);}
+  .hs:first-child{padding-left:0;}
+  .hs-k{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);}
+  .hs-v{margin-top:3px;font-size:20px;font-weight:800;letter-spacing:-.01em;display:flex;align-items:baseline;gap:2px;}
+  .hs-v.pos{color:var(--green);}
+  .hs-v.neg{color:var(--red);}
+  .hs-input .hs-cur{color:var(--muted);font-weight:700;}
+  .hs-input input{flex:1;min-width:0;width:100%;padding:0;border:none;background:none;outline:none;box-shadow:none;font:inherit;color:var(--text);}
+  .hs-input input:focus{border-bottom:1px dashed var(--muted);}
+  .hs-s{margin-top:2px;font-size:11.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:2px 8px;align-items:baseline;}
+  .hs-s .trend-arrow{margin:0;font-size:11px;}
   .hc-s{margin-top:3px;font-size:12px;color:var(--muted);}
   .hc-bar{margin-top:12px;height:5px;border-radius:999px;background:color-mix(in srgb, var(--text) 12%, transparent);overflow:hidden;}
   .hc-bar i{display:block;height:100%;background:var(--d);border-radius:999px;transition:width .4s ease;}
@@ -343,7 +358,13 @@
     .hc-s{font-size:11px;}
     .hc-bar{margin-top:9px;}
     .hero-card .safe-spend{padding:14px 0 0;margin-top:14px;}
-    .grid-3 .card:nth-child(3){grid-column:1 / -1;}
+    .hero-stats{margin-top:14px;}
+    .hs{padding:12px 10px 0;}
+    .hs:first-child{padding-left:0;}
+    .hs-v{font-size:16px;}
+    .hs-k{font-size:9.5px;letter-spacing:.04em;}
+    .hs-s{font-size:10.5px;}
+    .hs-s .trend-arrow{display:none;}
   }
   /* Quick Add */
   .qa-seg{margin-bottom:14px;}
@@ -1520,14 +1541,14 @@ function safeToSpend(key){
 // a rise is good news (colored green); 'down' means a rise is bad news (red).
 // Returns '' when there's no prior month to compare against, or the prior value
 // was ~0 (a percentage change would be meaningless).
-function trendArrowHtml(cur, prev, goodDirection){
+function trendArrowHtml(cur, prev, goodDirection, compact){
   if(prev==null || Math.abs(prev) < 0.01) return '';
   const diffPct = ((cur-prev)/Math.abs(prev))*100;
   if(Math.abs(diffPct) < 1) return '';
   const up = diffPct > 0;
   const good = goodDirection==='up' ? up : !up;
   const arrow = up ? '▲' : '▼';
-  return `<div class="trend-arrow ${good?'trend-good':'trend-bad'}">${arrow} ${Math.abs(Math.round(diffPct))}% vs last month</div>`;
+  return `<div class="trend-arrow ${good?'trend-good':'trend-bad'}"${compact?' title="vs last month"':''}>${arrow} ${Math.abs(Math.round(diffPct))}%${compact?'':' vs last month'}</div>`;
 }
 // Up to the last 6 tracked months (ending at forKey) of one figure, oldest
 // first. pick(monthObj, totals) returns the number to plot for each month.
@@ -3047,19 +3068,34 @@ function renderMonth(){
         </div>
         <div class="hero-chips">
           <div class="hero-chip">
-            <div class="hc-k"><span class="hc-dot" style="--d:var(--green);"></span>Income</div>
+            <div class="hc-k"><span class="hc-dot" style="--d:var(--green);"></span>Income<span id="incomingTrend" class="hc-trend">${trendArrowHtml(t.allIncoming, pt&&pt.allIncoming, 'up', true)}</span></div>
             <div class="hc-v" id="incomingVal">${fmt(t.allIncoming)}</div>
             <div class="hc-s" id="incomingSub">${fmt(t.doneIncoming)} received · ${fmt(Math.max(0,round2(t.allIncoming-t.doneIncoming)))} to come</div>
             <div class="hc-bar"><i id="incBar" style="--d:var(--green);width:${t.allIncoming>0?Math.min(100,Math.round(t.doneIncoming/t.allIncoming*100)):0}%;"></i></div>
-            <div id="incomingTrend">${trendArrowHtml(t.allIncoming, pt&&pt.allIncoming, 'up')}</div>
           </div>
           <div class="hero-chip">
-            <div class="hc-k"><span class="hc-dot" style="--d:var(--red);"></span>Outgoings</div>
+            <div class="hc-k"><span class="hc-dot" style="--d:var(--red);"></span>Outgoings<span id="outgoingTrend" class="hc-trend">${trendArrowHtml(t.allOutgoing, pt&&pt.allOutgoing, 'down', true)}</span></div>
             <div class="hc-v" id="outgoingVal">${fmt(t.allOutgoing)}</div>
             <div class="hc-s" id="outgoingSub">${fmt(t.doneOutgoing)} paid · ${fmt(Math.max(0,round2(t.allOutgoing-t.doneOutgoing)))} to pay</div>
             <div class="hc-bar"><i id="outBar" style="--d:var(--red);width:${t.allOutgoing>0?Math.min(100,Math.round(t.doneOutgoing/t.allOutgoing*100)):0}%;"></i></div>
-            <div id="outgoingTrend">${trendArrowHtml(t.allOutgoing, pt&&pt.allOutgoing, 'down')}</div>
           </div>
+        </div>
+      </div>
+      <div class="hero-stats">
+        <div class="hs">
+          <div class="hs-k">Starting balance</div>
+          <label class="hs-v hs-input"><span class="hs-cur">${escapeHtml(state.currency)}</span><input type="number" step="0.01" id="startingBalanceInput" value="${m.startingBalance}" aria-label="Starting balance"></label>
+          <div class="hs-s">carried from last month</div>
+        </div>
+        <div class="hs">
+          <div class="hs-k">Weekly budget</div>
+          <div class="hs-v neg" id="weeklyVal">${fmt(t.weeklyTotal)}</div>
+          <div class="hs-s"><span id="weeklySub">${fmt(t.doneWeekly)} done</span><span id="weeklyTrend">${trendArrowHtml(t.weeklyTotal, pt&&pt.weeklyTotal, 'down')}</span></div>
+        </div>
+        <div class="hs">
+          <div class="hs-k">Left over</div>
+          <div class="hs-v ${t.totalLeftOver>=0?'pos':'neg'}" id="totalLeftOverVal">${fmt(t.totalLeftOver)}</div>
+          <div class="hs-s"><span>→ next month's start</span><span id="totalLeftOverTrend">${trendArrowHtml(t.totalLeftOver, pt&&pt.totalLeftOver, 'up')}</span></div>
         </div>
       </div>
       <div class="panel safe-spend" id="safeSpend" style="display:none;">
@@ -3127,12 +3163,6 @@ function renderMonth(){
           <tbody id="quickAddLogBody"></tbody>
         </table>
       </div>
-    </div>
-
-    <div class="grid grid-3">
-      <div class="card stagger-card" style="--i:0;"><div class="k">Starting Balance</div><div class="v"><input type="number" step="0.01" id="startingBalanceInput" value="${m.startingBalance}" style="font-size:19px;font-weight:700;padding:4px 6px;"></div><div class="sub sub-verbose">carried from last month</div><div id="sparkSb">${cardSparkHtml(state.currentMonthKey,'sb',true)}</div></div>
-      <div class="card stagger-card" style="--i:1;"><div class="k">Total Left Over</div><div class="v ${t.totalLeftOver>=0?'pos':'neg'}" id="totalLeftOverVal">${fmt(t.totalLeftOver)}</div><div class="sub sub-verbose">→ next month's starting balance</div><div id="totalLeftOverTrend">${trendArrowHtml(t.totalLeftOver, pt&&pt.totalLeftOver, 'up')}</div><div id="sparkTlo">${cardSparkHtml(state.currentMonthKey,'tlo',true)}</div></div>
-      <div class="card stagger-card" style="--i:2;"><div class="k">Weekly Budget</div><div class="v neg" id="weeklyVal">${fmt(t.weeklyTotal)}</div><div class="sub" id="weeklySub">${fmt(t.doneWeekly)} done</div><div id="weeklyTrend">${trendArrowHtml(t.weeklyTotal, pt&&pt.weeklyTotal, 'down')}</div><div id="sparkWk">${cardSparkHtml(state.currentMonthKey,'wk',true)}</div></div>
     </div>
 
     <div class="panel">
@@ -3575,12 +3605,12 @@ function renderMonth(){
     document.getElementById('liveBalanceTrend').innerHTML = trendArrowHtml(t2.liveBalance, pt2&&pt2.liveBalance, 'up');
     const tlo = document.getElementById('totalLeftOverVal');
     animateNumberText(tlo, t2.totalLeftOver);
-    tlo.className = 'v ' + (t2.totalLeftOver>=0?'pos':'neg');
+    tlo.className = 'hs-v ' + (t2.totalLeftOver>=0?'pos':'neg');
     document.getElementById('totalLeftOverTrend').innerHTML = trendArrowHtml(t2.totalLeftOver, pt2&&pt2.totalLeftOver, 'up');
     document.getElementById('incomingVal').textContent = fmt(t2.allIncoming);
     document.getElementById('incomingSub').textContent = `${fmt(t2.doneIncoming)} received · ${fmt(Math.max(0,round2(t2.allIncoming-t2.doneIncoming)))} to come`;
     document.getElementById('incBar').style.width = (t2.allIncoming>0 ? Math.min(100,Math.round(t2.doneIncoming/t2.allIncoming*100)) : 0) + '%';
-    document.getElementById('incomingTrend').innerHTML = trendArrowHtml(t2.allIncoming, pt2&&pt2.allIncoming, 'up');
+    document.getElementById('incomingTrend').innerHTML = trendArrowHtml(t2.allIncoming, pt2&&pt2.allIncoming, 'up', true);
     document.getElementById('weeklyVal').textContent = fmt(t2.weeklyTotal);
     document.getElementById('weeklySub').textContent = `${fmt(t2.doneWeekly)} done`;
     document.getElementById('weeklyTrend').innerHTML = trendArrowHtml(t2.weeklyTotal, pt2&&pt2.weeklyTotal, 'down');
@@ -3588,7 +3618,7 @@ function renderMonth(){
     document.getElementById('outgoingSub').textContent = `${fmt(t2.doneOutgoing)} paid · ${fmt(Math.max(0,round2(t2.allOutgoing-t2.doneOutgoing)))} to pay`;
     document.getElementById('outBar').style.width = (t2.allOutgoing>0 ? Math.min(100,Math.round(t2.doneOutgoing/t2.allOutgoing*100)) : 0) + '%';
     refreshHero();
-    document.getElementById('outgoingTrend').innerHTML = trendArrowHtml(t2.allOutgoing, pt2&&pt2.allOutgoing, 'down');
+    document.getElementById('outgoingTrend').innerHTML = trendArrowHtml(t2.allOutgoing, pt2&&pt2.allOutgoing, 'down', true);
     [['sparkSb','sb'],['sparkTlo','tlo'],['sparkWk','wk']].forEach(([id,name])=>{
       const el = document.getElementById(id);
       if(!el) return;
