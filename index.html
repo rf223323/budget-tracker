@@ -77,7 +77,23 @@
   .nav-item:hover{background:var(--panel2);color:var(--text);}
   .nav-item.active{background:linear-gradient(135deg,color-mix(in srgb, var(--accent) 18%, transparent),color-mix(in srgb, var(--accent2) 18%, transparent));color:var(--text);box-shadow:inset 3px 0 0 var(--accent);}
   .nav-item.active svg{color:var(--accent);}
-  .sidebar-footer{margin-top:auto;padding:10px;font-size:11px;color:var(--muted);display:flex;flex-direction:column;gap:8px;}
+  .sidebar-footer{margin-top:auto;padding:10px 2px 2px;display:flex;flex-direction:column;gap:6px;}
+  .sf-card{background:var(--panel2);border:1px solid var(--border);border-radius:14px;padding:11px 12px;display:flex;flex-direction:column;gap:11px;}
+  .sf-row{display:flex;align-items:center;gap:11px;}
+  .sf-main{flex:1;min-width:0;}
+  .sf-avatar{width:34px;height:34px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:var(--on-accent);background:linear-gradient(135deg, var(--accent), var(--accent2));}
+  .sf-swatch{width:34px;height:34px;border-radius:10px;flex-shrink:0;border:1px solid var(--border);background:linear-gradient(135deg, var(--bg) 0 50%, var(--accent) 50% 100%);}
+  .sf-label{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);line-height:1.2;}
+  .sf-select{width:100%;appearance:none;-webkit-appearance:none;background-color:transparent;border:none;border-radius:0;color:var(--text);font:inherit;font-size:13px;font-weight:700;padding:1px 16px 1px 0;cursor:pointer;text-overflow:ellipsis;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%238a93ab' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 1px center;}
+  .sf-select:focus-visible{outline-offset:3px;}
+  .sf-sync{font-size:11px;color:var(--muted);display:flex;align-items:center;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .sf-divider{height:1px;background:var(--border);}
+  .sf-refresh{width:100%;background:none;border:none;color:var(--muted);font:inherit;font-size:11.5px;font-weight:600;padding:7px;border-radius:9px;cursor:pointer;transition:background .12s ease,color .12s ease;}
+  .sf-refresh:hover{background:var(--panel2);color:var(--text);}
+  .sf-refresh:disabled{opacity:.6;cursor:default;}
+  .sync-dot-local{background:var(--muted);}
 
   .main{flex:1;min-width:0;padding:26px 30px 60px;max-width:1150px;}
   .topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
@@ -537,11 +553,20 @@
       Settings
     </div>
     <div class="sidebar-footer">
-      <label style="font-size:11px;color:var(--muted);">Profile</label>
-      <select id="sidebarProfileSelect" style="width:100%;"></select>
-      <div id="syncStatusLine"></div>
-      <label style="font-size:11px;color:var(--muted);margin-top:4px;">Theme</label>
-      <select id="themeSelect" style="width:100%;">
+      <div class="sf-card">
+        <div class="sf-row">
+          <div class="sf-avatar" id="sfAvatar">?</div>
+          <div class="sf-main">
+            <select id="sidebarProfileSelect" class="sf-select" aria-label="Profile"></select>
+            <div id="syncStatusLine" class="sf-sync"></div>
+          </div>
+        </div>
+        <div class="sf-divider"></div>
+        <div class="sf-row">
+          <div class="sf-swatch" aria-hidden="true"></div>
+          <div class="sf-main">
+            <div class="sf-label">Theme</div>
+            <select id="themeSelect" class="sf-select" aria-label="Theme">
         <option value="midnight" style="background:#161d2e;color:#e8ecf7;">Midnight</option>
         <option value="sunset" style="background:#241a15;color:#fbeee3;">Sunset</option>
         <option value="rose" style="background:#20151d;color:#fbe8f3;">Rose</option>
@@ -551,8 +576,10 @@
         <option value="soft" style="background:#f4f2fa;color:#1c1a22;">Soft Gradient</option>
         <option value="ignite" style="background:#161616;color:#f5f5f0;">Ignite</option>
       </select>
-      <button class="btn secondary small" id="forceRefreshBtn" style="width:100%;margin-top:6px;" title="Clears the app's cached files and reloads the latest version. Your budget data is not touched.">⟳ Force refresh</button>
-      <div class="hint" style="font-size:10.5px;line-height:1.35;">Not seeing an update? This reloads the latest version. Your data stays safe.</div>
+          </div>
+        </div>
+      </div>
+      <button class="sf-refresh" id="forceRefreshBtn" title="Clears the app's cached files and reloads the latest version. Your budget data is not touched.">⟳ Force refresh</button>
     </div>
   </div>
 
@@ -2027,6 +2054,8 @@ function render(){
   const profileSel = document.getElementById('sidebarProfileSelect');
   profileSel.innerHTML = profilesMeta.profiles.map(p=>`<option value="${p.id}" ${p.id===profilesMeta.activeId?'selected':''}>${escapeHtml(p.name)}</option>`).join('');
   profileSel.onchange = e=>switchProfile(e.target.value);
+  const activeProfile = profilesMeta.profiles.find(p=>p.id===profilesMeta.activeId);
+  document.getElementById('sfAvatar').textContent = ((activeProfile && activeProfile.name || '?').trim().charAt(0) || '?').toUpperCase();
   renderSyncIndicator();
   const titles = {month:'Month Tracker', calendar:'Calendar', trend:'Trend', quarterly:'Quarterly', recurring:'Recurring', pots:'Pots', settings:'Settings'};
   document.getElementById('viewTitle').textContent = titles[currentView];
@@ -2044,12 +2073,13 @@ function renderSyncIndicator(){
   const p = activeProfileMeta();
   const el = document.getElementById('syncStatusLine');
   if(el){
+    el.title = (!p || !p.syncEnabled) ? 'Data is saved in this browser only. Turn on cloud sync in Settings to use it on other devices.' : 'Cloud sync is on for this profile.';
     if(!p || !p.syncEnabled){
-      el.innerHTML = 'Data is saved locally in this browser only.';
+      el.innerHTML = '<span class="sync-dot sync-dot-local"></span>Saved locally';
     } else {
       const s = getSyncStatus(p.id);
-      if(!s) el.innerHTML = '<span class="sync-dot sync-dot-pending"></span>Cloud sync on · not yet synced';
-      else if(s.status==='error') el.innerHTML = `<span class="sync-dot sync-dot-error"></span>Sync error${s.lastSuccessAt ? ' · last synced '+formatRelativeTime(s.lastSuccessAt) : ''}`;
+      if(!s) el.innerHTML = '<span class="sync-dot sync-dot-pending"></span>Waiting to sync';
+      else if(s.status==='error') el.innerHTML = `<span class="sync-dot sync-dot-error"></span>Sync error${s.lastSuccessAt ? ' · '+formatRelativeTime(s.lastSuccessAt) : ''}`;
       else el.innerHTML = `<span class="sync-dot sync-dot-ok"></span>Synced ${formatRelativeTime(s.lastSuccessAt||s.at)}`;
     }
   }
