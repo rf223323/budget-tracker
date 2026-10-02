@@ -1165,6 +1165,128 @@ function ensureTesseractLoaded(){
   });
   return tesseractLoadPromise;
 }
+// Phone photos straight into Tesseract read as gibberish: they're huge, shadowed
+// and unevenly lit. This decodes with EXIF rotation applied, resizes so text is
+// a readable size, then returns two versions: contrast-stretched greyscale,
+// and the same with uneven lighting/shadows flattened out.
+async function loadImageForOcr(file){
+  if(window.createImageBitmap){
+    try{ return await createImageBitmap(file, {imageOrientation:'from-image'}); }catch(e){}
+  }
+  return await new Promise((resolve, reject)=>{
+    const img = new Image();
+    img.onload = ()=>resolve(img);
+    img.onerror = reject;
+    img.src = URL.createObjectURL(file);
+  });
+}
+async function preprocessReceiptImage(file){
+  const img = await loadImageForOcr(file);
+  const longest = Math.max(img.width, img.height);
+  let scale = 1;
+  if(longest > 2000) scale = 2000/longest;
+  else if(longest < 1400) scale = Math.min(2, 1400/longest);
+  const w = Math.max(1, Math.round(img.width*scale)), h = Math.max(1, Math.round(img.height*scale));
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const ctx = c.getContext('2d', {willReadFrequently:true});
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(img, 0, 0, w, h);
+  const data = ctx.getImageData(0, 0, w, h);
+  const d = data.data;
+  const n = w*h;
+  const gray = new Uint8ClampedArray(n);
+  const hist = new Uint32Array(256);
+  for(let i=0, j=0; j<n; i+=4, j++){
+    const g = Math.round(d[i]*0.299 + d[i+1]*0.587 + d[i+2]*0.114);
+    gray[j] = g; hist[g]++;
+  }
+  // Stretch contrast between the 2nd and 98th percentile so faded thermal
+  // paper and dim lighting use the full tonal range.
+  let lo = 0, hi = 255, acc = 0;
+  for(let v=0; v<256; v++){ acc += hist[v]; if(acc >= n*0.02){ lo = v; break; } }
+  acc = 0;
+  for(let v=255; v>=0; v--){ acc += hist[v]; if(acc >= n*0.02){ hi = v; break; } }
+  if(hi-lo < 20){ lo = 0; hi = 255; }
+  const range = hi-lo;
+  for(let j=0; j<n; j++) gray[j] = Math.max(0, Math.min(255, (gray[j]-lo)*255/range));
+  const toCanvas = pixels=>{
+    const out = document.createElement('canvas');
+    out.width = w; out.height = h;
+    const octx = out.getContext('2d');
+    const od = octx.createImageData(w, h);
+    for(let i=0, j=0; j<n; i+=4, j++){ od.data[i]=od.data[i+1]=od.data[i+2]=pixels[j]; od.data[i+3]=255; }
+    octx.putImageData(od, 0, 0);
+    return out;
+  };
+  // Flatten uneven lighting: divide each pixel by a heavily blurred copy of the
+  // image (integral image keeps that fast) so a shadow across the receipt stops
+  // looking like a change in ink. The floor stops dark backgrounds, where grain
+  // dominates, from being amplified into noise. Output stays smooth greyscale —
+  // Tesseract does its own binarising better than a hard cut here.
+  const stride = w+1;
+  const integral = new Uint32Array(stride*(h+1));
+  for(let y=0; y<h; y++){
+    let rowSum = 0;
+    for(let x=0; x<w; x++){
+      rowSum += gray[y*w+x];
+      integral[(y+1)*stride + x+1] = integral[y*stride + x+1] + rowSum;
+    }
+  }
+  const r = Math.max(30, Math.round(Math.min(w, h)/10));
+  const flat = new Uint8ClampedArray(n);
+  for(let y=0; y<h; y++){
+    const y0 = Math.max(0, y-r), y1 = Math.min(h-1, y+r);
+    for(let x=0; x<w; x++){
+      const x0 = Math.max(0, x-r), x1 = Math.min(w-1, x+r);
+      const area = (x1-x0+1)*(y1-y0+1);
+      const mean = (integral[(y1+1)*stride + x1+1] - integral[y0*stride + x1+1] - integral[(y1+1)*stride + x0] + integral[y0*stride + x0]) / area;
+      flat[y*w+x] = gray[y*w+x] * 215 / Math.max(mean, 90);
+    }
+  }
+  return {flat: toCanvas(flat), greyscale: toCanvas(gray)};
+}
+function rotateCanvas(src, deg){
+  if(deg===0) return src;
+  const out = document.createElement('canvas');
+  const swap = deg===90 || deg===270;
+  out.width = swap ? src.height : src.width;
+  out.height = swap ? src.width : src.height;
+  const ctx = out.getContext('2d');
+  ctx.translate(out.width/2, out.height/2);
+  ctx.rotate(deg*Math.PI/180);
+  ctx.drawImage(src, -src.width/2, -src.height/2);
+  return out;
+}
+// Runs OCR on the cleaned-up photo. Tries it upright first; if Tesseract isn't
+// confident (a sideways or upside-down receipt reads as noise), tries the other
+// orientations, then plain greyscale, and keeps the most confident read.
+// onStage(label) reports which attempt is running.
+async function ocrReceipt(file, onProgress, onStage){
+  const variants = await preprocessReceiptImage(file);
+  const worker = await Tesseract.createWorker('eng', 1, {
+    logger: info=>{ if(info.status==='recognizing text') onProgress(info.progress); }
+  });
+  try{
+    await worker.setParameters({tessedit_pageseg_mode:'6', preserve_interword_spaces:'1', user_defined_dpi:'300'});
+    let best = null;
+    const attempt = async (canvas, deg)=>{
+      const { data } = await worker.recognize(rotateCanvas(canvas, deg));
+      if(!best || data.confidence > best.confidence) best = {text:data.text, confidence:data.confidence, deg};
+      return best.confidence >= 65;
+    };
+    if(await attempt(variants.flat, 0)) return best;
+    for(const deg of [90, 270, 180]){
+      if(onStage) onStage('Trying another angle…');
+      if(await attempt(variants.flat, deg)) return best;
+    }
+    if(onStage) onStage('Trying another filter…');
+    await attempt(variants.greyscale, best.deg);
+    return best;
+  } finally {
+    await worker.terminate();
+  }
+}
 // Keyword → category guesses from common UK merchant names on a receipt.
 const RECEIPT_CATEGORY_KEYWORDS = [
   [['tesco','sainsbury','asda','morrisons','lidl','aldi','co-op','coop','waitrose','iceland'], 'Groceries'],
@@ -1173,6 +1295,13 @@ const RECEIPT_CATEGORY_KEYWORDS = [
   [['boots','superdrug','pharmacy'], 'Health & Fitness'],
   [['primark','h&m','zara','next retail','asos','jd sports'], 'Shopping'],
 ];
+function guessMerchantFromText(lowerText){
+  for(const [keywords] of RECEIPT_CATEGORY_KEYWORDS){
+    const hit = keywords.find(k=>lowerText.includes(k));
+    if(hit) return hit.trim().replace(/\b\w/g, c=>c.toUpperCase());
+  }
+  return '';
+}
 function guessCategoryFromText(lowerText){
   for(const [keywords, cat] of RECEIPT_CATEGORY_KEYWORDS){
     if(keywords.some(k=>lowerText.includes(k))) return cat;
@@ -1181,7 +1310,9 @@ function guessCategoryFromText(lowerText){
 }
 // Pulls a best-guess total and merchant name out of raw OCR text. Heuristic,
 // not exact — the caller always leaves the result editable before saving.
-function parseReceiptText(raw){
+function parseReceiptText(rawText, confidence=100){
+  // OCR often reads the decimal point as a comma or space ("12,34", "12 34").
+  const raw = rawText.replace(/(\d)[,\s](\d{2})(?!\d)/g, (m, a, b)=> m.includes(' ') && /\d{3}\s\d{2}/.test(m) ? m : `${a}.${b}`);
   const lines = raw.split('\n').map(l=>l.trim()).filter(Boolean);
   const lowerText = raw.toLowerCase();
   const totalLineRe = /\b(total|amount due|balance due|to pay|grand total)\b/i;
@@ -1201,10 +1332,17 @@ function parseReceiptText(raw){
     }
     amount = max;
   }
-  let reason = '';
-  for(const line of lines.slice(0,6)){
-    const clean = line.replace(/[^a-zA-Z0-9&' .-]/g,'').trim();
-    if(clean.length>=3 && !/^\d+$/.test(clean)){ reason = clean; break; }
+  // Prefer a recognised merchant name; otherwise the first early line that
+  // looks like real words (mostly letters) rather than OCR noise.
+  let reason = guessMerchantFromText(lowerText);
+  // A guessed line is only trusted when the read was confident; low-confidence
+  // text often looks plausible but is noise.
+  if(!reason && confidence>=70){
+    for(const line of lines.slice(0,8)){
+      const clean = line.replace(/[^a-zA-Z0-9&' .-]/g,'').trim();
+      const letters = (clean.match(/[a-zA-Z]/g)||[]).length;
+      if(letters>=4 && letters/clean.length>=0.7 && /[aeiouAEIOU]/.test(clean)){ reason = clean; break; }
+    }
   }
   return {amount, reason, category: guessCategoryFromText(lowerText)};
 }
@@ -1777,18 +1915,23 @@ function renderMonth(){
     receiptStatus.textContent = 'Loading scanner…';
     try{
       await ensureTesseractLoaded();
-      receiptStatus.textContent = 'Scanning… 0%';
-      const { data: { text } } = await Tesseract.recognize(file, 'eng', {
-        logger: info => {
-          if(info.status==='recognizing text') receiptStatus.textContent = `Scanning… ${Math.round(info.progress*100)}%`;
-        }
-      });
-      const parsed = parseReceiptText(text);
-      if(parsed.amount) quickAddAmount.value = parsed.amount;
-      if(parsed.reason) quickAddReason.value = parsed.reason;
-      if(parsed.category) setCategoryDropdownValue(quickAddCategory, parsed.category);
-      receiptStatus.className = 'quick-receipt-status ok';
-      receiptStatus.textContent = parsed.amount ? 'Got a guess — check it before adding.' : "Couldn't find a total — fill it in manually.";
+      receiptStatus.textContent = 'Cleaning up photo…';
+      let stage = 'Scanning';
+      const { text, confidence } = await ocrReceipt(file, p=>{ receiptStatus.textContent = `${stage}… ${Math.round(p*100)}%`; }, label=>{ stage = label.replace('…',''); });
+      console.log('Receipt OCR confidence', Math.round(confidence), text);
+      if(confidence < 35){
+        receiptStatus.className = 'quick-receipt-status error';
+        receiptStatus.textContent = "Couldn't read that clearly — lay the receipt flat in good light, fill the frame, and try again. Or enter it manually.";
+      } else {
+        const parsed = parseReceiptText(text, confidence);
+        if(parsed.amount) quickAddAmount.value = parsed.amount;
+        if(parsed.reason) quickAddReason.value = parsed.reason;
+        if(parsed.category) setCategoryDropdownValue(quickAddCategory, parsed.category);
+        receiptStatus.className = 'quick-receipt-status ok';
+        receiptStatus.textContent = !parsed.amount ? "Couldn't find a total — fill it in manually. (A flat, well-lit photo that fills the frame reads best.)"
+          : confidence < 60 ? 'Low confidence — double-check the amount before adding.'
+          : 'Got a guess — check it before adding.';
+      }
     }catch(err){
       console.error('Receipt scan failed', err);
       receiptStatus.className = 'quick-receipt-status error';
