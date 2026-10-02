@@ -270,8 +270,22 @@
     .ss-chip.ss-free b{font-size:17px;}
     .ss-note{padding-top:6px;}
   }
-  .trend-toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
-  .trend-toolbar .hint{font-size:12px;color:var(--muted);}
+  .trend-head{display:flex;flex-direction:column;gap:12px;margin-bottom:16px;}
+  .trend-tabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;border-bottom:1px solid var(--border);}
+  .trend-tabs::-webkit-scrollbar{display:none;}
+  .trend-tab{flex-shrink:0;background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;padding:9px 14px;font:inherit;font-size:13.5px;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap;transition:color .12s ease,border-color .12s ease;}
+  .trend-tab:hover{color:var(--text);}
+  .trend-tab.active{color:var(--text);border-bottom-color:var(--accent);}
+  .trend-range{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .trend-range .hint{font-size:12px;color:var(--muted);}
+  .trend-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:20px;}
+  .trend-kpi .v{font-size:19px;}
+  .trend-kpi .v.pos{color:var(--green);}
+  .trend-kpi .v.neg{color:var(--red);}
+  .trend-two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;}
+  .trend-two .panel{margin-bottom:0;}
+  @media (max-width:1000px){.trend-two{grid-template-columns:1fr;gap:0;}.trend-two .panel{margin-bottom:20px;}}
+  @media (max-width:700px){.trend-kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}.trend-kpi .v{font-size:16px;}.trend-tab{padding:9px 11px;font-size:13px;}}
   .legend{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:10px;}
   .legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);}
   .legend-item .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
@@ -1872,7 +1886,7 @@ function lineChart(container, data, opts={}){
     dotRefs.push({color, name:s.name, pts, ring:null, s});
   });
 
-  const maxLabels = Math.max(1, Math.min(n, Math.floor(w/80)));
+  const maxLabels = Math.max(1, Math.min(n, Math.floor(w/100)));
   const step = Math.max(1, Math.round(n/maxLabels));
   allSeries[0].points.forEach((p,i)=>{
     // Skip a regular label that would collide with the always-shown last one.
@@ -2038,7 +2052,6 @@ function donutChart(container, rows, opts={}){
 // ============================================================
 let currentView = 'month';
 let quickAddLogExpanded = false;
-let monthByMonthExpanded = false;
 let categoryBreakdownMonth = null;
 let categoryBreakdownMode = 'all';
 let monthCatMode = 'all';
@@ -2537,6 +2550,7 @@ function renderMonth(){
   document.getElementById('monthCatSeeTrend').onclick = e=>{
     e.preventDefault();
     categoryBreakdownMonth = state.currentMonthKey;
+    trendTab = 'spending';
     currentView = 'trend';
     render();
   };
@@ -2813,6 +2827,10 @@ function trendWindow(keys){
   start = Math.max(0, Math.min(n-size, start));
   return Array.from({length:size}, (_,i)=>start+i);
 }
+// The Trend page is split into tabs so it isn't one long scroll. Only the
+// active tab is drawn (charts need a visible container to measure their width).
+let trendTab = 'overview';
+const TREND_TABS = [['overview','Overview'],['spending','Spending'],['daily','Daily'],['pots','Pots'],['table','Table']];
 function renderTrend(){
   const el = document.getElementById('view-trend');
   const keys = Object.keys(state.months).sort();
@@ -2820,124 +2838,159 @@ function renderTrend(){
   const stocksSeries = potBalanceSeries('stocks', keys);
   const plannedSavingsSeries = potBalanceSeriesPlanned('savings', keys);
   const plannedStocksSeries = potBalanceSeriesPlanned('stocks', keys);
-  const liveBalances = keys.map(k=>monthTotals(state.months[k]).liveBalance);
-  const totalLeftOvers = keys.map(k=>monthTotals(state.months[k]).totalLeftOver);
+  const totals = keys.map(k=>monthTotals(state.months[k]));
+  const liveBalances = totals.map(t=>t.liveBalance);
+  const totalLeftOvers = totals.map(t=>t.totalLeftOver);
   const monthLabels = keys.map(k=>monthLabelFromKey(k));
   const shortLabels = keys.map(shortMonthLabel);
   const idxs = trendWindow(keys);
   const todayIdx = idxs.indexOf(keys.indexOf(monthKey(new Date())));
   const chartMarker = todayIdx>=0 ? {index:todayIdx, label:'Today'} : null;
-
   const actualNetWorth = keys.map((k,i)=>round2(liveBalances[i] + savingsSeries[i] + stocksSeries[i]));
   const projectedNetWorth = keys.map((k,i)=>round2(totalLeftOvers[i] + plannedSavingsSeries[i] + plannedStocksSeries[i]));
+  const enough = keys.length>=2;
+  const noTrend = '<div class="empty">Track at least two months to see a trend line.</div>';
+  const legendHtml = `
+      <div class="legend">
+        <div class="legend-item"><span class="dot" style="background:var(--accent);"></span>Actual — only what's marked Done</div>
+        <div class="legend-item"><span class="dash" style="border-color:var(--green);"></span>Projected — assumes every month happens exactly as budgeted</div>
+      </div>`;
 
-  el.innerHTML = `
-    <div class="trend-toolbar">
-      <div class="seg-toggle" id="trendRangeToggle">
-        ${[[3,'3M'],[6,'6M'],[12,'12M'],['all','All']].map(([v,l])=>`<button class="seg-btn${trendRange===v?' active':''}" data-range="${v}">${l}</button>`).join('')}
+  // "Now" = the real current month if tracked, otherwise the latest tracked month before it.
+  let curIdx = 0;
+  keys.forEach((k,i)=>{ if(k<=monthKey(new Date())) curIdx = i; });
+  const lastWin = idxs[idxs.length-1];
+
+  const showRange = enough && (trendTab==='overview' || trendTab==='pots');
+  const head = `
+    <div class="trend-head">
+      <div class="trend-tabs" role="tablist" id="trendTabs">
+        ${TREND_TABS.map(([id,label])=>`<button class="trend-tab${trendTab===id?' active':''}" role="tab" aria-selected="${trendTab===id}" data-tab="${id}">${label}</button>`).join('')}
       </div>
-      <span class="hint" id="trendRangeHint"></span>
-    </div>
-    <div class="panel">
-      <div class="panel-head"><h2>Net Worth: Actual vs Projected</h2><span class="hint">fill in future months in Month Tracker to project forward</span></div>
-      <div id="netWorthChart"></div>
-      <div class="legend">
-        <div class="legend-item"><span class="dot" style="background:var(--accent);"></span>Actual — only what's marked Done</div>
-        <div class="legend-item"><span class="dash" style="border-color:var(--green);"></span>Projected — assumes every month happens exactly as budgeted</div>
-      </div>
-    </div>
-    <div class="panel">
-      <div class="panel-head"><h2>Total Left Over by month</h2><span class="hint">based on months you've tracked</span></div>
-      <div id="trendChart"></div>
-    </div>
-    <div class="panel">
-      <div class="panel-head"><h2>Spending by Category</h2><span class="hint" id="catBreakdownTotal"></span></div>
-      <div class="field-inline" style="margin-bottom:16px;flex-wrap:wrap;">
-        <select id="catBreakdownMonth" style="max-width:220px;"></select>
-        <div class="seg-toggle" id="catBreakdownModeToggle">
-          <button class="seg-btn" data-mode="all">Budgeted</button>
-          <button class="seg-btn" data-mode="done">Actual (Done)</button>
+      ${showRange ? `
+      <div class="trend-range">
+        <div class="seg-toggle" id="trendRangeToggle">
+          ${[[3,'3M'],[6,'6M'],[12,'12M'],['all','All']].map(([v,l])=>`<button class="seg-btn${trendRange===v?' active':''}" data-range="${v}">${l}</button>`).join('')}
         </div>
+        <span class="hint" id="trendRangeHint"></span>
+      </div>` : ''}
+    </div>`;
+
+  let pane = '';
+  if(trendTab==='overview'){
+    const kpi = (label, value, sub, cls='') => `<div class="card trend-kpi"><div class="k">${label}</div><div class="v ${cls}">${value}</div>${sub}</div>`;
+    const netNow = actualNetWorth[curIdx];
+    const nets = idxs.map(i=>round2(totalLeftOvers[i] - (Number(state.months[keys[i]].startingBalance)||0)));
+    const avgNet = nets.length ? round2(nets.reduce((a,b)=>a+b,0)/nets.length) : 0;
+    const potsNow = round2(savingsSeries[curIdx] + stocksSeries[curIdx]);
+    pane = `
+      <div class="trend-kpis">
+        ${kpi('Net worth now', fmt(netNow), (curIdx>0 ? trendArrowHtml(netNow, actualNetWorth[curIdx-1], 'up').replace('vs last month','vs last month') : '') || '<div class="sub">actual · marked Done</div>', netNow>=0?'pos':'neg')}
+        ${kpi(enough ? `Projected · ${shortLabels[lastWin]}` : 'Projected', fmt(projectedNetWorth[lastWin]||0), '<div class="sub">if every month goes to plan</div>', (projectedNetWorth[lastWin]||0)>=0?'pos':'neg')}
+        ${kpi('Avg monthly net', fmt(avgNet), `<div class="sub">across ${idxs.length} month${idxs.length!==1?'s':''} shown</div>`, avgNet>=0?'pos':'neg')}
+        ${kpi('In savings & stocks', fmt(potsNow), `<div class="sub">${fmt(savingsSeries[curIdx])} savings · ${fmt(stocksSeries[curIdx])} stocks</div>`)}
       </div>
-      <div class="cat-breakdown-layout">
-        <div id="catBreakdownDonut" class="cat-breakdown-donut"></div>
-        <div id="catBreakdownBars" class="cat-breakdown-bars"></div>
+      <div class="panel">
+        <div class="panel-head"><h2>Net Worth: Actual vs Projected</h2><span class="hint">fill in future months in Month Tracker to project forward</span></div>
+        <div id="netWorthChart"></div>
+        ${legendHtml}
       </div>
-      <div id="catBreakdownDeltas" style="margin-top:8px;"></div>
-    </div>
-    <div class="panel">
-      <div class="panel-head"><h2>Daily Spending Heatmap</h2><span class="hint">Quick Add spends plus any outgoing with a Day — click a day for details or to log a spend</span></div>
-      <div id="spendHeatmap"></div>
-    </div>
-    <div class="panel">
-      <div class="panel-head"><h2>Savings Pot: Actual vs Projected</h2><span class="hint">running balance</span></div>
-      <div id="savingsPotChart"></div>
-      <div class="legend">
-        <div class="legend-item"><span class="dot" style="background:var(--accent);"></span>Actual — only what's marked Done</div>
-        <div class="legend-item"><span class="dash" style="border-color:var(--green);"></span>Projected — assumes every month happens exactly as budgeted</div>
-      </div>
-    </div>
-    <div class="panel">
-      <div class="panel-head"><h2>Stocks &amp; Shares Pot: Actual vs Projected</h2><span class="hint">running balance</span></div>
-      <div id="stocksPotChart"></div>
-      <div class="legend">
-        <div class="legend-item"><span class="dot" style="background:var(--accent);"></span>Actual — only what's marked Done</div>
-        <div class="legend-item"><span class="dash" style="border-color:var(--green);"></span>Projected — assumes every month happens exactly as budgeted</div>
-      </div>
-    </div>
-    <div class="panel">
-      <div class="panel-head">
-        <h2>Month by month</h2>
-        <button class="btn secondary small" id="monthByMonthToggle">${monthByMonthExpanded ? '▾ Hide' : '▸ Show'} (${keys.length})</button>
-      </div>
-      <div id="monthByMonthWrap" class="${monthByMonthExpanded ? '' : 'hidden'}" style="overflow-x:auto;">
-      <table>
-        <thead><tr><th>Month</th><th class="amt-cell">Starting Balance</th><th class="amt-cell">Current (live)</th><th class="amt-cell">Incoming</th><th class="amt-cell">Weekly</th><th class="amt-cell">Outgoings</th><th class="amt-cell">Savings</th><th class="amt-cell">Left Over</th><th class="amt-cell">Savings Pot</th><th class="amt-cell">Stocks Pot</th><th class="amt-cell">Actual Total</th><th class="amt-cell">Projected Total</th></tr></thead>
-        <tbody>
-          ${keys.map((k,i)=>{
-            const mm = state.months[k]; const tt = monthTotals(mm);
-            return `<tr><td>${monthLabelFromKey(k)}</td><td class="amt-cell">${fmt(mm.startingBalance)}</td><td class="amt-cell">${fmt(tt.liveBalance)}</td><td class="amt-cell">${fmt(tt.allIncoming)}</td><td class="amt-cell">${fmt(tt.weeklyTotal)}</td><td class="amt-cell">${fmt(tt.allOutgoing)}</td><td class="amt-cell">${fmt(tt.savingsAmount)}</td><td class="amt-cell">${fmt(tt.totalLeftOver)}</td><td class="amt-cell">${fmt(savingsSeries[i])}</td><td class="amt-cell">${fmt(stocksSeries[i])}</td><td class="amt-cell">${fmt(actualNetWorth[i])}</td><td class="amt-cell"><b>${fmt(projectedNetWorth[i])}</b></td></tr>`;
-          }).join('')}
-        </tbody>
-      </table>
-      </div>
-    </div>
-  `;
-  document.getElementById('monthByMonthToggle').onclick = ()=>{
-    monthByMonthExpanded = !monthByMonthExpanded;
-    document.getElementById('monthByMonthWrap').classList.toggle('hidden', !monthByMonthExpanded);
-    document.getElementById('monthByMonthToggle').textContent = `${monthByMonthExpanded ? '▾ Hide' : '▸ Show'} (${keys.length})`;
-  };
-  document.querySelectorAll('#trendRangeToggle .seg-btn').forEach(btn=>{
+      <div class="panel">
+        <div class="panel-head"><h2>Total Left Over by month</h2><span class="hint">based on months you've tracked</span></div>
+        <div id="trendChart"></div>
+      </div>`;
+  } else if(trendTab==='spending'){
+    pane = `
+      <div class="panel">
+        <div class="panel-head"><h2>Spending by Category</h2><span class="hint" id="catBreakdownTotal"></span></div>
+        <div class="field-inline" style="margin-bottom:16px;flex-wrap:wrap;">
+          <select id="catBreakdownMonth" style="max-width:220px;"></select>
+          <div class="seg-toggle" id="catBreakdownModeToggle">
+            <button class="seg-btn" data-mode="all">Budgeted</button>
+            <button class="seg-btn" data-mode="done">Actual (Done)</button>
+          </div>
+        </div>
+        <div class="cat-breakdown-layout">
+          <div id="catBreakdownDonut" class="cat-breakdown-donut"></div>
+          <div id="catBreakdownBars" class="cat-breakdown-bars"></div>
+        </div>
+        <div id="catBreakdownDeltas" style="margin-top:8px;"></div>
+      </div>`;
+  } else if(trendTab==='daily'){
+    pane = `
+      <div class="panel">
+        <div class="panel-head"><h2>Daily Spending Heatmap</h2><span class="hint">Quick Add spends plus any outgoing with a Day — click a day for details or to log a spend</span></div>
+        <div id="spendHeatmap"></div>
+      </div>`;
+  } else if(trendTab==='pots'){
+    pane = `
+      <div class="trend-two">
+        <div class="panel">
+          <div class="panel-head"><h2>Savings Pot</h2><span class="hint">running balance</span></div>
+          <div id="savingsPotChart"></div>
+          ${legendHtml}
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h2>Stocks &amp; Shares Pot</h2><span class="hint">running balance</span></div>
+          <div id="stocksPotChart"></div>
+          ${legendHtml}
+        </div>
+      </div>`;
+  } else {
+    pane = `
+      <div class="panel">
+        <div class="panel-head"><h2>Month by month</h2><span class="hint">${keys.length} month${keys.length!==1?'s':''} tracked</span></div>
+        <div style="overflow-x:auto;">
+        <table>
+          <thead><tr><th>Month</th><th class="amt-cell">Starting Balance</th><th class="amt-cell">Current (live)</th><th class="amt-cell">Incoming</th><th class="amt-cell">Weekly</th><th class="amt-cell">Outgoings</th><th class="amt-cell">Savings</th><th class="amt-cell">Left Over</th><th class="amt-cell">Savings Pot</th><th class="amt-cell">Stocks Pot</th><th class="amt-cell">Actual Total</th><th class="amt-cell">Projected Total</th></tr></thead>
+          <tbody>
+            ${keys.map((k,i)=>{
+              const mm = state.months[k]; const tt = totals[i];
+              return `<tr><td>${monthLabelFromKey(k)}</td><td class="amt-cell">${fmt(mm.startingBalance)}</td><td class="amt-cell">${fmt(tt.liveBalance)}</td><td class="amt-cell">${fmt(tt.allIncoming)}</td><td class="amt-cell">${fmt(tt.weeklyTotal)}</td><td class="amt-cell">${fmt(tt.allOutgoing)}</td><td class="amt-cell">${fmt(tt.savingsAmount)}</td><td class="amt-cell">${fmt(tt.totalLeftOver)}</td><td class="amt-cell">${fmt(savingsSeries[i])}</td><td class="amt-cell">${fmt(stocksSeries[i])}</td><td class="amt-cell">${fmt(actualNetWorth[i])}</td><td class="amt-cell"><b>${fmt(projectedNetWorth[i])}</b></td></tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+        </div>
+      </div>`;
+  }
+  el.innerHTML = head + pane;
+
+  el.querySelectorAll('#trendTabs .trend-tab').forEach(b=>{
+    b.onclick = ()=>{ trendTab = b.dataset.tab; renderTrend(); };
+  });
+  el.querySelectorAll('#trendRangeToggle .seg-btn').forEach(btn=>{
     btn.onclick = ()=>{ trendRange = btn.dataset.range==='all' ? 'all' : Number(btn.dataset.range); renderTrend(); };
   });
-  document.getElementById('trendRangeHint').textContent = keys.length>=2
-    ? `${monthLabelFromKey(keys[idxs[0]])} – ${monthLabelFromKey(keys[idxs[idxs.length-1]])} · ${idxs.length} of ${keys.length} months · hover or tap a chart to compare`
-    : '';
-  if(keys.length<2){
-    document.getElementById('trendChart').innerHTML = '<div class="empty">Track at least two months to see a trend line.</div>';
-    document.getElementById('netWorthChart').innerHTML = '<div class="empty">Track at least two months to see a trend line.</div>';
-    document.getElementById('savingsPotChart').innerHTML = '<div class="empty">Track at least two months to see a trend line.</div>';
-    document.getElementById('stocksPotChart').innerHTML = '<div class="empty">Track at least two months to see a trend line.</div>';
-  } else {
-    const points = idxs.map(i=>({x: shortLabels[i], label: monthLabels[i], y: totalLeftOvers[i]}));
-    lineChart(document.getElementById('trendChart'), points, {height:220, marker:chartMarker});
-    const actualColor = cssVar('--accent','#5b8cff'), projectedColor = cssVar('--green','#3ecf8e');
-    lineChart(document.getElementById('netWorthChart'), [
-      {color:actualColor, name:'Actual', points: idxs.map(i=>({x:shortLabels[i], label:monthLabels[i], y:actualNetWorth[i]}))},
-      {color:projectedColor, name:'Projected', dashed:true, points: idxs.map(i=>({x:shortLabels[i], label:monthLabels[i], y:projectedNetWorth[i]}))}
-    ], {height:240, marker:chartMarker});
-    lineChart(document.getElementById('savingsPotChart'), [
-      {color:actualColor, name:'Actual', points: idxs.map(i=>({x:shortLabels[i], label:monthLabels[i], y:savingsSeries[i]}))},
-      {color:projectedColor, name:'Projected', dashed:true, points: idxs.map(i=>({x:shortLabels[i], label:monthLabels[i], y:plannedSavingsSeries[i]}))}
-    ], {height:200, marker:chartMarker});
-    lineChart(document.getElementById('stocksPotChart'), [
-      {color:actualColor, name:'Actual', points: idxs.map(i=>({x:shortLabels[i], label:monthLabels[i], y:stocksSeries[i]}))},
-      {color:projectedColor, name:'Projected', dashed:true, points: idxs.map(i=>({x:shortLabels[i], label:monthLabels[i], y:plannedStocksSeries[i]}))}
-    ], {height:200, marker:chartMarker});
+  const hintEl = document.getElementById('trendRangeHint');
+  if(hintEl && enough) hintEl.textContent = `${monthLabelFromKey(keys[idxs[0]])} – ${monthLabelFromKey(keys[idxs[idxs.length-1]])} · ${idxs.length} of ${keys.length} months`;
+
+  const pts = arr => idxs.map(i=>({x:shortLabels[i], label:monthLabels[i], y:arr[i]}));
+  const actualColor = cssVar('--accent','#5b8cff'), projectedColor = cssVar('--green','#3ecf8e');
+  const pair = (actual, planned) => [
+    {color:actualColor, name:'Actual', points: pts(actual)},
+    {color:projectedColor, name:'Projected', dashed:true, points: pts(planned)}
+  ];
+  if(trendTab==='overview'){
+    if(!enough){
+      document.getElementById('netWorthChart').innerHTML = noTrend;
+      document.getElementById('trendChart').innerHTML = noTrend;
+    } else {
+      lineChart(document.getElementById('netWorthChart'), pair(actualNetWorth, projectedNetWorth), {height:250, marker:chartMarker});
+      lineChart(document.getElementById('trendChart'), pts(totalLeftOvers), {height:220, marker:chartMarker});
+    }
+  } else if(trendTab==='spending'){
+    renderCategoryBreakdown();
+  } else if(trendTab==='daily'){
+    renderSpendingHeatmap();
+  } else if(trendTab==='pots'){
+    if(!enough){
+      document.getElementById('savingsPotChart').innerHTML = noTrend;
+      document.getElementById('stocksPotChart').innerHTML = noTrend;
+    } else {
+      lineChart(document.getElementById('savingsPotChart'), pair(savingsSeries, plannedSavingsSeries), {height:210, marker:chartMarker});
+      lineChart(document.getElementById('stocksPotChart'), pair(stocksSeries, plannedStocksSeries), {height:210, marker:chartMarker});
+    }
   }
-  renderCategoryBreakdown();
-  renderSpendingHeatmap();
 }
 function renderCategoryBreakdown(){
   const keys = Object.keys(state.months).sort();
