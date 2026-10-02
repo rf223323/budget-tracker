@@ -166,6 +166,7 @@
   .cat-dd-opt:hover{background:color-mix(in srgb, var(--accent) 12%, transparent);}
   .cat-dd-opt.selected{background:color-mix(in srgb, var(--accent) 20%, transparent);font-weight:600;}
   .cell-summary{display:none;}
+  .del-label{display:none;}
   td.cell-category .cat-dd{display:block;width:140px;}
   .row-input{border:none;background:transparent;padding:4px 6px;width:100%;}
   .row-input:focus{background:var(--panel2);border-radius:6px;}
@@ -470,7 +471,10 @@
     /* Outgoings: one-line summary per row, tap to expand into a compact editor. */
     .out-row{gap:8px 6px;}
     .out-row td.cell-summary{display:flex;align-items:center;gap:10px;order:0;flex:1 1 0;min-width:0;cursor:pointer;}
-    .out-row td.cell-del{order:1;flex:0 0 auto;margin-left:0;}
+    .out-row td.cell-del{order:5;flex:1 1 100%;margin:4px 0 0;padding-top:10px;border-top:1px solid var(--border);}
+    .out-row .out-del{width:100%;padding:9px 12px;border:1px solid color-mix(in srgb, var(--red) 40%, transparent);border-radius:8px;color:var(--red);background:color-mix(in srgb, var(--red) 8%, transparent);font-size:12.5px;font-weight:700;}
+    .out-row .out-del .del-x{display:none;}
+    .out-row .out-del .del-label{display:inline;}
     .out-row td.cell-name{order:2;flex:1 1 100%;}
     .out-row td.cell-category{order:3;flex:1 1 calc(100% - 82px);min-width:0;}
     .out-row td.cell-day{order:3;flex:0 0 74px;}
@@ -2456,7 +2460,7 @@ function renderMonth(){
         <td data-label="Amount"><input class="row-input out-amount amt-cell" type="number" step="0.01" value="${o.amount}"></td>
         <td data-label="Status">${statusSelectHtml('out-status', o.status)}</td>
         <td data-label="Recurring">${recurringSelectHtml('out-recur', o.recurring)}</td>
-        <td class="cell-del"><button class="del-btn out-del">✕</button></td>
+        <td class="cell-del"><button class="del-btn out-del" aria-label="Delete outgoing"><span class="del-x">✕</span><span class="del-label">Delete this outgoing</span></button></td>
       </tr>
     `).join('') || `<tr><td colspan="7" class="empty">No outgoings added yet</td></tr>`;
     outgoingBody.querySelectorAll('tr').forEach(tr=>{
@@ -2481,7 +2485,12 @@ function renderMonth(){
       initCategoryDropdown(tr.querySelector('.out-category'), val=>{ item.category = val; propagateOutgoingFieldForward(item, state.currentMonthKey, 'category'); save(); refreshCards(); refreshSummary(); });
       const dayInp = tr.querySelector('.out-day');
       dayInp.onchange = e=>{ item.day = clampDay(e.target.value); e.target.value = item.day||''; propagateOutgoingFieldForward(item, state.currentMonthKey, 'day'); save(); refreshCards(); refreshSummary(); };
-      tr.querySelector('.out-del').onclick = ()=>{ m.outgoings = m.outgoings.filter(x=>x.id!==id); expandedOutRows.delete(id); save(); drawOutgoings(); refreshCards(); };
+      tr.querySelector('.out-del').onclick = ()=>{
+        const doDelete = ()=>{ m.outgoings = m.outgoings.filter(x=>x.id!==id); expandedOutRows.delete(id); save(); drawOutgoings(); refreshCards(); };
+        // On phones the button is large and easy to hit, so ask first.
+        if(window.matchMedia('(max-width:860px)').matches) openConfirmModal(`Delete ${escapeHtml(item.name||'this outgoing')}?`, 'This removes it from this month.', doDelete);
+        else doDelete();
+      };
     });
   }
   drawOutgoings();
