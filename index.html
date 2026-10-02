@@ -445,6 +445,49 @@
   .yr-entry{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;}
   .yr-entry .yr-btns{display:flex;gap:8px;flex-wrap:wrap;}
   .recap-link{display:block;margin-top:14px;text-align:center;font-size:13px;font-weight:700;color:var(--accent);cursor:pointer;text-decoration:none;}
+  /* Payday moment */
+  .payday-overlay{position:fixed;inset:0;z-index:125;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(4,4,5,.78);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);}
+  .payday-overlay.open{display:flex;}
+  .pd-card{position:relative;width:min(760px,100%);max-height:94vh;overflow:auto;display:grid;grid-template-columns:250px minmax(0,1fr);border-radius:28px;background:var(--panel);border:1px solid var(--border);box-shadow:0 30px 80px rgba(0,0,0,.6);animation:pdIn .5s cubic-bezier(.2,.9,.3,1.2) 1;}
+  @keyframes pdIn{from{opacity:0;transform:translateY(20px) scale(.94);}to{opacity:1;transform:none;}}
+  .pd-left{position:relative;padding:28px 18px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:4px;overflow:hidden;background:linear-gradient(170deg, color-mix(in srgb, var(--accent) 30%, #0b0b0c), #1a0e0d 60%, #121011);}
+  .pd-flame{position:relative;width:190px;height:170px;}
+  .pd-flame svg{width:100%;height:100%;overflow:visible;}
+  .pd-flame .pd-pop{transform-box:fill-box;transform-origin:50% 100%;animation:pdFlame .9s cubic-bezier(.2,.9,.3,1.3) 1 both;}
+  @keyframes pdFlame{from{transform:scale(.3);opacity:0;}to{transform:scale(1);opacity:1;}}
+  .pd-spark{position:absolute;left:50%;top:60%;width:5px;height:5px;margin:-2px;border-radius:50%;background:#ffd9a0;box-shadow:0 0 8px #ffb15a;opacity:0;animation:pdSpark 1.8s ease-out var(--d) infinite;}
+  @keyframes pdSpark{0%{opacity:0;transform:translate(0,0) scale(.4);}15%{opacity:1;}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(1);}}
+  .pd-k{font-size:12px;font-weight:800;letter-spacing:.14em;color:#ffb15a;}
+  .pd-amt{font-size:34px;white-space:nowrap;font-weight:800;letter-spacing:-.03em;color:var(--green);text-shadow:0 0 26px color-mix(in srgb, var(--green) 45%, transparent);}
+  .pd-sub{font-size:12.5px;color:#cdb9b5;}
+  .pd-right{padding:26px 28px 22px;display:flex;flex-direction:column;gap:14px;}
+  .pd-h{font-size:11px;font-weight:800;letter-spacing:.08em;color:var(--muted);}
+  .pd-bar{display:flex;gap:4px;height:12px;}
+  .pd-bar i{display:block;border-radius:999px;background:var(--c);box-shadow:0 0 12px color-mix(in srgb, var(--c) 60%, transparent);min-width:6px;}
+  .pd-rows{display:flex;flex-direction:column;gap:11px;}
+  .pd-row{display:flex;align-items:center;gap:12px;}
+  .pd-row .pn{font-size:14px;font-weight:700;}
+  .pd-row .ps{font-size:12px;color:var(--muted);}
+  .pd-row .pa{margin-left:auto;font-size:15px;font-weight:800;white-space:nowrap;}
+  .pd-row .pi{flex:1;min-width:0;}
+  .pd-safe{padding:12px 14px;border-radius:14px;background:var(--panel2);border:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13px;}
+  .pd-safe b{font-size:17px;color:var(--green);white-space:nowrap;}
+  .pd-safe b.neg{color:var(--red);}
+  .pd-actions{display:flex;gap:10px;justify-content:flex-end;}
+  @media (max-width:700px){
+    .payday-overlay{align-items:stretch;padding:0;}
+    .pd-card{grid-template-columns:1fr;border-radius:0;border:none;width:100%;max-height:none;height:100%;}
+    .pd-left{padding:56px 22px 18px;}
+    .pd-amt{font-size:44px;}
+    .pd-right{padding:6px 20px calc(24px + env(safe-area-inset-bottom));flex:1;}
+    .pd-actions .btn{flex:1;justify-content:center;padding:13px 0;}
+  }
+  @media (prefers-reduced-motion:reduce){.pd-spark,.pd-card,.pd-flame .pd-pop{animation:none;}.pd-spark{opacity:.7;}}
+  @media (max-width:860px){body:has(#paydayOverlay.open) .toast-stack{bottom:auto;top:12px;}}
+  .set-toggle{display:flex;align-items:flex-start;gap:12px;cursor:pointer;}
+  .set-toggle input{margin-top:3px;width:18px;height:18px;accent-color:var(--accent);flex-shrink:0;}
+  .set-toggle b{display:block;font-size:14px;}
+  .set-toggle small{display:block;margin-top:2px;font-size:12px;color:var(--muted);line-height:1.45;}
   .recap-empty{text-align:center;color:var(--muted);font-size:13px;padding:18px 0 6px;}
   #newMonthBtn{white-space:nowrap;}
   @media (max-width:520px){.topbar > div:last-child{gap:6px !important;}.topbar .btn{padding:8px 9px;}}
@@ -473,6 +516,47 @@
   /* Main card: greeting, balance, income/outgoings and safe-to-spend in one place. */
   .hero-card{border-radius:calc(var(--radius) + 6px);padding:24px 26px 20px;margin-bottom:20px;border:1px solid color-mix(in srgb, var(--accent) 38%, var(--border));background:linear-gradient(135deg, color-mix(in srgb, var(--accent) 30%, var(--panel)) 0%, color-mix(in srgb, var(--accent) 8%, var(--panel)) 55%, var(--panel) 100%);box-shadow:var(--shadow);}
   .hero-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1.5fr);gap:32px;align-items:center;}
+  .hero-id{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+  .ember-btn{width:96px;height:96px;flex-shrink:0;border:none;background:none;padding:0;cursor:pointer;margin:-8px -6px -22px 0;border-radius:50%;}
+  .ember-btn svg{width:100%;height:100%;display:block;overflow:visible;}
+  .ember-btn:hover{filter:brightness(1.12);}
+  .ember-flick{transform-box:fill-box;transform-origin:50% 100%;animation:emberFlick 2.4s ease-in-out infinite;}
+  .ember-flick.lo{animation-duration:4.2s;animation-name:emberFlickLo;}
+  .ember-flick.hi{animation-duration:1.7s;}
+  @keyframes emberFlick{0%,100%{transform:scale(1,1) skewX(0);}30%{transform:scale(.985,1.035) skewX(-1.4deg);}60%{transform:scale(1.01,.99) skewX(1.2deg);}}
+  @keyframes emberFlickLo{0%,100%{transform:scale(1,1);opacity:1;}50%{transform:scale(.97,.94);opacity:.82;}}
+  .ember-spark{animation:emberTwinkle 2.8s ease-in-out infinite;}
+  @keyframes emberTwinkle{0%,100%{opacity:.25;}50%{opacity:1;}}
+  @media (prefers-reduced-motion:reduce){.ember-flick,.ember-spark{animation:none;}}
+  .ember-burst{animation:emberBurst 1.1s ease-out 1;}
+  @keyframes emberBurst{0%{transform:scale(1);filter:brightness(1);}35%{transform:scale(1.22);filter:brightness(1.5);}100%{transform:scale(1);filter:brightness(1);}}
+  .em-modal-top{display:flex;align-items:center;gap:16px;margin:14px 0 6px;}
+  .em-big{width:120px;height:120px;flex-shrink:0;}
+  .em-big svg{width:100%;height:100%;display:block;overflow:visible;}
+  .em-lvl{display:inline-flex;padding:5px 12px;border-radius:999px;font-size:12px;font-weight:800;}
+  .em-xp{margin-top:8px;font-size:12px;color:var(--muted);}
+  .em-xp b{color:var(--text);}
+  .em-tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:14px 0;}
+  .em-tile{background:var(--panel2);border:1px solid var(--border);border-radius:14px;padding:12px 14px;}
+  .em-tile .k{font-size:11px;font-weight:600;color:var(--muted);}
+  .em-tile .v{font-size:20px;font-weight:800;margin-top:3px;}
+  .em-tile .s{font-size:11px;color:var(--muted);margin-top:6px;}
+  .em-week{display:flex;gap:4px;margin-top:8px;}
+  .em-week i{flex:1;height:6px;border-radius:999px;background:color-mix(in srgb, var(--text) 12%, transparent);}
+  .em-week i.on{background:linear-gradient(90deg,#ff8a3c,#ffcf70);box-shadow:0 0 8px rgba(255,150,60,.6);}
+  .em-h{display:flex;align-items:center;justify-content:space-between;margin:16px 0 10px;}
+  .em-h b{font-size:16px;font-weight:800;}
+  .em-h span{font-size:12px;font-weight:600;color:var(--accent);}
+  .em-badges{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}
+  .em-badge{padding:14px 8px 12px;border-radius:16px;text-align:center;border:1px solid var(--border);background:var(--panel2);}
+  .em-badge .bt{margin:0 auto;width:44px;height:44px;border-radius:15px;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb, var(--c) 20%, var(--panel));color:var(--c);}
+  .em-badge .bt svg{width:22px;height:22px;}
+  .em-badge.on{background:linear-gradient(160deg, color-mix(in srgb, var(--c) 16%, var(--panel2)), var(--panel2) 70%);border-color:color-mix(in srgb, var(--c) 40%, var(--border));}
+  .em-badge.on .bt{box-shadow:0 0 16px color-mix(in srgb, var(--c) 45%, transparent);}
+  .em-badge.off{opacity:.72;}
+  .em-badge.off .bt{--c:var(--muted);background:var(--panel);}
+  .em-badge .bn{margin-top:8px;font-size:11.5px;font-weight:700;line-height:1.25;}
+  .em-badge .bh{margin-top:3px;font-size:10px;color:var(--muted);line-height:1.3;}
   .hero-hi{font-size:16px;font-weight:800;}
   .hero-date{font-size:12.5px;color:var(--muted);margin-top:1px;}
   .hero-label{margin-top:20px;font-size:12.5px;font-weight:600;color:var(--muted);}
@@ -513,6 +597,7 @@
     .hero-grid{grid-template-columns:1fr;gap:16px;}
     .hero-label{margin-top:14px;}
     .hero-card .hero-bal-input,.hero-cur{font-size:40px;}
+    .ember-btn{width:84px;height:84px;margin:-6px -4px -18px 0;}
     .hero-chips{gap:10px;}
     .hero-chip{padding:12px;border-radius:16px;}
     .hc-v{font-size:19px;margin-top:5px;}
@@ -1117,6 +1202,13 @@
   </div>
 </div>
 
+<div class="payday-overlay" id="paydayOverlay" aria-hidden="true">
+  <div class="pd-card" role="dialog" aria-label="Payday">
+    <div class="pd-left" id="pdLeft"></div>
+    <div class="pd-right" id="pdRight"></div>
+  </div>
+</div>
+
 <div class="toast-stack" id="toastStack"></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -1351,6 +1443,9 @@ function normalizeState(){
   if(state.theme==='light') state.theme = 'paper';
   if(!THEME_NAMES.includes(state.theme)) state.theme = 'midnight';
   if(!Array.isArray(state.pay3)) state.pay3 = [];
+  if(!state.ember || typeof state.ember!=='object') state.ember = {};
+  if(!Array.isArray(state.ember.seen)) state.ember.seen = [];
+  if(typeof state.celebrate!=='boolean') state.celebrate = true;
   if(!state.pots) state.pots = {};
   if(!state.pots.savings) state.pots.savings = {manualLedger:[]};
   if(!state.pots.stocks) state.pots.stocks = {manualLedger:[]};
@@ -1585,7 +1680,9 @@ function cascadeForward(){
     if(next.startingBalance !== newStart) next.startingBalance = newStart;
   }
 }
+let dataRev = 0;
 function save(){
+  dataRev++;
   cascadeForward();
   state.__updatedAt = Date.now();
   localStorage.setItem(dataKeyFor(profilesMeta.activeId), JSON.stringify(state));
@@ -3238,6 +3335,248 @@ function daysUntilPayday(){
   const pick = regular || any;
   return pick ? Math.round((pick-today)/86400000) : null;
 }
+// ---------------- Payday moment ----------------
+function paydayPlan(key){
+  const d = safeToSpend(key);
+  if(!d) return null;
+  const m = state.months[key];
+  const billsN = m.outgoings.filter(o=>o.status!=='done' && !o.quickAdd && (Number(o.amount)||0)>0).length;
+  const days = Math.max(1, daysUntilPayday() || d.daysLeft);
+  const rows = [
+    {name:'Bills to pay', sub: billsN ? `${billsN} bill${billsN!==1?'s':''} still to pay` : 'Nothing left to pay', amt:d.pendingOut, color:'#f0453a', icon:'M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6'},
+    {name:'Weekly budget', sub:'Left for the weeks ahead', amt:d.pendingWeekly, color:'#5b8cff', icon:CALENDAR_ICON_PATH},
+    {name:'Savings & stocks', sub:'Moves you planned', amt:d.pendingSaved, color:'#3dd68c', icon:CATEGORY_ICON_PATHS['Savings & Debt']},
+    {name:d.free<0 ? 'Short by' : 'Free to spend', sub: d.free<0 ? 'More is planned than you have' : 'Yours to enjoy', amt:Math.abs(d.free), color: d.free<0 ? '#ff5c5c' : '#ffb15a', icon:'M13 2L4 14h7l-1 8 9-12h-7l1-8z'}
+  ].filter(r=>r.amt>=0.005);
+  return {rows, free:d.free, perDay:round2(d.free/days), days};
+}
+function showPaydayMoment(item, key){
+  if(!state.celebrate) return;
+  if(key < monthKey(new Date())) return;       // only for this month or later
+  const plan = paydayPlan(key);
+  if(!plan) return;
+  const amount = Number(item.amount)||0;
+  const left = document.getElementById('pdLeft'), right = document.getElementById('pdRight');
+  const ov = document.getElementById('paydayOverlay');
+  const id = 'pd'+(++emberFlameUid);
+  const sparks = Array.from({length:14}, (_,i)=>{
+    const a = (i/14)*Math.PI*2 + Math.random()*.4, r = 55 + Math.random()*55;
+    return `<i class="pd-spark" style="--dx:${Math.round(Math.cos(a)*r)}px;--dy:${Math.round(Math.sin(a)*r-30)}px;--d:${(Math.random()*1.4).toFixed(2)}s;"></i>`;
+  }).join('');
+  left.innerHTML = `
+    <div class="pd-flame">
+      <svg viewBox="0 0 210 190" aria-hidden="true"><defs>
+        <linearGradient id="${id}o" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffc060"/><stop offset="1" stop-color="#ff3a2a"/></linearGradient>
+        <linearGradient id="${id}i" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff2b0"/><stop offset="1" stop-color="#ffa040"/></linearGradient>
+        <radialGradient id="${id}g" cx="50%" cy="58%" r="50%"><stop offset="0" stop-color="#ff9a45" stop-opacity=".7"/><stop offset="1" stop-color="#ff9a45" stop-opacity="0"/></radialGradient></defs>
+        <circle cx="105" cy="108" r="92" fill="url(#${id}g)"/>
+        <g transform="translate(55 22)" style="filter:drop-shadow(0 0 14px rgba(255,170,60,.95));"><g class="pd-pop">
+          <path d="M50,97 C24,97 9,79 12,58 C14,45 23,36 31,27 C31,38 35,43 39,45 C36,28 44,13 59,3 C58,20 66,29 74,38 C83,48 89,57 89,67 C89,85 73,97 50,97 Z" fill="url(#${id}o)"/>
+          <path d="M50,93 C33,93 25,81 27,69 C28,60 34,55 40,49 C40,58 44,62 48,63 C47,52 52,42 61,33 C60,44 66,50 70,58 C76,67 72,93 50,93 Z" fill="url(#${id}i)"/>
+          <path d="M50,91 C41,91 37,83 40,76 C42,71 46,69 49,64 C52,70 58,73 59,80 C60,87 56,91 50,91 Z" fill="#fff4d0"/>
+        </g></g></svg>${sparks}
+    </div>
+    <div class="pd-k">PAYDAY</div>
+    <div class="pd-amt" id="pdAmt">+${escapeHtml(fmt(0))}</div>
+    <div class="pd-sub">${escapeHtml(item.name||'Pay')} landed · ${new Date().toLocaleDateString('en-GB',{weekday:'short', day:'numeric', month:'long'})}</div>`;
+  const total = plan.rows.reduce((a,r)=>a+r.amt,0) || 1;
+  right.innerHTML = `
+    <div class="pd-h">HERE'S THE PLAN FOR IT</div>
+    <div class="pd-bar">${plan.rows.map(r=>`<i style="--c:${r.color};flex:${(r.amt/total*100).toFixed(1)} 1 0;"></i>`).join('')}</div>
+    <div class="pd-rows">${plan.rows.map(r=>`<div class="pd-row">${iconTile(r.icon, r.color, 'sm')}<div class="pi"><div class="pn">${r.name}</div><div class="ps">${r.sub}</div></div><div class="pa">${escapeHtml(fmt(r.amt))}</div></div>`).join('')}</div>
+    <div class="pd-safe"><span>${plan.free<0 ? 'You\'d be short before your next payday' : `Safe to spend until your next payday (${plan.days} day${plan.days!==1?'s':''})`}</span><b class="${plan.free<0?'neg':''}">${plan.free<0 ? escapeHtml(fmt(-plan.free)) : escapeHtml(fmt(plan.perDay))+' / day'}</b></div>
+    <div class="pd-actions"><button class="btn secondary" id="pdPlan">See the plan</button><button class="btn" id="pdOk">Nice — got it</button></div>`;
+  ov.classList.add('open'); ov.setAttribute('aria-hidden','false');
+  const close = ()=>{ ov.classList.remove('open'); ov.setAttribute('aria-hidden','true'); };
+  document.getElementById('pdOk').onclick = close;
+  document.getElementById('pdPlan').onclick = ()=>{
+    close();
+    const panel = document.getElementById('safeSpend');
+    if(panel){ panel.classList.add('open'); safeSpendOpen = true; panel.scrollIntoView({behavior:'smooth', block:'center'}); }
+  };
+  ov.onmousedown = ev=>{ if(ev.target===ov) close(); };
+  // count the amount up
+  const el = document.getElementById('pdAmt'), t0 = performance.now(), dur = 1100;
+  const tick = now=>{
+    if(!el.isConnected || !ov.classList.contains('open')) return;
+    const f = Math.min(1,(now-t0)/dur);
+    el.textContent = '+'+fmt(round2(amount*(1-Math.pow(1-f,3))));
+    if(f<1) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+  setTimeout(()=>{ if(el.isConnected) el.textContent = '+'+fmt(amount); }, dur+200);
+}
+// Called when an income item is marked received: regular pay gets the payday moment.
+function afterIncomeMarkedDone(item, key){
+  if(item.status!=='done' || item.transfer) return;
+  if(!(item.recurring || item.category==='Salary')) return;
+  if(!((Number(item.amount)||0)>0)) return;
+  showPaydayMoment(item, key);
+}
+// ---------------- Your Ember ----------------
+// Streaks, XP, level and milestones are all worked out from your data (nothing extra is stored
+// except which milestones you've already been congratulated for).
+let emberFlameUid = 0;
+function emberFlameSvg(flame, ringPct){
+  const id = 'ef'+(++emberFlameUid);
+  const P = {
+    lo: {o1:'#c4553f', o2:'#6b1420', i1:'#a34a3a', i2:'#5a1220', inner:.55, core:0, tf:'translate(31 36) scale(.46)', glow:'rgba(160,40,40,.5)', halo:'rgba(160,40,40,.22)', spark:'#7c5b5b', sparkOp:.35, cls:'lo'},
+    st: {o1:'#ff9a45', o2:'#e8222f', i1:'#ffe08a', i2:'#ff8a3c', inner:1, core:1, tf:'translate(26 14) scale(.6)', glow:'rgba(255,120,50,.7)', halo:'rgba(255,110,60,.45)', spark:'#ffd39a', sparkOp:.9, cls:''},
+    bl: {o1:'#ffc060', o2:'#ff3a2a', i1:'#fff2b0', i2:'#ffa040', inner:1, core:1, tf:'translate(18 6) scale(.72)', glow:'rgba(255,170,60,.95)', halo:'rgba(255,150,60,.6)', spark:'#fff0c0', sparkOp:1, cls:'hi'}
+  }[flame] || {};
+  const ring = ringPct==null ? '' : `<circle cx="56" cy="56" r="51" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="5"/><circle cx="56" cy="56" r="51" fill="none" stroke="#ffb15a" stroke-width="5" stroke-linecap="round" pathLength="100" stroke-dasharray="${Math.max(1,Math.min(100,ringPct))} 100" transform="rotate(-90 56 56)" style="filter:drop-shadow(0 0 5px #ff8a3c);"/>`;
+  return `<svg viewBox="0 0 112 112" aria-hidden="true"><defs>
+      <linearGradient id="${id}o" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${P.o1}"/><stop offset="1" stop-color="${P.o2}"/></linearGradient>
+      <linearGradient id="${id}i" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${P.i1}"/><stop offset="1" stop-color="${P.i2}"/></linearGradient>
+      <radialGradient id="${id}g" cx="50%" cy="60%" r="50%"><stop offset="0" stop-color="${P.halo}"/><stop offset="1" stop-color="${P.halo}" stop-opacity="0"/></radialGradient>
+    </defs>
+    ${ring}
+    <circle cx="56" cy="62" r="40" fill="url(#${id}g)"/>
+    <g transform="${P.tf}" style="filter:drop-shadow(0 0 8px ${P.glow});"><g class="ember-flick ${P.cls}">
+      <path d="M50,97 C24,97 9,79 12,58 C14,45 23,36 31,27 C31,38 35,43 39,45 C36,28 44,13 59,3 C58,20 66,29 74,38 C83,48 89,57 89,67 C89,85 73,97 50,97 Z" fill="url(#${id}o)"/>
+      <path d="M50,93 C33,93 25,81 27,69 C28,60 34,55 40,49 C40,58 44,62 48,63 C47,52 52,42 61,33 C60,44 66,50 70,58 C76,67 72,93 50,93 Z" fill="url(#${id}i)" opacity="${P.inner}"/>
+      <path d="M50,91 C41,91 37,83 40,76 C42,71 46,69 49,64 C52,70 58,73 59,80 C60,87 56,91 50,91 Z" fill="#fff4d0" opacity="${P.core}"/>
+    </g></g>
+    <g fill="${P.spark}" opacity="${P.sparkOp}"><circle class="ember-spark" cx="22" cy="30" r="1.6"/><circle class="ember-spark" style="animation-delay:.9s" cx="92" cy="26" r="1.2"/><circle class="ember-spark" style="animation-delay:1.7s" cx="84" cy="14" r="1"/><circle class="ember-spark" style="animation-delay:.4s" cx="14" cy="52" r="1"/></g></svg>`;
+}
+const EMBER_BADGES = [
+  {id:'k1',  name:'First £1k saved',    hint:'Get £1,000 into your pots',            icon:CATEGORY_ICON_PATHS['Savings & Debt'], color:'#3dd68c'},
+  {id:'s7',  name:'7-day streak',       hint:'Log spending 7 days in a row',          icon:'M13 2L4 14h7l-1 8 9-12h-7l1-8z', color:'#ffb15a'},
+  {id:'sc80',name:'Score 80+',          hint:'Reach a monthly Score of 80',           icon:'M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.5 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z', color:'#f0453a'},
+  {id:'pot', name:'Paid on time',       hint:'Finish a month with every bill paid',   icon:'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4M9 15l2 2 4-4', color:'#5b8cff'},
+  {id:'nsw', name:'No-spend weekend',   hint:'A whole weekend with nothing logged',   icon:'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z', color:'#38bdf8'},
+  {id:'s30', name:'30-day streak',      hint:'Log spending 30 days in a row',         icon:'M12 2c1 3 4 4.5 4 8.5a4 4 0 0 1-8 0C8 8 10 6 12 2zM6 14a6 6 0 0 0 12 0', color:'#ffd66e'},
+  {id:'sav', name:'Super saver',        hint:'Save 20% of income in a month',         icon:'M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.5-7 10-7 10z', color:'#f472b6'},
+  {id:'b3',  name:'3 months on budget', hint:'Score 80+ three months running',        icon:'M3 17l6-6 4 4 8-8M15 7h6v6', color:'#a78bfa'},
+  {id:'p3',  name:'Pay in 3 cleared',   hint:'Finish paying off a Pay in 3 plan',     icon:'M3 6h18v12H3zM3 10h18', color:'#2ec4b6'}
+];
+let emberMemo = {rev:-1, data:null};
+function emberStats(){
+  if(emberMemo.rev===dataRev && emberMemo.data) return emberMemo.data;
+  const now = new Date(); now.setHours(0,0,0,0);
+  const curKey = monthKey(now);
+  const dayIdx = (y,m0,d)=>Math.round(Date.UTC(y,m0,d)/86400000);
+  const todayIdx = dayIdx(now.getFullYear(), now.getMonth(), now.getDate());
+  // days with something logged in Quick Add
+  const logSet = new Set();
+  let doneItems = 0;
+  Object.keys(state.months).forEach(k=>{
+    const m = state.months[k];
+    [...m.outgoings, ...m.incoming].forEach(it=>{
+      if(it.quickAdd && it.ts){ const d = new Date(it.ts); logSet.add(dayIdx(d.getFullYear(), d.getMonth(), d.getDate())); }
+      else if(it.status==='done') doneItems++;
+    });
+  });
+  const days = [...logSet].sort((a,b)=>a-b);
+  let best = 0, run = 0;
+  days.forEach((d,i)=>{ run = (i>0 && d===days[i-1]+1) ? run+1 : 1; best = Math.max(best, run); });
+  let cur = 0, probe = logSet.has(todayIdx) ? todayIdx : todayIdx-1;
+  while(logSet.has(probe)){ cur++; probe--; }
+  const last7 = []; for(let i=6;i>=0;i--) last7.push(logSet.has(todayIdx-i));
+  // monthly scores
+  const monthRows = Object.keys(state.months).filter(k=>k<=curKey).sort().map(k=>({k, sc:monthScoreData(k)})).filter(x=>x.sc && x.sc.active);
+  const good = monthRows.map(x=>x.sc.score>=80);
+  let bestB = 0, runB = 0; good.forEach(g=>{ runB = g ? runB+1 : 0; bestB = Math.max(bestB, runB); });
+  let curB = 0; for(let i=good.length-1;i>=0 && good[i];i--) curB++;
+  const goodMonths70 = monthRows.filter(x=>x.sc.score>=70).length;
+  const xp = days.length*5 + goodMonths70*15 + doneItems;
+  const lvlFloor = L=>50*(L-1)*L;               // xp needed to reach level L
+  let level = 1; while(xp >= lvlFloor(level+1)) level++;
+  const span = lvlFloor(level+1)-lvlFloor(level);
+  const levelPct = Math.round((xp-lvlFloor(level))/span*100);
+  const xpToNext = lvlFloor(level+1)-xp;
+  // badges
+  const earned = {};
+  const pots = round2(potBalance('savings') + potBalance('stocks'));
+  earned.k1 = pots>=1000;
+  earned.s7 = best>=7; earned.s30 = best>=30;
+  earned.sc80 = monthRows.some(x=>x.sc.score>=80);
+  earned.b3 = bestB>=3;
+  earned.pot = monthRows.some(x=>x.k<curKey && x.sc.parts.find(p=>p.id==='bills').pts>=19.99 && state.months[x.k].outgoings.filter(o=>!o.quickAdd).length>=3);
+  earned.sav = Object.keys(state.months).filter(k=>k<=curKey).some(k=>{ const t = monthTotals(state.months[k]); return t.allIncoming>0 && (t.savingsAmount+t.stocksAmount)/t.allIncoming>=0.2; });
+  const plans = Array.isArray(state.pay3) ? state.pay3 : [];
+  earned.p3 = plans.length>0 && plans.every(pl=>pl.inst && pl.inst.length && pl.inst.every(i=>i.paid));
+  // a whole past weekend with nothing logged, in a week where you were logging
+  earned.nsw = false;
+  if(days.length>=3){
+    for(let d=days[0]; d<todayIdx-1 && !earned.nsw; d++){
+      const dt = new Date(d*86400000); if(dt.getUTCDay()!==6) continue;       // Saturday
+      if(logSet.has(d) || logSet.has(d+1) || d+1>=todayIdx) continue;
+      let around = 0; for(let j=1;j<=5;j++){ if(logSet.has(d-j)) around++; }
+      if(around>=2) earned.nsw = true;
+    }
+  }
+  // flame mood
+  const cm = state.months[curKey];
+  const ct = cm ? monthTotals(cm) : null;
+  const curScore = monthRows.length && monthRows[monthRows.length-1].k===curKey ? monthRows[monthRows.length-1].sc.score : null;
+  const overdue = cm ? (()=>{ const sc = monthScoreData(curKey); const b = sc && sc.parts.find(p=>p.id==='bills'); return b && b.pts<19.99; })() : false;
+  const activeLogger = days.some(d=>d>=todayIdx-60);
+  const gap = days.length ? todayIdx - days[days.length-1] : 99;
+  let flame = 'st', why = 'You\'re on track.';
+  if((ct && ct.totalLeftOver<0) || overdue || (activeLogger && gap>=4)){
+    flame = 'lo';
+    why = ct && ct.totalLeftOver<0 ? 'You\'re over budget this month.' : overdue ? 'A bill is overdue.' : 'You haven\'t logged anything for a few days.';
+  } else if(cur>=30 || (curScore!==null && curScore>=85)){
+    flame = 'bl'; why = cur>=30 ? 'A big logging streak!' : 'Score 85+ — brilliant.';
+  }
+  const data = {logDays:days.length, cur, best, last7, bestB, curB, xp, level, levelPct, xpToNext, earned, flame, why, curScore};
+  emberMemo = {rev:dataRev, data};
+  return data;
+}
+const EMBER_FLAME_TEXT = {lo:'Smouldering', st:'Steady burn', bl:'Blazing'};
+function openEmberModal(){
+  const e = emberStats();
+  const bg = document.getElementById('modalBg');
+  const box = document.getElementById('modalBox');
+  box.className = 'modal recap-modal';
+  const earnedN = EMBER_BADGES.filter(b=>e.earned[b.id]).length;
+  const chip = {lo:['rgba(160,60,60,.18)','#e2837a'], st:['rgba(255,177,90,.16)','#ffb15a'], bl:['rgba(255,214,110,.18)','#ffd66e']}[e.flame];
+  box.innerHTML = `
+    <div class="recap-eyebrow">Your Ember</div>
+    <div class="em-modal-top">
+      <div class="em-big">${emberFlameSvg(e.flame, e.levelPct)}</div>
+      <div>
+        <div class="recap-title" style="margin:0;">Level ${e.level}</div>
+        <div class="em-lvl" style="background:${chip[0]};color:${chip[1]};margin-top:6px;">${EMBER_FLAME_TEXT[e.flame]}</div>
+        <div class="em-xp"><b>${e.xpToNext} XP</b> to Level ${e.level+1}</div>
+      </div>
+    </div>
+    <div class="recap-sub">${escapeHtml(e.why)} Log your spending, pay bills on time and keep your Score up to feed it.</div>
+    <div class="em-tiles">
+      <div class="em-tile"><div class="k">Logging streak</div><div class="v">${e.cur} day${e.cur!==1?'s':''}</div><div class="em-week">${e.last7.map(on=>`<i class="${on?'on':''}"></i>`).join('')}</div></div>
+      <div class="em-tile"><div class="k">On budget</div><div class="v">${e.curB} month${e.curB!==1?'s':''}</div><div class="s">Score 80+ each month</div></div>
+    </div>
+    <div class="em-h"><b>Milestones</b><span>${earnedN} of ${EMBER_BADGES.length} earned</span></div>
+    <div class="em-badges">${EMBER_BADGES.map(b=>{
+      const on = !!e.earned[b.id];
+      return `<div class="em-badge ${on?'on':'off'}" style="--c:${b.color};"><div class="bt">${iconSvg(on ? b.icon : 'M6 11h12v9H6zM8 11V8a4 4 0 0 1 8 0v3')}</div><div class="bn">${escapeHtml(b.name)}</div>${on ? '' : `<div class="bh">${escapeHtml(b.hint)}</div>`}</div>`;
+    }).join('')}</div>
+    <div class="actions"><button class="btn small" id="emberClose">Close</button></div>`;
+  bg.classList.add('open');
+  bg.onclick = ev=>{ if(ev.target===bg) closeRecapModal(); };
+  document.getElementById('emberClose').onclick = closeRecapModal;
+}
+// Congratulate new milestones / level-ups once (the first visit just records what you already have).
+function checkEmberMilestones(){
+  const e = emberStats();
+  const st = state.ember;
+  const nowEarned = EMBER_BADGES.filter(b=>e.earned[b.id]).map(b=>b.id);
+  if(!st.init){ st.init = true; st.seen = nowEarned; st.level = e.level; save(); return; }
+  const fresh = nowEarned.filter(id=>!st.seen.includes(id));
+  const leveled = e.level > (st.level||1);
+  if(!fresh.length && !leveled) return;
+  st.seen = nowEarned; st.level = e.level; save();
+  if(state.celebrate){
+    const names = fresh.map(id=>EMBER_BADGES.find(b=>b.id===id).name);
+    const msg = leveled ? `Ember reached Level ${e.level}` : 'New milestone';
+    setTimeout(()=>{
+      showToast(msg, names.length ? names.join(' · ') : 'Keep it burning');
+      const btn = document.getElementById('emberBtn');
+      if(btn){ btn.classList.remove('ember-burst'); void btn.offsetWidth; btn.classList.add('ember-burst'); }
+    }, 500);
+  }
+}
 // Greeting, date and "payday in N days" for the Month Tracker's main card.
 function refreshHero(){
   const hi = document.getElementById('heroHi');
@@ -3257,6 +3596,15 @@ function refreshHero(){
     if(n!==null) txt = n<=0 ? 'Payday today' : n===1 ? 'Payday tomorrow' : `${n} days until payday`;
   }
   pill.innerHTML = txt ? `${iconSvg(CALENDAR_ICON_PATH)}${escapeHtml(txt)}` : '';
+  const eb = document.getElementById('emberBtn');
+  if(eb){
+    const e = emberStats();
+    const sig = e.flame+'|'+e.levelPct;
+    if(eb.dataset.sig!==sig){ eb.innerHTML = emberFlameSvg(e.flame, e.levelPct); eb.dataset.sig = sig; }
+    eb.title = `Ember · Level ${e.level} · ${EMBER_FLAME_TEXT[e.flame]}`;
+    eb.onclick = openEmberModal;
+    if(!eb.dataset.checked){ eb.dataset.checked = '1'; checkEmberMilestones(); }
+  }
 }
 // ---------------- Month Tracker ----------------
 function renderMonth(){
@@ -3269,8 +3617,10 @@ function renderMonth(){
     <div class="hero-card" id="heroCard">
       <div class="hero-grid">
         <div>
-          <div class="hero-hi" id="heroHi"></div>
-          <div class="hero-date" id="heroDate"></div>
+          <div class="hero-id">
+            <div><div class="hero-hi" id="heroHi"></div><div class="hero-date" id="heroDate"></div></div>
+            <button type="button" class="ember-btn" id="emberBtn" aria-label="Your Ember — streaks and milestones"></button>
+          </div>
           <div class="hero-label">Current balance</div>
           <div class="hero-bal"><span class="hero-cur">${escapeHtml(state.currency)}</span><input type="number" step="0.01" id="liveBalanceInput" class="hero-bal-input" value="${t.liveBalance}" aria-label="Current balance" style="${t.liveBalance>=0?'':'color:var(--red);'}"></div>
           <div class="hero-sub" id="liveBalanceSub">${t.adjustment ? `${fmt(t.adjustment)} manual adjustment · <a href="#" id="clearAdjustment" style="color:var(--red);text-decoration:underline;">clear</a>` : 'edit directly for deviations — updates as items are marked Done'}</div>
@@ -3712,7 +4062,7 @@ function renderMonth(){
       };
       tr.querySelector('.inc-amount').oninput = e=>{ item.amount=Number(e.target.value); save(); refreshCards(); refreshSummary(); };
       const sel = tr.querySelector('.inc-status');
-      sel.onchange = e=>{ item.status=e.target.value; save(); e.target.className = `inc-status status-select status-${e.target.value}`; refreshCards(); refreshSummary(); };
+      sel.onchange = e=>{ item.status=e.target.value; save(); e.target.className = `inc-status status-select status-${e.target.value}`; refreshCards(); refreshSummary(); afterIncomeMarkedDone(item, state.currentMonthKey); };
       const recurSel = tr.querySelector('.inc-recur');
       recurSel.onchange = e=>{ item.recurring = (e.target.value==='yes'); if(item.recurring) syncNewRecurringForward(item, state.currentMonthKey, 'incoming'); else stopRecurringInLaterMonths(m, 'incoming', item); save(); e.target.className = `inc-recur recur-select ${item.recurring?'recur-yes':'recur-no'}`; refreshSummary(); };
       initCategoryDropdown(tr.querySelector('.inc-category'), val=>{ item.category = val; propagateOutgoingFieldForward(item, state.currentMonthKey, 'category', 'incoming'); save(); refreshSummary(); });
@@ -5072,7 +5422,7 @@ function drawRecurringTable(m, kind){
     };
     tr.querySelector(`.recur-amount-${kind}`).oninput = e=>{ item.amount=Number(e.target.value); syncNewRecurringForward(item, state.currentMonthKey, listKey); save(); refreshSummary(); };
     const sel = tr.querySelector(`.recur-status-${kind}`);
-    sel.onchange = e=>{ item.status=e.target.value; save(); e.target.className = `recur-status-${kind} status-select status-${e.target.value}`; refreshSummary(); };
+    sel.onchange = e=>{ item.status=e.target.value; save(); e.target.className = `recur-status-${kind} status-select status-${e.target.value}`; refreshSummary(); if(kind==='incoming') afterIncomeMarkedDone(item, state.currentMonthKey); };
     const catSel = tr.querySelector(`.recur-category-${kind}`);
     if(catSel) initCategoryDropdown(catSel, val=>{ item.category = val; propagateOutgoingFieldForward(item, state.currentMonthKey, 'category', listKey); save(); refreshSummary(); });
     const dayInp = tr.querySelector(`.recur-day-${kind}`);
@@ -5460,6 +5810,11 @@ function renderSettings(){
   const p = activeProfileMeta();
   el.innerHTML = `
     <div class="panel">
+      <div class="panel-head"><h2>Celebrations</h2><span class="hint">little moments when things go well</span></div>
+      <label class="set-toggle"><input type="checkbox" id="celebrateToggle" ${state.celebrate?'checked':''}><span><b>Payday moment &amp; milestones</b><small>A short celebration when your pay lands, and a toast when you earn an Ember milestone or level up.</small></span></label>
+    </div>
+
+    <div class="panel">
       <div class="panel-head"><h2>Profiles</h2><span class="hint">separate budgets on the same browser — e.g. you and a partner</span></div>
       <table>
         <thead><tr><th>Name</th><th style="width:100px;">Active</th><th style="width:36px;"></th></tr></thead>
@@ -5541,6 +5896,7 @@ function renderSettings(){
     });
   }
   drawProfilesTable();
+  document.getElementById('celebrateToggle').onchange = e=>{ state.celebrate = e.target.checked; save(); };
   document.getElementById('addProfileBtn').onclick = ()=>{
     openInputModal('New profile', "e.g. Sam's Budget", name=>addProfile(name));
   };
