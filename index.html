@@ -4499,8 +4499,13 @@ function computeCashflow(key, daily, buffer){
   const mt = monthTotals(m);
   // A future month's opening cash includes last month's pay that funds it (it arrives before the month starts).
   const opening = round2(mt.liveBalance + (isCurrent ? 0 : mt.virtualPending));
+  // Days are counted from the 1st of the viewed month, so the line can run past
+  // month end (day dim+1 = the 1st of next month) and a date is just new Date(y, mo-1, day).
+  const nk = monthKey(new Date(y, mo, 1));
+  const nm = state.months[nk] || null;
   const events = [];
   const unplaced = {outAmt:0, outN:0, inAmt:0, inN:0, lateIn:0};
+  const isPayLike = i => !!i.recurring || i.category==='Salary';
   m.outgoings.forEach(o=>{
     if(o.status==='done' || o.quickAdd) return;
     const amt = Number(o.amount)||0;
@@ -4517,26 +4522,56 @@ function computeCashflow(key, daily, buffer){
     const d = resolveScheduledDay(i, y, mo);
     if(!d){ unplaced.inAmt += amt; unplaced.inN++; return; }
     if(isCurrent && d<startDay){ unplaced.lateIn += amt; return; }
-    events.push({day:d, due:d, name:i.name, amount:amt, kind:'in'});
+    events.push({day:d, due:d, name:i.name, amount:amt, kind:'in', payLike:isPayLike(i)});
   });
+  // Next month's dated items, in case payday falls there (only used up to that payday).
+  const nextEvents = [];
+  if(nm){
+    nm.outgoings.forEach(o=>{
+      if(o.status==='done' || o.quickAdd) return;
+      const amt = Number(o.amount)||0, d = resolveScheduledDay(o, ...nk.split("-").map(Number));
+      if(amt>0 && d) nextEvents.push({day:dim+d, due:dim+d, name:o.name, amount:-amt, kind:'out', late:false, pay3:!!o.pay3Id});
+    });
+    nm.incoming.forEach(i=>{
+      if(i.status==='done' || i.transfer) return;
+      const amt = Number(i.amount)||0, d = resolveScheduledDay(i, ...nk.split('-').map(Number));
+      if(amt>0 && d) nextEvents.push({day:dim+d, due:dim+d, name:i.name, amount:amt, kind:'in', payLike:isPayLike(i)});
+    });
+  }
   const setAside = round2((m.savings.status!=='done' ? Number(m.savings.amount)||0 : 0) + (m.stocks.status!=='done' ? Number(m.stocks.amount)||0 : 0));
-  events.sort((a,b)=>a.day-b.day || a.amount-b.amount);
+
+  // Horizon: today → the next payday (strictly after the start day, so pay due today
+  // counts as already here). Prefer regular pay; fall back to any income.
+  const incAfter = list => list.filter(e=>e.kind==='in' && e.day>startDay).sort((a,b)=>a.day-b.day || b.amount-a.amount);
+  const pool = [...events, ...nextEvents];
+  const payPick = incAfter(pool.filter(e=>e.payLike))[0] || incAfter(pool)[0] || null;
+  const endDay = payPick ? payPick.day : dim;
+  const noPay = !payPick;
+  const horizon = [...events, ...nextEvents].filter(e=>e.day<=endDay);
+  horizon.sort((a,b)=>a.day-b.day || a.amount-b.amount);
+  events.length = 0; horizon.forEach(e=>events.push(e));
 
   let bal = opening;
   const series = [];
-  for(let d=startDay; d<=dim; d++){
+  for(let d=startDay; d<=endDay; d++){
     events.filter(e=>e.day===d).forEach(e=>{ bal += e.amount; });
     bal -= daily;
     series.push({day:d, bal:round2(bal)});
   }
   events.forEach(e=>{ e.after = series.find(p=>p.day===e.day).bal; });
 
+  // Lowest point counts every day before payday; on payday itself, the balance before the pay lands.
   let low = {day:startDay, bal:opening, fromOpening:true};
-  series.forEach(p=>{ if(p.bal < low.bal) low = {day:p.day, bal:p.bal}; });
+  series.forEach(p=>{
+    let b = p.bal;
+    if(p.day===endDay && payPick) b = round2(b - events.filter(e=>e.day===p.day && e.kind==='in').reduce((a,e)=>a+e.amount,0));
+    if(b < low.bal) low = {day:p.day, bal:b};
+  });
   const status = low.bal < 0 ? 'short' : (low.bal < buffer ? 'tight' : 'fine');
-  const negDays = series.filter(p=>p.bal<0);
+  const negDays = series.filter(p=>p.bal<0 && !(payPick && p.day===endDay && p.bal>=0));
   const firstNeg = negDays[0] || null;
-  const nextPay = events.find(e=>e.kind==='in') || null;
+  const nextPay = payPick ? events.find(e=>e===payPick) || payPick : null;
+  const payAmount = payPick ? events.filter(e=>e.kind==='in' && e.day===endDay).reduce((a,e)=>a+e.amount,0) : 0;
 
   // Suggestions when short: push the biggest bill due before the low point past payday,
   // and/or trim the daily figure.
@@ -4560,7 +4595,7 @@ function computeCashflow(key, daily, buffer){
              canTrim: trimPerDay<=daily,
              leftover: round2(bigAmt + trimTotal - shortfall)};
   }
-  return {key, isCurrent, startDay, dim, opening, daily, buffer, events, series, low, status, negDays, firstNeg, nextPay, unplaced, setAside, fixes, y, mo};
+  return {key, isCurrent, startDay, dim, endDay, noPay, payAmount, opening, daily, buffer, events, series, low, status, negDays, firstNeg, nextPay, unplaced, setAside, fixes, y, mo};
 }
 
 let cashflowShowAll = false;
@@ -4574,7 +4609,8 @@ function cashflowChartSvg(c){
   const mag = Math.pow(10, Math.floor(Math.log10(rough)));
   const step = [1,2,2.5,5,10].map(f=>f*mag).find(s=>s>=rough) || 10*mag;
   vmin = Math.floor(vmin/step)*step; vmax = Math.ceil(vmax/step)*step;
-  const xOf = d => L + (d/c.dim)*(R-L);
+  const x0 = c.startDay-1, span = Math.max(1, c.endDay-x0);
+  const xOf = d => L + ((d-x0)/span)*(R-L);
   const yOf = v => B - (v-vmin)/(vmax-vmin)*(B-T);
   const accent = cssVar('--accent','#5b8cff'), green = cssVar('--green','#3ecf8e'), red = cssVar('--red','#ff5c7a'), amber = cssVar('--amber','#ffb946');
   const muted = cssVar('--muted','#8a93ab'), border = cssVar('--border','#2a3552'), text = cssVar('--text','#e8ecf7'), panel2 = cssVar('--panel2','#1d2740'), panel = cssVar('--panel','#161d2e');
@@ -4628,7 +4664,7 @@ function cashflowChartSvg(c){
   let bx = Math.min(Math.max(lx - boxW/2, L+4), R-boxW-4);
   let by = ly - boxH - 26; if(by < T-4) by = ly + 26;
   const lowCol = c.status==='short' ? red : (c.status==='tight' ? amber : accent);
-  const lowDate = new Date(c.y, c.mo-1, c.low.day).toLocaleDateString('en-GB',{weekday:'short',day:'numeric'});
+  const lowDate = new Date(c.y, c.mo-1, c.low.day).toLocaleDateString('en-GB',{day:'numeric',month:'short'});
   const callout = `
     <circle cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="9" fill="none" stroke="${lowCol}" stroke-width="2"/>
     <line x1="${lx.toFixed(1)}" y1="${(by<ly?by+boxH:by).toFixed(1)}" x2="${lx.toFixed(1)}" y2="${(by<ly?ly-9:ly+9).toFixed(1)}" stroke="${lowCol}" stroke-width="1.4"/>
@@ -4636,8 +4672,15 @@ function cashflowChartSvg(c){
     <text x="${(bx+12).toFixed(1)}" y="${(by+19).toFixed(1)}" font-size="10.5" fill="${muted}">Lowest point</text>
     <text x="${(bx+12).toFixed(1)}" y="${(by+37).toFixed(1)}" font-size="${narrow?12.5:14}" font-weight="800" fill="${c.status==='short'?red:text}">${c.low.bal<0?'−':''}${escapeHtml(fmtCompact(Math.abs(c.low.bal)))} · ${escapeHtml(lowDate)}</text>`;
   const nowLine = c.isCurrent ? `<line x1="${startX.toFixed(1)}" y1="${T-8}" x2="${startX.toFixed(1)}" y2="${B}" stroke="${muted}" stroke-width="1" stroke-dasharray="3 3" opacity=".7"/><text x="${startX.toFixed(1)}" y="${T-12}" font-size="10" fill="${muted}" text-anchor="middle" font-weight="600">Now</text>` : '';
-  const ticks = (narrow ? [1,10,20,c.dim] : [1,5,10,15,20,25,c.dim]).filter((d,i,a)=>a.indexOf(d)===i && d<=c.dim);
-  const xl = ticks.map(d=>`<text x="${xOf(d).toFixed(1)}" y="${H-12}" font-size="10.5" fill="${muted}" text-anchor="middle">${d}</text>`).join('');
+  const nTicks = Math.min(c.endDay-c.startDay+1, narrow ? 4 : 7);
+  const ticks = [];
+  for(let t=0; t<nTicks; t++) ticks.push(nTicks<=1 ? c.startDay : Math.round(c.startDay + t*(c.endDay-c.startDay)/(nTicks-1)));
+  const xl = ticks.filter((d,i,a)=>a.indexOf(d)===i).map((d,i)=>{
+    const dt = new Date(c.y, c.mo-1, d);
+    const lab = (i===0 || dt.getDate()===1 || dt.getMonth()!==new Date(c.y, c.mo-1, ticks[0]).getMonth()) ? dt.toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : String(dt.getDate());
+    const anchor = d===c.startDay && c.startDay!==c.endDay ? 'start' : (d===c.endDay ? 'end' : 'middle');
+    return `<text x="${(xOf(d)+(anchor==='start'?-4:anchor==='end'?4:0)).toFixed(1)}" y="${H-12}" font-size="10.5" fill="${muted}" text-anchor="${anchor}">${lab}</text>`;
+  }).join('');
   return `<svg viewBox="0 0 ${W} ${H}" width="100%" data-w="${W}" data-l="${L}" data-r="${R}" style="display:block;touch-action:pan-y;" id="cfSvg" role="img" aria-label="Daily balance forecast">
     <defs><linearGradient id="cfGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${accent}" stop-opacity=".30"/><stop offset="1" stop-color="${accent}" stop-opacity="0"/></linearGradient></defs>
     ${grid}${labels}${bufferLine}${shade}
@@ -4669,8 +4712,8 @@ function renderCashflow(){
   el.innerHTML = `
     <div class="panel cf-panel">
       <div class="panel-head">
-        <div class="cf-title"><h2>Cash-flow forecast · ${monthLabel}</h2><span class="cf-pill" id="cfPill"></span></div>
-        <span class="hint">daily balance from your bills, payday and everyday spending</span>
+        <div class="cf-title"><h2>Cash-flow forecast · up to payday</h2><span class="cf-pill" id="cfPill"></span></div>
+        <span class="hint" id="cfHint">daily balance from today to your next payday</span>
       </div>
       <div class="cf-controls">
         <div class="cf-slider">
@@ -4743,11 +4786,11 @@ function paintCashflow(dyn, c){
   const nextPayTxt = c.nextPay ? ` (${dateLabel(c.nextPay.day)})` : '';
   const lowDay = dateLabel(c.low.day);
   if(c.status==='short'){
-    headline = `<b>You go below zero on ${dateLabel(c.firstNeg.day)}</b>${c.negDays.length>1 ? ` and stay there for ${c.negDays.length} day${c.negDays.length!==1?'s':''}` : ''}. At the worst point (${lowDay}) you'd be <b>${money(-c.low.bal)} short</b>${c.nextPay ? ` — ${c.nextPay.day>c.low.day ? 'before payday' : 'payday helps after that'}${nextPayTxt}` : ''}.`;
+    headline = `<b>You go below zero on ${dateLabel(c.firstNeg.day)}</b>${c.negDays.length>1 ? ` and stay there for ${c.negDays.length} day${c.negDays.length!==1?'s':''}` : ''}. At the worst point (${lowDay}) you'd be <b>${money(-c.low.bal)} short</b>${c.nextPay ? ` — just before payday${nextPayTxt}` : ''}.`;
   } else if(c.status==='tight'){
-    headline = `<b>Lowest point: ${money(c.low.bal)} on ${lowDay}</b>${c.nextPay && c.nextPay.day>c.low.day ? `, before payday${nextPayTxt}` : ''}. That's under your ${money(c.buffer)} buffer, so keep an eye on spending.`;
+    headline = `<b>Lowest point: ${money(c.low.bal)} on ${lowDay}</b>${c.nextPay ? `, before payday${nextPayTxt}` : ''}. That's under your ${money(c.buffer)} buffer, so keep an eye on spending.`;
   } else {
-    headline = `<b>You stay comfortably above your buffer.</b> Lowest point is ${money(c.low.bal)} on ${lowDay}${c.nextPay && c.nextPay.day>c.low.day ? `, before payday${nextPayTxt}` : ''}.`;
+    headline = `<b>You stay comfortably above your buffer.</b> Lowest point is ${money(c.low.bal)} on ${lowDay}${c.nextPay ? `, before payday${nextPayTxt}` : ''}.`;
   }
   const icon = c.status==='fine'
     ? `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${tone}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><path d="M8 12.5l2.7 2.7L16 9.5"/></svg>`
@@ -4771,9 +4814,9 @@ function paintCashflow(dyn, c){
   const stat = (k, v, sub, col) => `<div class="stat cf-stat"><div class="k">${k}</div><div class="v"${col?` style="color:${col};"`:''}>${v}</div><div class="s">${sub}</div></div>`;
   const endBal = c.series[c.series.length-1].bal;
   const stats = [
-    stat('Lowest point', `${c.low.bal<0?'−':''}${money(Math.abs(c.low.bal))}`, `${dateLabel(c.low.day)}${c.nextPay && c.nextPay.day>c.low.day ? ' · before payday' : ''}`, tone),
-    c.nextPay ? stat('Next payday', `+${money(c.nextPay.amount)}`, `${dateLabel(c.nextPay.day)} · ${c.isCurrent ? (c.nextPay.day-c.startDay===0?'today':`in ${c.nextPay.day-c.startDay} day${c.nextPay.day-c.startDay!==1?'s':''}`) : `${escapeHtml(c.nextPay.name)}`}`, 'var(--green)') : stat('Next payday', '—', 'no income scheduled this month'),
-    stat('Ends the month at', `${endBal<0?'−':''}${money(Math.abs(endBal))}`, c.nextPay ? 'after payday' : 'on current plans', endBal<0?'var(--red)':''),
+    stat('Lowest point', `${c.low.bal<0?'−':''}${money(Math.abs(c.low.bal))}`, `${dateLabel(c.low.day)}${c.nextPay ? ' · before payday' : ''}`, tone),
+    c.nextPay ? stat('Next payday', `+${money(c.payAmount)}`, `${dateLabel(c.nextPay.day)} · ${c.isCurrent ? (c.nextPay.day-c.startDay===0?'today':`in ${c.nextPay.day-c.startDay} day${c.nextPay.day-c.startDay!==1?'s':''}`) : `${escapeHtml(c.nextPay.name)}`}`, 'var(--green)') : stat('Next payday', '—', 'no dated income found ahead'),
+    stat(c.nextPay ? 'On payday' : 'Ends the month at', `${endBal<0?'−':''}${money(Math.abs(endBal))}`, c.nextPay ? 'once pay has landed' : 'on current plans', endBal<0?'var(--red)':''),
     c.status==='short' ? stat('Days below zero', String(c.negDays.length), `${dateLabel(c.negDays[0].day)} – ${dateLabel(c.negDays[c.negDays.length-1].day)}`, 'var(--red)') : ''
   ].join('');
 
@@ -4798,7 +4841,8 @@ function paintCashflow(dyn, c){
 
   dyn.innerHTML = `
     <div class="cf-banner cf-b-${c.status}">${icon}<div>${headline}</div></div>
-    ${noItems ? '<div class="cf-note" style="margin-bottom:12px;">No dated bills or income found for the rest of this month yet — the line below is just your balance minus everyday spending.</div>' : ''}
+    ${c.noPay ? '<div class="cf-note" style="margin-bottom:12px;">No upcoming payday found, so this runs to the end of the month. Give your pay a date (or set up next month) and the forecast will run up to payday instead.</div>' : ''}
+    ${noItems ? '<div class="cf-note" style="margin-bottom:12px;">No dated bills or income found before payday yet — the line below is just your balance minus everyday spending.</div>' : ''}
     <div class="cf-main">
       <div class="cf-chart">
         ${cashflowChartSvg(c)}
@@ -4828,7 +4872,7 @@ function paintCashflow(dyn, c){
     const scrub = evt=>{
       const rect = svg.getBoundingClientRect();
       const px = (evt.clientX-rect.left)*(VW/rect.width);
-      const day = Math.max(c.startDay, Math.min(c.dim, Math.round((px-L)/(R-L)*c.dim)));
+      const x0 = c.startDay-1, day = Math.max(c.startDay, Math.min(c.endDay, x0+Math.round((px-L)/(R-L)*(c.endDay-x0))));
       const p = c.series.find(s=>s.day===day);
       const pt = poly[day-c.startDay+1];
       guide.setAttribute('x1', pt[0]); guide.setAttribute('x2', pt[0]); guide.setAttribute('opacity', .45);
