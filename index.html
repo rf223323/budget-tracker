@@ -1754,19 +1754,93 @@ document.addEventListener('keydown', e=>{
 // Removes an item from m[listKey] by id, then offers to put it back in the same
 // position. afterChange redraws whatever was showing; afterUndo (default: a
 // full render) redraws after a restore.
+// When a recurring item is removed (deleted, or switched to One-off), its copies
+// in months AFTER this one that have already been generated should go too.
+// Only still-recurring, not-yet-Done copies are touched, matched by the source
+// id they were synced from or by name.
+function monthKeyOf(m){ return Object.keys(state.months).find(k=>state.months[k]===m) || null; }
+function futureRecurringCopies(m, listKey, item){
+  const key = monthKeyOf(m);
+  if(!key) return [];
+  const norm = v => (v||'').trim().toLowerCase();
+  const name = norm(item.name);
+  const found = [];
+  Object.keys(state.months).filter(k=>k>key).sort().forEach(k=>{
+    state.months[k][listKey].forEach((x,idx)=>{
+      if(!x.recurring || x.status==='done' || x.pay3Id || x===item) return;
+      if(x.syncSourceId===item.id || norm(x.name)===name) found.push({key:k, idx, item:x});
+    });
+  });
+  return found;
+}
+function removeFutureCopies(found, listKey){
+  const byMonth = {};
+  found.forEach(f=>{ (byMonth[f.key] = byMonth[f.key]||new Set()).add(f.item); });
+  Object.entries(byMonth).forEach(([k,set])=>{ state.months[k][listKey] = state.months[k][listKey].filter(x=>!set.has(x)); });
+}
+function restoreFutureCopies(found, listKey){
+  found.slice().sort((a,b)=>a.key===b.key ? a.idx-b.idx : a.key.localeCompare(b.key)).forEach(f=>{
+    const arr = state.months[f.key] && state.months[f.key][listKey];
+    if(!arr) return;
+    const next = arr.slice();
+    next.splice(Math.min(f.idx, next.length), 0, f.item);
+    state.months[f.key][listKey] = next;
+  });
+}
+function laterMonthsLabel(found){
+  const n = new Set(found.map(f=>f.key)).size;
+  return n ? ` (also from ${n} later month${n!==1?'s':''})` : '';
+}
+// Removes an item from m[listKey] by id, then offers to put it back in the same
+// position. afterChange redraws whatever was showing; afterUndo (default: a
+// full render) redraws after a restore. A recurring item also leaves the later
+// months it was already copied into, and comes back with Undo.
 function removeWithUndo(m, listKey, id, label, afterChange, afterUndo){
   const idx = m[listKey].findIndex(x=>x.id===id);
   if(idx<0) return;
   const removed = m[listKey][idx];
+  const future = (removed.recurring && (listKey==='outgoings' || listKey==='incoming')) ? futureRecurringCopies(m, listKey, removed) : [];
   m[listKey] = m[listKey].filter(x=>x.id!==id);
+  removeFutureCopies(future, listKey);
   save();
   if(afterChange) afterChange();
-  showUndoToast(label || removed.name || 'item', ()=>{
+  showUndoToast((label || removed.name || 'item') + laterMonthsLabel(future), ()=>{
     const next = m[listKey].slice();
     next.splice(Math.min(idx, next.length), 0, removed);
     m[listKey] = next;
+    restoreFutureCopies(future, listKey);
     save();
     (afterUndo || render)();
+  });
+}
+// Switching a recurring item to One-off should also stop it appearing in later
+// months that were already generated.
+function stopRecurringWeekInLaterMonths(m, wk){
+  const key = monthKeyOf(m);
+  if(!key) return;
+  const prev = [];
+  Object.keys(state.months).filter(k=>k>key).sort().forEach(k=>{
+    const w = state.months[k].weekly[wk];
+    if(w && w.recurring && w.status!=='done'){ prev.push({key:k, week:w}); state.months[k].weekly[wk] = {amount:0, status:'none', recurring:false}; }
+  });
+  if(!prev.length) return;
+  save();
+  const n = prev.length;
+  showUndoToast(`${wk.replace('week','Week ')} from ${n} later month${n!==1?'s':''}`, ()=>{
+    prev.forEach(p=>{ if(state.months[p.key]) state.months[p.key].weekly[wk] = p.week; });
+    save();
+    render();
+  });
+}
+function stopRecurringInLaterMonths(m, listKey, item){
+  const future = futureRecurringCopies(m, listKey, item);
+  if(!future.length) return;
+  removeFutureCopies(future, listKey);
+  save();
+  showUndoToast(`${item.name||'item'}${laterMonthsLabel(future)}`, ()=>{
+    restoreFutureCopies(future, listKey);
+    save();
+    render();
   });
 }
 
@@ -2970,6 +3044,7 @@ function renderMonth(){
       const wk = e.target.dataset.week;
       m.weekly[wk].recurring = (e.target.value==='yes');
       if(m.weekly[wk].recurring) syncNewRecurringWeeklyForward(state.currentMonthKey, wk, m.weekly[wk].amount);
+      else stopRecurringWeekInLaterMonths(m, wk);
       save();
       e.target.className = `week-recur recur-select ${m.weekly[wk].recurring?'recur-yes':'recur-no'}`;
       refreshWeekSummary(wk);
@@ -3035,7 +3110,7 @@ function renderMonth(){
       const sel = tr.querySelector('.inc-status');
       sel.onchange = e=>{ item.status=e.target.value; save(); e.target.className = `inc-status status-select status-${e.target.value}`; refreshCards(); refreshSummary(); };
       const recurSel = tr.querySelector('.inc-recur');
-      recurSel.onchange = e=>{ item.recurring = (e.target.value==='yes'); if(item.recurring) syncNewRecurringForward(item, state.currentMonthKey, 'incoming'); save(); e.target.className = `inc-recur recur-select ${item.recurring?'recur-yes':'recur-no'}`; refreshSummary(); };
+      recurSel.onchange = e=>{ item.recurring = (e.target.value==='yes'); if(item.recurring) syncNewRecurringForward(item, state.currentMonthKey, 'incoming'); else stopRecurringInLaterMonths(m, 'incoming', item); save(); e.target.className = `inc-recur recur-select ${item.recurring?'recur-yes':'recur-no'}`; refreshSummary(); };
       initCategoryDropdown(tr.querySelector('.inc-category'), val=>{ item.category = val; propagateOutgoingFieldForward(item, state.currentMonthKey, 'category', 'incoming'); save(); refreshSummary(); });
       const schedSel = tr.querySelector('.inc-schedule');
       schedSel.onchange = e=>{
@@ -3098,7 +3173,7 @@ function renderMonth(){
       const sel = tr.querySelector('.out-status');
       sel.onchange = e=>{ item.status=e.target.value; save(); e.target.className = `out-status status-select status-${e.target.value}`; refreshCards(); refreshSummary(); };
       const recurSel = tr.querySelector('.out-recur');
-      recurSel.onchange = e=>{ item.recurring = (e.target.value==='yes'); if(item.recurring) syncNewRecurringForward(item, state.currentMonthKey, 'outgoings'); save(); e.target.className = `out-recur recur-select ${item.recurring?'recur-yes':'recur-no'}`; refreshSummary(); };
+      recurSel.onchange = e=>{ item.recurring = (e.target.value==='yes'); if(item.recurring) syncNewRecurringForward(item, state.currentMonthKey, 'outgoings'); else stopRecurringInLaterMonths(m, 'outgoings', item); save(); e.target.className = `out-recur recur-select ${item.recurring?'recur-yes':'recur-no'}`; refreshSummary(); };
       initCategoryDropdown(tr.querySelector('.out-category'), val=>{ item.category = val; propagateOutgoingFieldForward(item, state.currentMonthKey, 'category'); save(); refreshCards(); refreshSummary(); });
       const dayInp = tr.querySelector('.out-day');
       dayInp.onchange = e=>{ item.day = clampDay(e.target.value); e.target.value = item.day||''; propagateOutgoingFieldForward(item, state.currentMonthKey, 'day'); save(); refreshCards(); refreshSummary(); };
