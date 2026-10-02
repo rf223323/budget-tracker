@@ -587,6 +587,13 @@
   .lt-note{margin-top:5px;font-size:12px;color:var(--muted);}
   .lt-card .bo-ok{margin-top:20px;}
   .lt-card .lt-later{margin-top:10px;}
+  .acc-chain{animation:accChain .5s linear infinite;}
+  @keyframes accChain{to{transform:translateY(-4.6px);}}
+  .acc-steam{transform-box:fill-box;transform-origin:50% 100%;animation:accSteam 3.4s ease-in-out infinite;}
+  @keyframes accSteam{0%{transform:translateY(5px) scale(.8);opacity:0;}30%{opacity:1;}100%{transform:translateY(-9px) scale(1.15);opacity:0;}}
+  .acc-bolt path{animation:accBolt 1.8s steps(1) infinite;}
+  @keyframes accBolt{0%,70%,100%{opacity:.25;}10%,30%,50%{opacity:1;}}
+  @media (prefers-reduced-motion:reduce){.acc-chain,.acc-steam,.acc-bolt path{animation:none;}.acc-steam{opacity:.7;}}
   .hero-bgfx{position:absolute;inset:0;border-radius:inherit;z-index:-1;opacity:.42;pointer-events:none;}
   [data-theme="paper"] .hero-bgfx,[data-theme="soft"] .hero-bgfx{opacity:.28;}
   .hero-title{display:inline-block;margin-top:3px;padding:2px 9px;border-radius:999px;font-size:10.5px;font-weight:800;letter-spacing:.04em;color:var(--tc,var(--accent));background:color-mix(in srgb, var(--tc,var(--accent)) 16%, transparent);}
@@ -3832,7 +3839,7 @@ const WARDROBE = {
     {id:'phones',name:'Headphones',r:'r'},{id:'wizard',name:'Wizard hat',r:'r'},{id:'halo',name:'Halo',r:'r'},{id:'patch',name:'Eyepatch',r:'r'},
     {id:'crown',name:'Crown',r:'s'},{id:'wings',name:'Angel wings',r:'s'},{id:'cape',name:'Galaxy cape',r:'s'},
     // anime-inspired
-    {id:'redscarf',name:'Red scarf',r:'c'},{id:'harness',name:'Gear harness',r:'c'},
+    {id:'redscarf',name:'Red scarf',r:'c'},{id:'harness',name:'Maneuver gear',r:'c'},
     {id:'horns',name:'Devil horns',r:'r'},{id:'grin',name:'Shark grin',r:'r'},{id:'cloak',name:'Scout cloak',r:'r'},{id:'steam',name:'Titan steam',r:'r'},
     {id:'blades',name:'Twin blades',r:'s'},{id:'chainsaw',name:'Chainsaw head',r:'s'}
   ],
@@ -3897,9 +3904,46 @@ Object.assign(ACC_ART, (()=>{
     chainsaw:{front:`<g transform="translate(-0 3)"><rect x="49" y="4" width="10" height="34" rx="5" fill="#cfd6e4" stroke="${o}" stroke-width="${sw}"/>${teeth(-1)}${teeth(1)}<rect x="46" y="36" width="16" height="9" rx="3" fill="#e0323f" stroke="${o}" stroke-width="${sw}"/><path d="M52,10 L52,32" stroke="#fff" stroke-width="1.6" stroke-linecap="round" opacity=".7"/></g>`}
   };
 })());
-function accArt(id, layer){
+// Anime-inspired accessories, take 2: drawn to grow out of the flame instead of sitting on top of it.
+Object.assign(ACC_ART, (()=>{
+  const o = ACC_O, sw = 1.7;
+  const tooth = (x,y,dir,len,w)=>`<path d="M${x},${y} l${w/2},${dir*len} l${w/2},${-dir*len}Z" fill="#fff6e8" stroke="${o}" stroke-width="1" stroke-linejoin="round"/>`;
+  // Maneuver gear: a belt that follows the curve of the body, buckle, and a gas canister on each hip.
+  const canister = (x,rot)=>`<g transform="translate(${x} 82) rotate(${rot})"><rect x="-4.6" y="-11" width="9.2" height="22" rx="4.2" fill="#aeb8cc" stroke="${o}" stroke-width="${sw}"/><rect x="-4.6" y="-3" width="9.2" height="4" fill="#7f8aa3" stroke="${o}" stroke-width="1.2"/><path d="M-1.6,-8 L-1.6,-4" stroke="#fff" stroke-width="1.4" stroke-linecap="round" opacity=".8"/><rect x="-2.6" y="-14" width="5.2" height="4" rx="1.4" fill="#5a3a22" stroke="${o}" stroke-width="1.2"/></g>`;
+  const gear = {
+    back:canister(27,14)+canister(85,-14),
+    front:`<path d="M26,68 Q56,84 86,68" fill="none" stroke="${o}" stroke-width="9.4" stroke-linecap="round"/><path d="M26,68 Q56,84 86,68" fill="none" stroke="#9a6a3a" stroke-width="6" stroke-linecap="round"/><path d="M28,66.4 Q56,82 84,66.4" fill="none" stroke="#c18a52" stroke-width="1.6" stroke-linecap="round" opacity=".8"/><path d="M30,70.4 Q56,86 82,70.4" fill="none" stroke="#6a4424" stroke-width="1.4" stroke-dasharray="2.4 3" stroke-linecap="round" opacity=".8"/><rect x="49" y="71.6" width="14" height="11" rx="2.6" fill="#d6dce8" stroke="${o}" stroke-width="${sw}"/><rect x="53" y="74.6" width="6" height="5" rx="1.2" fill="${o}" opacity=".75"/>`
+  };
+  // Shark grin: eyes that glow like part of the fire, and a wide toothed mouth cut into the flame.
+  const grin = {front:`<g style="filter:drop-shadow(0 0 3px #ffe27a)"><path d="M37,46 L52,52 L37,53Z" fill="#fff0a0" stroke="${o}" stroke-width="1.5" stroke-linejoin="round"/><path d="M71,46 L56,52 L71,53Z" fill="#fff0a0" stroke="${o}" stroke-width="1.5" stroke-linejoin="round"/></g><path d="M31,60 Q54,98 77,60 Q54,70 31,60Z" fill="#3a0c14" stroke="${o}" stroke-width="${sw}" stroke-linejoin="round"/><path d="M37,66 Q54,84 71,66 Q54,74 37,66Z" fill="#8a1a28"/>${[0,1,2,3,4,5].map(i=>tooth(33.4+i*7.2,60.8+Math.sin(i/5*Math.PI)*3.6,1,7.6-Math.abs(i-2.5)*.7,6.4)).join('')}${[0,1,2,3,4].map(i=>tooth(37+i*7.2,78-Math.abs(i-2)*3.4,-1,5.6,6)).join('')}`};
+  // Titan steam: soft vapour billowing off the flame, with a crackle of gold lightning.
+  const plume = (x,y,r,d)=>`<g class="acc-steam" style="animation-delay:${d}s"><circle cx="${x}" cy="${y}" r="${r}"/><circle cx="${x-r*.5}" cy="${y-r*1.1}" r="${r*.72}"/><circle cx="${x+r*.3}" cy="${y-r*2}" r="${r*.5}"/></g>`;
+  const steam = {
+    back:`<g fill="#fff" opacity=".7" style="filter:blur(1.6px)">${plume(24,54,7.4,0)}${plume(88,52,7.4,1.1)}${plume(42,28,6.2,2.1)}${plume(70,28,6.2,.6)}</g>`,
+    front:`<g fill="#fff" opacity=".95" style="filter:blur(.6px)">${plume(28,48,5,.5)}${plume(84,46,5,1.6)}${plume(48,24,4,1.2)}${plume(66,26,4,2.4)}</g><g class="acc-bolt" fill="none" stroke="#ffd23a" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 0 2.5px #ffb800)"><path d="M23,66 l7,-8 l-4,-1 l7,-9"/><path d="M89,70 l-7,-8 l4,-1 l-7,-9" style="animation-delay:.4s"/></g>`
+  };
+  // Chainsaw head: the blade tears out of the top of the head. Needs the skin's colours so the torn opening matches the flame.
+  const chainsaw = {front:P=>{
+    const f1 = mixHex(P.o1, P.o2, .3), f2 = mixHex(P.o2, '#000000', .15), fl = mixHex(P.i1, P.o1, .35);
+    const spikes = [-70,-46,-22,22,46,70].map(a=>`<path d="M-5,0 L0,-13 L5,0Z" fill="${fl}" stroke="${o}" stroke-width="1.1" stroke-linejoin="round" transform="translate(54 27) rotate(${a}) translate(0 -3)"/>`).join('');
+    const links = side=>Array.from({length:6},(_,i)=>`<path d="M${side<0?47.5:60.5},${3+i*4.6} l${side*4.6},2.3 l${-side*4.6},2.3Z" fill="#f4f6fb" stroke="${o}" stroke-width="1" stroke-linejoin="round"/>`).join('');
+    return `<defs><linearGradient id="sawdome" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${f1}"/><stop offset=".55" stop-color="${f1}"/><stop offset="1" stop-color="${f1}" stop-opacity="0"/></linearGradient><clipPath id="sawclip"><rect x="47" y="0" width="14" height="24"/></clipPath></defs>
+      <path d="M35,52 C35,28 44,18 54,18 C64,18 73,28 73,52Z" fill="url(#sawdome)"/>
+      ${spikes}
+      <path d="M42,28 Q54,36 66,28 L68,35 Q54,45 40,35Z" fill="${f2}" stroke="${o}" stroke-width="1.5" stroke-linejoin="round"/>
+      <rect x="44" y="21" width="20" height="11" rx="4" fill="#d6303f" stroke="${o}" stroke-width="${sw}"/><path d="M48,25 H60 M48,28.4 H60" stroke="#8a1a28" stroke-width="1.4" stroke-linecap="round"/>
+      <path d="M64,26 C70,26 74,30 72,35" fill="none" stroke="${o}" stroke-width="3.6" stroke-linecap="round"/><path d="M64,26 C70,26 74,30 72,35" fill="none" stroke="#e8e0cf" stroke-width="1.8" stroke-linecap="round"/><circle cx="72" cy="36.4" r="2.6" fill="#d6303f" stroke="${o}" stroke-width="1.2"/>
+      <rect x="47.5" y="1" width="13" height="22" rx="6" fill="#cfd6e4" stroke="${o}" stroke-width="${sw}"/>
+      <rect x="51.5" y="5" width="5" height="16" rx="2.5" fill="#5f677c"/>
+      <g clip-path="url(#sawclip)"><g class="acc-chain">${links(-1)}${links(1)}</g></g>
+      <g fill="#ffd66e"><circle cx="40" cy="10" r="1.5"/><circle cx="68" cy="13" r="1.3"/><circle cx="37" cy="21" r="1.1"/></g>`;
+  }};
+  return {harness:gear, grin, steam, chainsaw};
+})());
+function accArt(id, layer, P){
   const a = ACC_ART[id]; if(!a || !a[layer]) return '';
-  return `<g transform="${ACC_MAP}">${a[layer]}</g>`;
+  const art = typeof a[layer]==='function' ? a[layer](P) : a[layer];
+  return `<g transform="${ACC_MAP}">${art}</g>`;
 }
 function wardItem(type, id){ return WARDROBE[type].find(x=>x.id===id) || null; }
 function wardOwned(type){ return state.ember.wardrobe.owned[type]; }
@@ -4089,10 +4133,10 @@ function emberFlameSvg(flame, ringPct, skinOverride, accOverride){
     </defs>
     ${ring}
     <circle cx="56" cy="58" r="40" fill="url(#${id}g)"/>
-    <g transform="${P.tf}" style="filter:drop-shadow(0 0 ${P.blur||8}px ${P.glow});"><g class="ember-flick ${P.cls}">${accArt(accId,'back')}
+    <g transform="${P.tf}" style="filter:drop-shadow(0 0 ${P.blur||8}px ${P.glow});"><g class="ember-flick ${P.cls}">${accArt(accId,'back',P)}
       <path d="M50,97 C24,97 9,79 12,58 C14,45 23,36 31,27 C31,38 35,43 39,45 C36,28 44,13 59,3 C58,20 66,29 74,38 C83,48 89,57 89,67 C89,85 73,97 50,97 Z" fill="url(#${id}o)"/>
       <path d="M50,93 C33,93 25,81 27,69 C28,60 34,55 40,49 C40,58 44,62 48,63 C47,52 52,42 61,33 C60,44 66,50 70,58 C76,67 72,93 50,93 Z" fill="url(#${id}i)" opacity="${P.inner}"/>
-      <path d="M50,91 C41,91 37,83 40,76 C42,71 46,69 49,64 C52,70 58,73 59,80 C60,87 56,91 50,91 Z" fill="#fff4d0" opacity="${P.core}"/>${accArt(accId,'front')}
+      <path d="M50,91 C41,91 37,83 40,76 C42,71 46,69 49,64 C52,70 58,73 59,80 C60,87 56,91 50,91 Z" fill="#fff4d0" opacity="${P.core}"/>${accArt(accId,'front',P)}
     </g></g>
     ${deco}</svg>`;
 }
