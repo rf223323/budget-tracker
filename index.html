@@ -176,12 +176,9 @@
   .stog{display:block;}
   .status-toggle{display:inline-flex;align-items:center;gap:7px;width:100%;justify-content:center;padding:7px 10px;border-radius:999px;border:1px solid color-mix(in srgb, var(--amber) 45%, transparent);background:color-mix(in srgb, var(--amber) 8%, transparent);color:var(--amber);font:inherit;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap;transition:background .15s ease,color .15s ease,border-color .15s ease,transform .1s ease;}
   .status-toggle:active{transform:scale(.96);}
-  .status-toggle .st-dot{width:16px;height:16px;border-radius:50%;border:2px solid currentColor;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-  .status-toggle .st-dot svg{width:10px;height:10px;opacity:0;}
   .status-toggle.paid{border-color:color-mix(in srgb, var(--green) 50%, transparent);background:color-mix(in srgb, var(--green) 14%, transparent);color:var(--green);}
-  .status-toggle.paid .st-dot{background:var(--green);border-color:var(--green);color:#06281a;}
-  .status-toggle.paid .st-dot svg{opacity:1;}
   .weekly-item .stog{margin-bottom:8px;}
+  .weekly-item .status-toggle{padding:5px 10px;font-size:12px;}
   .cs-status{position:relative;cursor:pointer;}
   .cs-status::before{content:'';position:absolute;inset:-12px;}
   select.status-done{color:var(--green);border-color:color-mix(in srgb, var(--green) 50%, transparent);background:color-mix(in srgb, var(--green) 8%, transparent);}
@@ -781,8 +778,10 @@
     .wk-item > label{display:none;}
     .wk-item .week-input{flex:1 1 90px;min-width:0;margin:0 !important;width:auto;}
     .wk-item select{flex:1 1 84px;min-width:0;width:auto;margin:0 !important;padding:7px 4px;font-size:12px;}
+    .wk-item .stog{flex:1 1 84px;min-width:0;margin:0;}
+    .wk-item .status-toggle{padding:7px 4px;}
     .wk-item.collapsed{padding:9px 10px;}
-    .wk-item.collapsed .week-input,.wk-item.collapsed select{display:none;}
+    .wk-item.collapsed .week-input,.wk-item.collapsed select,.wk-item.collapsed .stog{display:none;}
     .wk-item:not(.collapsed) .cs-caret{transform:rotate(180deg);}
     #monthCatDeltas{display:none;}
     .responsive-table tr.inc-virtual{padding:0;background:none;border:none;margin-bottom:8px;}
@@ -2348,7 +2347,7 @@ function statusSelectHtml(cls, value, opts){
   return `<span class="stog"><select class="${cls} status-select status-${value}" ${opts.attrs||''} data-yes="${yes}" data-no="${no}" style="display:none;" tabindex="-1" aria-hidden="true">
     <option value="none" ${!done?'selected':''}>${no}</option>
     <option value="done" ${done?'selected':''}>${yes}</option>
-  </select><button type="button" class="status-toggle${done?' paid':''}" aria-pressed="${done}"><span class="st-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><span class="st-txt">${done?yes:no}</span></button></span>`;
+  </select><button type="button" class="status-toggle${done?' paid':''}" aria-pressed="${done}"><span class="st-txt">${done?yes:no}</span></button></span>`;
 }
 function syncStatusToggle(sel){
   const btn = sel.parentElement && sel.parentElement.querySelector('.status-toggle');
