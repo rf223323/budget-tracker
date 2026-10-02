@@ -295,6 +295,10 @@
   .trend-tab{flex-shrink:0;background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;padding:9px 14px;font:inherit;font-size:13.5px;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap;transition:color .12s ease,border-color .12s ease;}
   .trend-tab:hover{color:var(--text);}
   .trend-tab.active{color:var(--text);border-bottom-color:var(--accent);}
+  .tab-badge{margin-left:7px;font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:999px;background:color-mix(in srgb, var(--muted) 22%, transparent);color:var(--muted);vertical-align:1px;}
+  .trend-tab.active .tab-badge{background:color-mix(in srgb, var(--accent) 24%, transparent);color:var(--text);}
+  .mt-tabs{margin-bottom:16px;}
+  .ss-toggle{display:none;}
   .trend-range{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
   .trend-range .hint{font-size:12px;color:var(--muted);}
   .trend-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:20px;}
@@ -544,8 +548,26 @@
     .cs-caret{font-size:10px;color:var(--muted);transition:transform .15s ease;flex-shrink:0;}
     .out-row:not(.collapsed) .cs-caret{transform:rotate(180deg);}
   }
-  @media (max-width:420px){
-    .grid{grid-template-columns:1fr;}
+  @media (max-width:700px){
+    /* Month Tracker on phones: compact cards, tighter Quick Add, collapsible safe-to-spend maths */
+    .sub-verbose{display:none;}
+    .spark{height:30px;margin-top:8px;}
+    .card .k{font-size:10.5px;}
+    .quick-add-panel .panel-head .hint{display:none;}
+    .quick-add-panel .qa-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:stretch;}
+    .quick-add-panel .qa-row #quickAddReason{grid-column:1 / -1;max-width:none !important;min-width:0 !important;}
+    .quick-add-panel .qa-row .cat-dd{grid-column:1;max-width:none;width:100%;}
+    .quick-add-panel .qa-row .btn{grid-column:2;}
+    .quick-add-panel .qa-actions{flex-direction:row;flex-wrap:wrap;align-items:center;margin-top:10px !important;}
+    .ss-toggle{display:inline-flex;align-items:center;gap:6px;margin-top:10px;background:none;border:none;padding:0;font:inherit;font-size:12px;font-weight:600;color:var(--accent);cursor:pointer;}
+    .ss-caret{display:inline-block;transition:transform .15s ease;}
+    .safe-spend.open .ss-caret{transform:rotate(180deg);}
+    .safe-spend:not(.open) .ss-break{display:none;}
+    .safe-spend{padding:14px 15px;}
+    .mt-pane > .panel:last-child{margin-bottom:12px;}
+    .mt-tabs{gap:0;justify-content:space-between;}
+    .mt-tabs .trend-tab{padding:9px 6px;font-size:12.5px;}
+    .mt-tabs .tab-badge{margin-left:4px;padding:1px 5px;font-size:10px;}
   }
 </style>
 </head>
@@ -2159,6 +2181,8 @@ function renderSyncIndicator(){
 
 // Phone layout collapses each outgoing to a one-line summary; ids here are the
 // ones currently expanded for editing.
+let monthTab = 'overview';
+let safeSpendOpen = false;
 const expandedOutRows = new Set();
 const expandedIncRows = new Set();
 function incomeSummaryHtml(i){
@@ -2213,20 +2237,20 @@ function renderMonth(){
   const [curYear, curMonthNum] = state.currentMonthKey.split('-').map(Number);
   const el = document.getElementById('view-month');
   el.innerHTML = `
-    <div class="panel">
-      <div class="panel-head">
-        <h2>Upcoming Bills</h2>
-        <div class="seg-toggle" id="upcomingBillsToggle">
-          <button class="seg-btn" data-days="7">Next 7 days</button>
-          <button class="seg-btn" data-days="14">Next 14 days</button>
-        </div>
+    <div class="panel safe-spend" id="safeSpend" style="display:none;">
+      <div class="ss-main">
+        <div class="ss-label" id="ssLabel">Safe to spend today</div>
+        <div class="ss-val" id="ssVal">£0.00</div>
+        <div class="ss-sub" id="ssSub"></div>
+        <div class="ss-bar"><div class="ss-bar-fill" id="ssBar"></div></div>
+        <button type="button" class="ss-toggle" id="ssToggle" aria-expanded="false">How it's worked out <span class="ss-caret">▾</span></button>
       </div>
-      <div id="upcomingBillsList"></div>
+      <div class="ss-break" id="ssBreak"></div>
     </div>
 
     <div class="panel quick-add-panel">
       <div class="panel-head"><h2>Quick Add</h2><span class="hint">for one-off spends or money in — added as Done right away</span></div>
-      <div class="field-inline" style="flex-wrap:wrap;">
+      <div class="field-inline qa-row" style="flex-wrap:wrap;">
         <select id="quickAddType">
           <option value="out">I spent</option>
           <option value="in">I received</option>
@@ -2237,7 +2261,7 @@ function renderMonth(){
         ${categoryDropdownHtml('quickAddIncomeCategory', 'Uncategorized', INCOME_CATEGORIES)}
         <button class="btn small" id="quickAddBtn">+ Add</button>
       </div>
-      <div class="field-inline" style="margin-top:12px;align-items:center;">
+      <div class="field-inline qa-actions" style="margin-top:12px;align-items:center;">
         <label class="btn secondary small" style="cursor:pointer;margin:0;">
           📷 Scan Receipt
           <input type="file" id="receiptInput" accept="image/*" capture="environment" style="display:none;">
@@ -2253,106 +2277,116 @@ function renderMonth(){
       </div>
     </div>
 
-    <div class="panel safe-spend" id="safeSpend" style="display:none;">
-      <div class="ss-main">
-        <div class="ss-label" id="ssLabel">Safe to spend today</div>
-        <div class="ss-val" id="ssVal">£0.00</div>
-        <div class="ss-sub" id="ssSub"></div>
-        <div class="ss-bar"><div class="ss-bar-fill" id="ssBar"></div></div>
-      </div>
-      <div class="ss-break" id="ssBreak"></div>
-    </div>
-
     <div class="grid">
-      <div class="card stagger-card" style="--i:0;"><div class="k">Starting Balance</div><div class="v"><input type="number" step="0.01" id="startingBalanceInput" value="${m.startingBalance}" style="font-size:19px;font-weight:700;padding:4px 6px;"></div><div class="sub">carried from last month</div><div id="sparkSb">${cardSparkHtml(state.currentMonthKey,'sb',true)}</div></div>
-      <div class="card highlight stagger-card" style="--i:1;"><div class="k">Current Balance</div><div class="v"><input type="number" step="0.01" id="liveBalanceInput" value="${t.liveBalance}" style="font-size:19px;font-weight:700;padding:4px 6px;color:${t.liveBalance>=0?'var(--green)':'var(--red)'};"></div><div class="sub" id="liveBalanceSub">${t.adjustment ? `${fmt(t.adjustment)} manual adjustment · <a href="#" id="clearAdjustment" style="color:var(--red);text-decoration:underline;">clear</a>` : 'edit directly for deviations — updates as items are marked Done'}</div><div id="liveBalanceTrend">${trendArrowHtml(t.liveBalance, pt&&pt.liveBalance, 'up')}</div><div id="sparkLb">${cardSparkHtml(state.currentMonthKey,'lb',true)}</div></div>
-      <div class="card stagger-card" style="--i:2;"><div class="k">Total Left Over</div><div class="v ${t.totalLeftOver>=0?'pos':'neg'}" id="totalLeftOverVal">${fmt(t.totalLeftOver)}</div><div class="sub">→ next month's starting balance</div><div id="totalLeftOverTrend">${trendArrowHtml(t.totalLeftOver, pt&&pt.totalLeftOver, 'up')}</div><div id="sparkTlo">${cardSparkHtml(state.currentMonthKey,'tlo',true)}</div></div>
+      <div class="card stagger-card" style="--i:0;"><div class="k">Starting Balance</div><div class="v"><input type="number" step="0.01" id="startingBalanceInput" value="${m.startingBalance}" style="font-size:19px;font-weight:700;padding:4px 6px;"></div><div class="sub sub-verbose">carried from last month</div><div id="sparkSb">${cardSparkHtml(state.currentMonthKey,'sb',true)}</div></div>
+      <div class="card highlight stagger-card" style="--i:1;"><div class="k">Current Balance</div><div class="v"><input type="number" step="0.01" id="liveBalanceInput" value="${t.liveBalance}" style="font-size:19px;font-weight:700;padding:4px 6px;color:${t.liveBalance>=0?'var(--green)':'var(--red)'};"></div><div class="sub sub-verbose" id="liveBalanceSub">${t.adjustment ? `${fmt(t.adjustment)} manual adjustment · <a href="#" id="clearAdjustment" style="color:var(--red);text-decoration:underline;">clear</a>` : 'edit directly for deviations — updates as items are marked Done'}</div><div id="liveBalanceTrend">${trendArrowHtml(t.liveBalance, pt&&pt.liveBalance, 'up')}</div><div id="sparkLb">${cardSparkHtml(state.currentMonthKey,'lb',true)}</div></div>
+      <div class="card stagger-card" style="--i:2;"><div class="k">Total Left Over</div><div class="v ${t.totalLeftOver>=0?'pos':'neg'}" id="totalLeftOverVal">${fmt(t.totalLeftOver)}</div><div class="sub sub-verbose">→ next month's starting balance</div><div id="totalLeftOverTrend">${trendArrowHtml(t.totalLeftOver, pt&&pt.totalLeftOver, 'up')}</div><div id="sparkTlo">${cardSparkHtml(state.currentMonthKey,'tlo',true)}</div></div>
       <div class="card stagger-card" style="--i:3;"><div class="k">Incoming</div><div class="v pos" id="incomingVal">${fmt(t.allIncoming)}</div><div class="sub" id="incomingSub">${fmt(t.doneIncoming)} done</div><div id="incomingTrend">${trendArrowHtml(t.allIncoming, pt&&pt.allIncoming, 'up')}</div><div id="sparkInc">${cardSparkHtml(state.currentMonthKey,'inc',true)}</div></div>
       <div class="card stagger-card" style="--i:4;"><div class="k">Weekly Budget</div><div class="v neg" id="weeklyVal">${fmt(t.weeklyTotal)}</div><div class="sub" id="weeklySub">${fmt(t.doneWeekly)} done</div><div id="weeklyTrend">${trendArrowHtml(t.weeklyTotal, pt&&pt.weeklyTotal, 'down')}</div><div id="sparkWk">${cardSparkHtml(state.currentMonthKey,'wk',true)}</div></div>
       <div class="card stagger-card" style="--i:5;"><div class="k">Outgoings</div><div class="v neg" id="outgoingVal">${fmt(t.allOutgoing)}</div><div class="sub" id="outgoingSub">${fmt(t.doneOutgoing)} done</div><div id="outgoingTrend">${trendArrowHtml(t.allOutgoing, pt&&pt.allOutgoing, 'down')}</div><div id="sparkOut">${cardSparkHtml(state.currentMonthKey,'out',true)}</div></div>
     </div>
 
-    <div class="panel">
-      <div class="panel-head"><h2>Spending by Category</h2><span class="hint" id="monthCatTotal"></span></div>
-      <div class="field-inline" style="margin-bottom:16px;flex-wrap:wrap;">
-        <div class="seg-toggle" id="monthCatModeToggle">
-          <button class="seg-btn" data-mode="all">Budgeted</button>
-          <button class="seg-btn" data-mode="done">Actual (Done)</button>
-        </div>
-        <a href="#" id="monthCatSeeTrend" style="font-size:12px;color:var(--muted);text-decoration:underline;margin-left:auto;">See full Trend breakdown →</a>
-      </div>
-      <div class="cat-breakdown-layout">
-        <div id="monthCatDonut" class="cat-breakdown-donut"></div>
-        <div id="monthCatBars" class="cat-breakdown-bars"></div>
-      </div>
-      <div id="monthCatDeltas" style="margin-top:8px;"></div>
+    <div class="trend-tabs mt-tabs" id="mtTabs" role="tablist">
+      ${[['overview','Overview',''],['income','Income',`<span class="tab-badge" id="mtBadgeIncome">${m.incoming.length}</span>`],['outgoings','Outgoings',`<span class="tab-badge" id="mtBadgeOut">${m.outgoings.length}</span>`],['budget','Budget','']].map(([id,label,badge])=>`<button class="trend-tab${monthTab===id?' active':''}" role="tab" aria-selected="${monthTab===id}" data-tab="${id}">${label}${badge}</button>`).join('')}
     </div>
-
-    <div class="panel">
-      <div class="panel-head"><h2>Weekly Budget</h2><span class="hint">amount for each week of the month</span></div>
-      <div class="weekly-grid">
-        ${['week1','week2','week3','week4'].map((wk,i)=>`
-          <div class="weekly-item">
-            <label>Week ${i+1}</label>
-            <input type="number" step="0.01" class="week-input" data-week="${wk}" value="${m.weekly[wk].amount}" style="margin-bottom:8px;">
-            <select class="week-status status-select status-${m.weekly[wk].status}" data-week="${wk}" style="margin-bottom:8px;">
-              <option value="none" ${m.weekly[wk].status==='none'?'selected':''}>None</option>
-              <option value="done" ${m.weekly[wk].status==='done'?'selected':''}>Done</option>
-            </select>
-            <select class="week-recur recur-select ${m.weekly[wk].recurring?'recur-yes':'recur-no'}" data-week="${wk}">
-              <option value="no" ${!m.weekly[wk].recurring?'selected':''}>One-off</option>
-              <option value="yes" ${m.weekly[wk].recurring?'selected':''}>Recurring</option>
-            </select>
-          </div>
-        `).join('')}
-      </div>
-    </div>
-
-    <div class="panel">
-      <div class="panel-head">
-        <h2>Incoming</h2>
-        <button class="btn small" id="addIncomeBtn">+ Add incoming</button>
-      </div>
-      <table class="responsive-table income-table">
-        <thead><tr><th>Source</th><th style="width:136px;">Category</th><th style="width:128px;">Schedule</th><th style="width:94px;">Amount</th><th style="width:88px;">Status</th><th style="width:106px;">Recurring</th><th style="width:36px;"></th></tr></thead>
-        <tbody id="incomeBody"></tbody>
-      </table>
-    </div>
-
-    <div class="panel">
-      <div class="panel-head"><h2>Savings &amp; Stocks</h2><span class="hint">money you're setting aside this month</span></div>
-      <div class="sv-grid">
-        <div class="sv-card">
-          <div class="sv-top"><span class="sv-ico">💰</span><span class="sv-name">Add to Savings</span></div>
-          <div class="sv-controls">
-            <label class="sv-amt"><span class="sv-cur">${escapeHtml(state.currency)}</span><input type="number" step="0.01" id="savingsInput" value="${m.savings.amount}" aria-label="Amount moving into savings"></label>
-            ${statusSelectHtml('savings-status', m.savings.status)}
+    <div class="mt-pane${monthTab==='overview'?'':' hidden'}" data-pane="overview">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Upcoming Bills</h2>
+          <div class="seg-toggle" id="upcomingBillsToggle">
+            <button class="seg-btn" data-days="7">Next 7 days</button>
+            <button class="seg-btn" data-days="14">Next 14 days</button>
           </div>
         </div>
-        <div class="sv-card">
-          <div class="sv-top"><span class="sv-ico">📈</span><span class="sv-name">Move to Stocks &amp; Shares</span></div>
-          <div class="sv-controls">
-            <label class="sv-amt"><span class="sv-cur">${escapeHtml(state.currency)}</span><input type="number" step="0.01" id="stocksInput" value="${m.stocks.amount}" aria-label="Amount moving into stocks and shares"></label>
-            ${statusSelectHtml('stocks-status', m.stocks.status)}
+        <div id="upcomingBillsList"></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h2>Spending by Category</h2><span class="hint" id="monthCatTotal"></span></div>
+        <div class="field-inline" style="margin-bottom:16px;flex-wrap:wrap;">
+          <div class="seg-toggle" id="monthCatModeToggle">
+            <button class="seg-btn" data-mode="all">Budgeted</button>
+            <button class="seg-btn" data-mode="done">Actual (Done)</button>
           </div>
+          <a href="#" id="monthCatSeeTrend" style="font-size:12px;color:var(--muted);text-decoration:underline;margin-left:auto;">See full Trend breakdown →</a>
+        </div>
+        <div class="cat-breakdown-layout">
+          <div id="monthCatDonut" class="cat-breakdown-donut"></div>
+          <div id="monthCatBars" class="cat-breakdown-bars"></div>
+        </div>
+        <div id="monthCatDeltas" style="margin-top:8px;"></div>
+      </div>
+    </div>
+    <div class="mt-pane${monthTab==='income'?'':' hidden'}" data-pane="income">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Incoming</h2>
+          <button class="btn small" id="addIncomeBtn">+ Add incoming</button>
+        </div>
+        <table class="responsive-table income-table">
+          <thead><tr><th>Source</th><th style="width:136px;">Category</th><th style="width:128px;">Schedule</th><th style="width:94px;">Amount</th><th style="width:88px;">Status</th><th style="width:106px;">Recurring</th><th style="width:36px;"></th></tr></thead>
+          <tbody id="incomeBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="mt-pane${monthTab==='outgoings'?'':' hidden'}" data-pane="outgoings">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Outgoings</h2>
+          <button class="btn small" id="addOutgoingBtn">+ Add outgoing</button>
+        </div>
+        <table class="responsive-table">
+          <thead><tr><th>Name</th><th style="width:140px;">Category</th><th style="width:76px;">Day</th><th style="width:120px;">Amount</th><th style="width:100px;">Status</th><th style="width:110px;">Recurring</th><th style="width:36px;"></th></tr></thead>
+          <tbody id="outgoingBody"></tbody>
+        </table>
+        <div class="formula-note">
+          <b>Current Balance</b> = Starting Balance + Incoming marked Done − Weekly Budget marked Done − Outgoings marked Done − Savings (if Done) − Stocks &amp; Shares (if Done).<br>
+          <b>Total Left Over</b> = Starting Balance + all Incoming − Weekly Budget − all Outgoings − Savings − Stocks &amp; Shares (regardless of status) — this becomes next month's Starting Balance.
         </div>
       </div>
     </div>
-
-    <div class="panel">
-      <div class="panel-head">
-        <h2>Outgoings</h2>
-        <button class="btn small" id="addOutgoingBtn">+ Add outgoing</button>
+    <div class="mt-pane${monthTab==='budget'?'':' hidden'}" data-pane="budget">
+      <div class="panel">
+        <div class="panel-head"><h2>Weekly Budget</h2><span class="hint">amount for each week of the month</span></div>
+        <div class="weekly-grid">
+          ${['week1','week2','week3','week4'].map((wk,i)=>`
+            <div class="weekly-item">
+              <label>Week ${i+1}</label>
+              <input type="number" step="0.01" class="week-input" data-week="${wk}" value="${m.weekly[wk].amount}" style="margin-bottom:8px;">
+              <select class="week-status status-select status-${m.weekly[wk].status}" data-week="${wk}" style="margin-bottom:8px;">
+                <option value="none" ${m.weekly[wk].status==='none'?'selected':''}>None</option>
+                <option value="done" ${m.weekly[wk].status==='done'?'selected':''}>Done</option>
+              </select>
+              <select class="week-recur recur-select ${m.weekly[wk].recurring?'recur-yes':'recur-no'}" data-week="${wk}">
+                <option value="no" ${!m.weekly[wk].recurring?'selected':''}>One-off</option>
+                <option value="yes" ${m.weekly[wk].recurring?'selected':''}>Recurring</option>
+              </select>
+            </div>
+          `).join('')}
+        </div>
       </div>
-      <table class="responsive-table">
-        <thead><tr><th>Name</th><th style="width:140px;">Category</th><th style="width:76px;">Day</th><th style="width:120px;">Amount</th><th style="width:100px;">Status</th><th style="width:110px;">Recurring</th><th style="width:36px;"></th></tr></thead>
-        <tbody id="outgoingBody"></tbody>
-      </table>
-      <div class="formula-note">
-        <b>Current Balance</b> = Starting Balance + Incoming marked Done − Weekly Budget marked Done − Outgoings marked Done − Savings (if Done) − Stocks &amp; Shares (if Done).<br>
-        <b>Total Left Over</b> = Starting Balance + all Incoming − Weekly Budget − all Outgoings − Savings − Stocks &amp; Shares (regardless of status) — this becomes next month's Starting Balance.
+
+      <div class="panel">
+        <div class="panel-head"><h2>Savings &amp; Stocks</h2><span class="hint">money you're setting aside this month</span></div>
+        <div class="sv-grid">
+          <div class="sv-card">
+            <div class="sv-top"><span class="sv-ico">💰</span><span class="sv-name">Add to Savings</span></div>
+            <div class="sv-controls">
+              <label class="sv-amt"><span class="sv-cur">${escapeHtml(state.currency)}</span><input type="number" step="0.01" id="savingsInput" value="${m.savings.amount}" aria-label="Amount moving into savings"></label>
+              ${statusSelectHtml('savings-status', m.savings.status)}
+            </div>
+          </div>
+          <div class="sv-card">
+            <div class="sv-top"><span class="sv-ico">📈</span><span class="sv-name">Move to Stocks &amp; Shares</span></div>
+            <div class="sv-controls">
+              <label class="sv-amt"><span class="sv-cur">${escapeHtml(state.currency)}</span><input type="number" step="0.01" id="stocksInput" value="${m.stocks.amount}" aria-label="Amount moving into stocks and shares"></label>
+              ${statusSelectHtml('stocks-status', m.stocks.status)}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
+
   `;
 
   const quickAddAmount = document.getElementById('quickAddAmount');
@@ -2637,6 +2671,22 @@ function renderMonth(){
     currentView = 'trend';
     render();
   };
+  document.querySelectorAll('#mtTabs .trend-tab').forEach(b=>{
+    b.onclick = ()=>{
+      monthTab = b.dataset.tab;
+      document.querySelectorAll('#mtTabs .trend-tab').forEach(x=>{ x.classList.toggle('active', x===b); x.setAttribute('aria-selected', x===b); });
+      el.querySelectorAll('.mt-pane').forEach(pn=>pn.classList.toggle('hidden', pn.dataset.pane!==monthTab));
+    };
+  });
+  const safePanel = document.getElementById('safeSpend');
+  const ssToggle = document.getElementById('ssToggle');
+  safePanel.classList.toggle('open', safeSpendOpen);
+  ssToggle.setAttribute('aria-expanded', safeSpendOpen);
+  ssToggle.onclick = ()=>{
+    safeSpendOpen = !safeSpendOpen;
+    safePanel.classList.toggle('open', safeSpendOpen);
+    ssToggle.setAttribute('aria-expanded', safeSpendOpen);
+  };
   renderUpcomingBills();
   refreshCards(); // seeds animateNumberText's baseline so the first live edit animates too, not just the second
 
@@ -2653,6 +2703,9 @@ function renderMonth(){
       clearLink.onclick = e=>{ e.preventDefault(); m.adjustment = 0; save(); renderMonth(); };
     }
     refreshSafeSpend();
+    const bi = document.getElementById('mtBadgeIncome'), bo = document.getElementById('mtBadgeOut');
+    if(bi) bi.textContent = m.incoming.length;
+    if(bo) bo.textContent = m.outgoings.length;
     document.getElementById('liveBalanceTrend').innerHTML = trendArrowHtml(t2.liveBalance, pt2&&pt2.liveBalance, 'up');
     const tlo = document.getElementById('totalLeftOverVal');
     animateNumberText(tlo, t2.totalLeftOver);
