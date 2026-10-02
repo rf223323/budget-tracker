@@ -3006,7 +3006,7 @@ function donutChart(container, rows, opts={}){
       g.appendChild(fill);
       // roomy invisible hit area so the thin ring is easy to hover or tap
       g.appendChild(svgEl('circle', {...base, stroke:'transparent', 'stroke-width':W+3, 'stroke-dasharray':`${SWEEP} 100`, style:'pointer-events:stroke;'}));
-      requestAnimationFrame(()=>requestAnimationFrame(()=>fill.setAttribute('stroke-dasharray', dash)));
+      setTimeout(()=>fill.setAttribute('stroke-dasharray', dash), 40);
       groups.push(g);
       svg.appendChild(g);
       // percentage label at the start of the ring (12 o'clock), in the free quadrant
@@ -4833,7 +4833,7 @@ function renderQuarterly(){
   el.innerHTML = `
     <div class="panel yr-entry">
       <div><div style="font-size:15px;font-weight:800;">Year in review</div><div class="hint" style="margin-top:2px;">${reviewYears.length ? 'Your year at a glance — totals, top category, best and lightest months.' : 'Unlocks once a year has at least 3 tracked months.'}</div></div>
-      ${reviewYears.length ? `<div class="yr-btns">${reviewYears.map(y=>`<button class="btn small yr-open" data-year="${y}">${y} →</button>`).join('')}</div>` : ''}
+      ${reviewYears.length ? `<div class="yr-btns">${reviewYears.map(y=>`<button class="btn small yr-open" data-year="${y}">${y} →</button>`).join('')}</div>` : `<div class="yr-btns"><button class="btn secondary small" id="yrSample">See a sample</button></div>`}
     </div>
     <div class="panel">
       <div class="panel-head"><h2>Income vs Spending by Quarter</h2><span class="hint">based on what's marked Done</span></div>
@@ -4900,6 +4900,8 @@ function renderQuarterly(){
   };
   renderDetail();
   el.querySelectorAll('.yr-open').forEach(b=>b.onclick = ()=>openYearReview(Number(b.dataset.year)));
+  const sampleBtn = document.getElementById('yrSample');
+  if(sampleBtn) sampleBtn.onclick = ()=>openYearReview(new Date().getFullYear(), true);
   document.getElementById('quarterlySelect').onchange = e=>{ quarterlySelectedKey = e.target.value; renderDetail(); };
   document.getElementById('quarterlyPrev').onclick = ()=>{
     const i = groupKeys.indexOf(quarterlySelectedKey);
@@ -5863,8 +5865,16 @@ function yearsWithReview(){
   const years = [...new Set(Object.keys(state.months).map(k=>Number(k.slice(0,4))))].sort((a,b)=>b-a);
   return years.filter(y=>yearReviewData(y).ok);
 }
-function openYearReview(year){
-  const d = yearReviewData(year);
+// Made-up numbers so the pop-up can be previewed before a year has 3 tracked months.
+function sampleYearReview(year){
+  const spend = [1840,1795,1910,1760,1985,1620,1870,1805,2140,1890];
+  const rows = spend.map((v,i)=>({k:`${year}-${String(i+1).padStart(2,'0')}`, spent:v}));
+  const cats = [{category:'Housing',amount:8420},{category:'Bills & Utilities',amount:3180},{category:'Groceries',amount:2460},{category:'Transport',amount:1390},{category:'Subscriptions',amount:960},{category:'Eating Out',amount:740}];
+  const sorted = rows.slice().sort((a,b)=>b.spent-a.spent);
+  return {year, ok:true, sample:true, rows, earned:29000, spent:spend.reduce((a,b)=>a+b,0), saved:3000, net:5240, cats, catTotal:cats.reduce((a,r)=>a+r.amount,0), biggest:sorted[0], lightest:sorted[sorted.length-1], avgScore:78, streak:{days:9, end:new Date(year,5,21)}, vsPrev:-6};
+}
+function openYearReview(year, sample){
+  const d = sample ? sampleYearReview(year) : yearReviewData(year);
   if(!d.ok){ showToast('Not enough months yet', `Year in review needs at least 3 tracked months in ${year}.`); return; }
   const bg = document.getElementById('modalBg');
   const box = document.getElementById('modalBox');
@@ -5874,8 +5884,8 @@ function openYearReview(year){
   const slides = [];
   // 1. Totals
   slides.push(`<div class="yr-slide">
-    <div class="yr-kicker">Year in review</div><div class="yr-h">${year}</div>
-    <div class="yr-sub">${d.rows.length} months tracked · here's how the year went.</div>
+    <div class="yr-kicker">Year in review${d.sample?' · sample':''}</div><div class="yr-h">${year}</div>
+    <div class="yr-sub">${d.sample?'Made-up numbers to show how it will look.':`${d.rows.length} months tracked · here's how the year went.`}</div>
     <div class="recap-hero"><div class="lbl">Net change over the year</div><div class="big ${d.net>=0?'pos':'neg'}">${escapeHtml(fmt(d.net))}</div><div class="note">${d.net>=0?'You finished the year ahead.':'More went out than came in.'}</div></div>
     <div class="recap-tiles">
       <div class="recap-tile"><div class="k">Earned</div><div class="v" style="color:var(--green);">${escapeHtml(fmtCompact(d.earned))}</div></div>
@@ -5949,9 +5959,10 @@ function openYearReview(year){
     next.textContent = idx===slides.length-1 ? 'Done' : 'Next';
     // animate whatever the current slide holds
     const slide = track.children[idx];
-    view.style.height = slide.scrollHeight + 'px';
     slide.querySelectorAll('#yrBars i').forEach(b=>{ b.style.height = b.dataset.h+'px'; });
     const dn = slide.querySelector('#yrDonut'); if(dn && !dn.dataset.done){ dn.dataset.done = '1'; donutChart(dn, d.cats, {size:200}); }
+    const fit = ()=>{ view.style.height = slide.scrollHeight + 'px'; };
+    fit(); setTimeout(fit, 80); setTimeout(fit, 400);
     const ring = slide.querySelector('#yrScoreRing'); if(ring) ring.setAttribute('stroke-dasharray', `${ring.dataset.v} 100`);
   };
   next.onclick = ()=>{ if(idx===slides.length-1) closeRecapModal(); else show(idx+1); };
