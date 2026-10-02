@@ -587,6 +587,72 @@
   .lt-note{margin-top:5px;font-size:12px;color:var(--muted);}
   .lt-card .bo-ok{margin-top:20px;}
   .lt-card .lt-later{margin-top:10px;}
+  .hero-bgfx{position:absolute;inset:0;border-radius:inherit;z-index:-1;opacity:.42;pointer-events:none;}
+  .hero-title{display:inline-block;margin-top:3px;padding:2px 9px;border-radius:999px;font-size:10.5px;font-weight:800;letter-spacing:.04em;color:var(--tc,var(--accent));background:color-mix(in srgb, var(--tc,var(--accent)) 16%, transparent);}
+  .hero-title:empty{display:none;}
+  .spin-strip{display:flex;align-items:center;gap:14px;padding:12px 16px;margin:0 0 14px;border-radius:20px;cursor:pointer;border:1px solid color-mix(in srgb, #ffb23a 45%, var(--border));background:linear-gradient(150deg,color-mix(in srgb, #ffb23a 18%, var(--panel)),var(--panel) 70%);box-shadow:0 0 24px rgba(255,178,58,.16);}
+  .ss-wheel{width:48px;height:48px;flex-shrink:0;}
+  .ss-wheel svg{width:100%;height:100%;display:block;animation:ssTurn 16s linear infinite;}
+  @keyframes ssTurn{to{transform:rotate(360deg);}}
+  .ss-t{min-width:0;}
+  .ss-t i{display:block;font-style:normal;font-size:10.5px;font-weight:800;letter-spacing:.1em;color:#ffb23a;}
+  .ss-t b{display:block;font-size:15px;margin-top:1px;}
+  .ss-t span{font-size:12px;color:var(--muted);}
+  .ss-go{margin-left:auto;flex-shrink:0;}
+  .sp-card{width:min(360px,100%);}
+  .sp-title{margin-top:4px;font-size:26px;font-weight:800;letter-spacing:-.02em;}
+  .sp-wheel{position:relative;margin-top:22px;width:300px;height:300px;filter:drop-shadow(0 0 26px rgba(255,178,58,.3));}
+  .sp-wheel > svg:not(.sp-pointer){width:100%;height:100%;display:block;}
+  .sp-pointer{position:absolute;left:50%;top:-14px;margin-left:-14px;z-index:2;}
+  .sp-hub{position:absolute;left:50%;top:50%;width:64px;height:64px;margin:-32px 0 0 -32px;}
+  .sp-hub svg{width:100%;height:100%;overflow:visible;display:block;}
+  .sp-go{margin-top:24px;font-size:16px;font-weight:800;letter-spacing:.04em;box-shadow:0 0 26px rgba(255,150,60,.4);}
+  .sp-odds{display:flex;gap:8px;margin-top:14px;width:100%;}
+  .sp-odd{flex:1;padding:9px 6px;border-radius:14px;background:var(--panel);border:1px solid;text-align:center;}
+  .sp-odd i{display:block;font-style:normal;font-size:9.5px;font-weight:800;letter-spacing:.08em;}
+  .sp-odd b{font-size:16px;}
+  .pz-stage{position:relative;margin-top:14px;width:250px;height:220px;display:flex;align-items:center;justify-content:center;animation:luckyPop .7s cubic-bezier(.2,.9,.3,1.4) both;}
+  .pz-ember{width:270px;height:270px;margin:-30px;}
+  .pz-ember svg{width:100%;height:100%;overflow:visible;display:block;}
+  .pz-bg{width:240px;height:150px;border-radius:20px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);}
+  .pz-bg-f{width:100px;height:100px;}
+  .pz-bg-f svg{width:100%;height:100%;display:block;overflow:visible;}
+  .pz-xp{font-size:60px;font-weight:800;letter-spacing:-.03em;}
+  .pz-title .wd-title{font-size:18px;padding:10px 20px;}
+  .wd-top{display:flex;align-items:center;gap:14px;padding:12px 14px;border-radius:18px;background:var(--panel2);border:1px solid var(--border);}
+  .wd-ember{width:84px;height:84px;flex-shrink:0;}
+  .wd-ember svg{width:100%;height:100%;overflow:visible;display:block;}
+  .wd-info{min-width:0;}
+  .wd-info .k{font-size:10.5px;font-weight:800;letter-spacing:.08em;color:var(--muted);}
+  .wd-info .v{font-size:14px;font-weight:800;margin-top:2px;}
+  .wd-info .s{font-size:11px;color:var(--muted);margin-top:3px;}
+  .wd-spin{display:flex;align-items:center;gap:12px;width:100%;margin-top:10px;padding:10px 14px;border-radius:16px;background:var(--panel2);border:1px solid var(--border);font:inherit;color:inherit;text-align:left;}
+  .wd-spin.ready{border-color:color-mix(in srgb, #ffb23a 55%, var(--border));cursor:pointer;box-shadow:0 0 18px rgba(255,178,58,.2);}
+  .wd-spin .ss-wheel{width:34px;height:34px;}
+  .wd-spin b{display:block;font-size:13.5px;}
+  .wd-spin i{font-style:normal;font-size:11px;color:var(--muted);}
+  .ss-wheel.dim{opacity:.4;filter:grayscale(1);}
+  .ss-wheel.dim svg{animation:none;}
+  .wd-tabs{margin:12px 0 10px;}
+  .wd-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;}
+  .wd-grid.titles{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .wd-item{font:inherit;color:inherit;cursor:pointer;border-radius:18px;padding:10px 6px;text-align:center;background:var(--panel2);border:1.5px solid var(--border);display:flex;flex-direction:column;align-items:center;}
+  .wd-item.r-r{border-color:#4aa3ff;box-shadow:0 0 12px #4aa3ff33;}
+  .wd-item.r-s{border-color:#ffb23a;box-shadow:0 0 18px #ffb23a55;}
+  .wd-item.off{box-shadow:none;opacity:.85;}
+  .wd-item.on{outline:2px solid var(--accent);outline-offset:1px;}
+  .wd-pv{height:64px;width:100%;display:flex;align-items:center;justify-content:center;}
+  .wd-art{width:64px;height:64px;}
+  .wd-art svg{width:100%;height:100%;overflow:visible;display:block;}
+  .wd-art.wd-lock{filter:brightness(.16) grayscale(1);}
+  .wd-bg{width:100%;height:56px;border-radius:10px;display:flex;align-items:center;justify-content:center;}
+  .wd-bg.wd-lock{background:var(--panel);}
+  .wd-bg-f{width:34px;height:34px;}
+  .wd-bg-f svg{width:100%;height:100%;display:block;}
+  .wd-title{display:inline-flex;padding:6px 12px;border-radius:999px;font-size:12px;font-weight:800;color:var(--tc);background:color-mix(in srgb, var(--tc) 16%, transparent);border:1px solid color-mix(in srgb, var(--tc) 50%, transparent);}
+  .wd-title.wd-lock{--tc:#6a6a74;}
+  .wd-n{margin-top:6px;font-size:12px;font-weight:800;}
+  .wd-r{margin-top:2px;font-size:9.5px;font-weight:800;letter-spacing:.08em;}
   .boss-xp{font-size:10.5px;font-weight:800;color:#ffb15a;}
   .boss-overlay{position:fixed;inset:0;z-index:125;display:none;align-items:center;justify-content:center;padding:16px;background:radial-gradient(70% 55% at 50% 30%, rgba(255,120,60,.26), rgba(4,4,5,.9) 75%);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);overflow:auto;}
   .boss-overlay.lucky{background:radial-gradient(70% 55% at 50% 30%, color-mix(in srgb, var(--lc,#ffb15a) 30%, transparent), rgba(4,4,5,.9) 75%);}
@@ -655,7 +721,7 @@
     .bo-stage{width:200px;height:200px;}
   }
   @media (prefers-reduced-motion:reduce){
-    .boss-art .boss-body,.bo-stage .boss-body,.boss-hp i.hit,.bo-card,.lk-stage,.lk-xp,.lk-bar i.gain,.lucky-orb,.lt-stage,.tcg-reveal-card{animation:none !important;}
+    .boss-art .boss-body,.bo-stage .boss-body,.boss-hp i.hit,.bo-card,.lk-stage,.lk-xp,.lk-bar i.gain,.lucky-orb,.lt-stage,.tcg-reveal-card,.ss-wheel svg,.pz-stage{animation:none !important;}
     .bo-slash{display:none;}
     .bo-dmg,.bo-p,.bo-ring{animation:none !important;}
     .bo-p,.bo-ring{display:none;}
@@ -712,6 +778,7 @@
   .ember-btn{width:84px;height:84px;flex-shrink:0;border:none;background:none;padding:0;cursor:pointer;margin:-4px 0;border-radius:50%;}
   .ember-btn svg{width:100%;height:100%;display:block;overflow:visible;}
   .ember-btn:hover{filter:brightness(1.12);}
+  .hero-card{position:relative;isolation:isolate;}
   .ember-flick{transform-box:fill-box;transform-origin:50% 100%;animation:emberFlick 2.4s ease-in-out infinite;}
   .ember-flick.lo{animation-duration:4.2s;animation-name:emberFlickLo;}
   .ember-flick.hi{animation-duration:1.7s;}
@@ -1666,6 +1733,15 @@ function normalizeState(){
   if(!state.ember || typeof state.ember!=='object') state.ember = {};
   if(!Array.isArray(state.ember.seen)) state.ember.seen = [];
   if(typeof state.ember.skin!=='string') state.ember.skin = 'classic';
+  if(!state.ember.wardrobe || typeof state.ember.wardrobe!=='object') state.ember.wardrobe = {};
+  { const W = state.ember.wardrobe;
+    if(!W.owned || typeof W.owned!=='object') W.owned = {};
+    if(!W.equipped || typeof W.equipped!=='object') W.equipped = {};
+    ['acc','bg','title'].forEach(t=>{ if(!Array.isArray(W.owned[t])) W.owned[t] = []; if(typeof W.equipped[t]!=='string') W.equipped[t] = null; });
+    if(!W.spin || typeof W.spin!=='object') W.spin = {};
+    if(typeof W.spin.last!=='string') W.spin.last = '';
+    if(typeof W.spin.banked!=='number') W.spin.banked = 0;
+    spinTick(); }
   if(!state.ember.loot || typeof state.ember.loot!=='object') state.ember.loot = {};
   if(!Array.isArray(state.ember.loot.owned)) state.ember.loot.owned = [];
   if(typeof state.ember.loot.since!=='number') state.ember.loot.since = 0;
@@ -3742,9 +3818,234 @@ function emberPalette(flame, skin){
 }
 const EMBER_BAT = 'M-8,0 Q-5,-5 0,-2 Q5,-5 8,0 Q5,-1 3,2 Q0,0 -3,2 Q-5,-1 -8,0 Z';
 const EMBER_EGG = 'M0,-6 C3.5,-6 5.5,-1.5 5.5,1.5 C5.5,4.5 3,6.5 0,6.5 C-3,6.5 -5.5,4.5 -5.5,1.5 C-5.5,-1.5 -3.5,-6 0,-6 Z';
-function emberFlameSvg(flame, ringPct, skinOverride){
+// ---------------- Wardrobe + weekly spin ----------------
+// Cosmetics for your Ember: accessories it wears, hero-card backgrounds and titles. Win them on the weekly spin.
+const WARD_RARITY = {
+  c:{name:'Common',    tag:'COMMON',     col:'#9fb0c8', xp:25},
+  r:{name:'Rare',      tag:'RARE',       col:'#4aa3ff', xp:75},
+  s:{name:'Super rare',tag:'SUPER RARE', col:'#ffb23a', xp:200}
+};
+const WARDROBE = {
+  acc:[
+    {id:'party',name:'Party hat',r:'c'},{id:'shades',name:'Sunglasses',r:'c'},{id:'bowtie',name:'Bow tie',r:'c'},{id:'scarf',name:'Scarf',r:'c'},
+    {id:'phones',name:'Headphones',r:'r'},{id:'wizard',name:'Wizard hat',r:'r'},{id:'halo',name:'Halo',r:'r'},{id:'patch',name:'Eyepatch',r:'r'},
+    {id:'crown',name:'Crown',r:'s'},{id:'wings',name:'Angel wings',r:'s'},{id:'cape',name:'Galaxy cape',r:'s'}
+  ],
+  bg:[
+    {id:'dusk',name:'Dusk',r:'c',css:'linear-gradient(160deg,#3a2a5a,#e0705a)'},
+    {id:'mint',name:'Mint',r:'c',css:'linear-gradient(160deg,#173a34,#2a9a74)'},
+    {id:'dots',name:'Paper dots',r:'c',css:'radial-gradient(circle,#4a4a54 1.6px,transparent 2px) 0 0/12px 12px,#22222a'},
+    {id:'blueprint',name:'Blueprint',r:'r',css:'linear-gradient(rgba(140,200,255,.25) 1px,transparent 1px) 0 0/14px 14px,linear-gradient(90deg,rgba(140,200,255,.25) 1px,transparent 1px) 0 0/14px 14px,#0f3a6a'},
+    {id:'stars',name:'Starfield',r:'r',css:'radial-gradient(circle,#fff 1px,transparent 1.5px) 0 0/22px 22px,radial-gradient(circle,#9ad0ff 1px,transparent 1.5px) 11px 11px/22px 22px,#0a0d22'},
+    {id:'confetti',name:'Confetti',r:'r',css:'radial-gradient(circle,#ff5fa8 2px,transparent 2.5px) 0 0/26px 26px,radial-gradient(circle,#ffd66e 2px,transparent 2.5px) 13px 6px/26px 26px,radial-gradient(circle,#4cf0a0 2px,transparent 2.5px) 6px 14px/26px 26px,#1e1830'},
+    {id:'aurora',name:'Aurora',r:'s',css:'linear-gradient(135deg,#0b1a2a,#1fa87a 40%,#7a4af0 70%,#0b1a2a)'},
+    {id:'lava',name:'Lava lake',r:'s',css:'radial-gradient(60% 40% at 30% 80%,#ff7a2a,transparent),radial-gradient(50% 35% at 75% 70%,#ffb23a,transparent),#2a0a08'}
+  ],
+  title:[
+    {id:'penny',name:'Penny Pincher',r:'c'},{id:'early',name:'Early Bird',r:'c'},
+    {id:'slayer',name:'Bill Slayer',r:'r'},{id:'keeper',name:'Streak Keeper',r:'r'},
+    {id:'lord',name:'Ember Lord',r:'s'},{id:'tamer',name:'Dragon Tamer',r:'s'}
+  ]
+};
+const WARD_KIND_NAME = {acc:'Ember accessory', bg:'Card background', title:'Title'};
+// Accessory art is drawn once, in the same 112-unit box the mockups use, then mapped onto the flame's own
+// coordinate space so it follows the flame (any skin, any mood, the flicker).
+const ACC_MAP = 'translate(-22.97 -25.68) scale(1.3514)';
+const ACC_O = '#2a1218';
+const ACC_ART = (()=>{
+  const o = ACC_O, sw = 1.7;
+  const wing = s=>`<path d="M${56+s*24},60 C${56+s*60},20 ${56+s*70},58 ${56+s*52},64 C${56+s*66},66 ${56+s*60},82 ${56+s*44},76 C${56+s*54},88 ${56+s*40},94 ${56+s*28},82Z" fill="#fff" stroke="${o}" stroke-width="${sw}" stroke-linejoin="round"/><path d="M${56+s*34},64 C${56+s*50},54 ${56+s*56},60 ${56+s*50},66 M${56+s*34},74 C${56+s*46},68 ${56+s*50},74 ${56+s*44},78" fill="none" stroke="#cfd8ea" stroke-width="1.5" stroke-linecap="round"/>`;
+  const hat = f=>`<g transform="translate(0 13)">${f}</g>`;
+  return {
+    party:{front:hat(`<path d="M50,26 L76,26 L63,-2Z" fill="#ff5fa8" stroke="${o}" stroke-width="${sw}" stroke-linejoin="round"/><path d="M54,19 L72,19 M58,11 L68,11" stroke="#ffe08a" stroke-width="2.4" stroke-linecap="round"/><circle cx="63" cy="-2" r="3.4" fill="#ffe08a" stroke="${o}" stroke-width="1.5"/>`)},
+    shades:{front:`<g stroke="${o}" stroke-width="${sw}" stroke-linejoin="round"><rect x="33" y="56" width="22" height="14" rx="5" fill="#15151c"/><rect x="58" y="56" width="22" height="14" rx="5" fill="#15151c"/></g><path d="M55,61 H58 M33,60 L27,57 M80,60 L86,57" stroke="${o}" stroke-width="2.2" stroke-linecap="round"/><path d="M37,59 l6,0 M62,59 l6,0" stroke="#fff" stroke-width="1.6" stroke-linecap="round" opacity=".7"/>`},
+    bowtie:{front:`<g stroke="${o}" stroke-width="${sw}" stroke-linejoin="round"><path d="M56,86 L40,78 L40,94Z" fill="#ff4d5e"/><path d="M56,86 L72,78 L72,94Z" fill="#ff4d5e"/><rect x="52" y="82" width="8" height="8" rx="2" fill="#c0283a"/></g>`},
+    scarf:{front:`<path d="M30,76 Q56,92 82,76 L84,86 Q56,102 28,86Z" fill="#3ec98a" stroke="${o}" stroke-width="${sw}" stroke-linejoin="round"/><path d="M34,81 l-3,8 M44,85 l-2,9 M54,88 l-1,9 M64,87 l1,9 M74,84 l2,8" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".7"/><path d="M72,88 L80,108 L66,104 L68,92Z" fill="#3ec98a" stroke="${o}" stroke-width="${sw}" stroke-linejoin="round"/>`},
+    phones:{front:`<path d="M27,60 C27,16 82,16 82,60" fill="none" stroke="${o}" stroke-width="6.4" stroke-linecap="round"/><path d="M27,60 C27,16 82,16 82,60" fill="none" stroke="#4aa3ff" stroke-width="3.4" stroke-linecap="round"/><g stroke="${o}" stroke-width="${sw}"><rect x="20" y="54" width="13" height="22" rx="6" fill="#4aa3ff"/><rect x="76" y="54" width="13" height="22" rx="6" fill="#4aa3ff"/></g><g fill="#fff" opacity=".6"><rect x="23" y="58" width="3" height="8" rx="1.5"/><rect x="79" y="58" width="3" height="8" rx="1.5"/></g>`},
+    wizard:{front:hat(`<path d="M47,28 C52,22 74,22 80,28 C74,31 52,31 47,28Z" fill="#5a2fc0" stroke="${o}" stroke-width="${sw}"/><path d="M52,26 C56,8 62,0 72,-6 C70,2 70,10 76,26Z" fill="#7a4af0" stroke="${o}" stroke-width="${sw}" stroke-linejoin="round"/><path d="M56,22 C58,22 70,22 74,22" stroke="#ffd66e" stroke-width="2.4"/><path d="M66,10 l1.6,3.4 3.6,.4 -2.7,2.5 .8,3.6 -3.3,-1.9 -3.3,1.9 .8,-3.6 -2.7,-2.5 3.6,-.4z" fill="#ffe08a"/>`)},
+    halo:{front:hat(`<ellipse cx="62" cy="14" rx="17" ry="5" fill="none" stroke="#ffd66e" stroke-width="3.4" style="filter:drop-shadow(0 0 4px #ffd66e)"/>`)},
+    patch:{front:`<path d="M30,52 L82,64" stroke="${o}" stroke-width="2.2" stroke-linecap="round"/><ellipse cx="46" cy="60" rx="9.5" ry="8" fill="#15151c" stroke="${o}" stroke-width="${sw}"/>`},
+    crown:{front:hat(`<path d="M46,28 L46,10 L55,19 L63,4 L71,19 L80,10 L80,28Z" fill="#ffc247" stroke="${o}" stroke-width="${sw}" stroke-linejoin="round"/><rect x="46" y="24" width="34" height="6" rx="2" fill="#e0a020" stroke="${o}" stroke-width="1.6"/><circle cx="63" cy="12" r="2.6" fill="#ff4d7a" stroke="${o}" stroke-width="1.1"/><circle cx="51" cy="21" r="2" fill="#4aa3ff" stroke="${o}" stroke-width=".9"/><circle cx="75" cy="21" r="2" fill="#4cf0a0" stroke="${o}" stroke-width=".9"/>`)},
+    wings:{back:`<g transform="translate(56 62) scale(.78) translate(-56 -62)">${wing(-1)+wing(1)}</g>`, front:hat(`<ellipse cx="62" cy="14" rx="15" ry="4.4" fill="none" stroke="#ffd66e" stroke-width="3" style="filter:drop-shadow(0 0 4px #ffd66e)"/>`)},
+    cape:{back:`<g transform="translate(56 56) scale(.8) translate(-56 -56)"><path d="M30,52 C14,74 12,98 20,110 L92,110 C100,98 98,74 82,52 C72,72 40,72 30,52Z" fill="#2a1a6a" stroke="${o}" stroke-width="${sw}" stroke-linejoin="round"/><path d="M30,52 C14,74 12,98 20,110 L56,110 C44,90 40,72 30,52Z" fill="#4a2aa0" opacity=".7"/><g fill="#ffe08a"><circle cx="24" cy="90" r="1.6"/><circle cx="34" cy="100" r="1.2"/><circle cx="80" cy="96" r="1.6"/><circle cx="88" cy="80" r="1.2"/><circle cx="70" cy="104" r="1"/></g></g>`, front:`<path d="M34,70 Q56,82 78,70" fill="none" stroke="#ffc247" stroke-width="3.4" stroke-linecap="round"/><circle cx="56" cy="79" r="3.4" fill="#ffc247" stroke="${o}" stroke-width="1.3"/>`}
+  };
+})();
+function accArt(id, layer){
+  const a = ACC_ART[id]; if(!a || !a[layer]) return '';
+  return `<g transform="${ACC_MAP}">${a[layer]}</g>`;
+}
+function wardItem(type, id){ return WARDROBE[type].find(x=>x.id===id) || null; }
+function wardOwned(type){ return state.ember.wardrobe.owned[type]; }
+function wardEquipped(type){ return state.ember.wardrobe.equipped[type]; }
+function wardCount(){ const W = state.ember.wardrobe; return W.owned.acc.length + W.owned.bg.length + W.owned.title.length; }
+function wardTotal(){ return WARDROBE.acc.length + WARDROBE.bg.length + WARDROBE.title.length; }
+
+// ---- weekly spin ----
+const SPIN_SLICES = 'ccrcccrcccSccrcccrcr'.split('');   // 14 common, 5 rare, 1 super rare
+function spinSunday(d){ const x = new Date(d); x.setHours(0,0,0,0); x.setDate(x.getDate()-x.getDay()); return ymd(x); }
+// Grants this week's spin the first time the app is opened after Sunday starts.
+function spinTick(){
+  const S = state.ember.wardrobe.spin;
+  const cur = spinSunday(new Date());
+  if(!S.last){ S.last = cur; S.banked = 1; return; }
+  if(S.last < cur){
+    const weeks = Math.max(1, Math.round((parseYmd(cur) - parseYmd(S.last)) / (7*86400000)));
+    S.banked = Math.min(3, (S.banked||0) + weeks);   // unspent spins bank up to 3
+    S.last = cur;
+  }
+}
+function wheelSvg(size, id){
+  const cx = 150, cy = 150, rad = 140, n = SPIN_SLICES.length;
+  let out = '';
+  SPIN_SLICES.forEach((t,i)=>{
+    const a0 = -Math.PI/2 + i*2*Math.PI/n - Math.PI/n, a1 = a0 + 2*Math.PI/n, am = (a0+a1)/2;
+    const f = x=>x.toFixed(1);
+    const fill = t==='c' ? (i%2 ? '#444f66' : '#394357') : t==='r' ? '#2b72d6' : '#e0a020';
+    out += `<path d="M${cx},${cy} L${f(cx+rad*Math.cos(a0))},${f(cy+rad*Math.sin(a0))} A${rad},${rad} 0 0 1 ${f(cx+rad*Math.cos(a1))},${f(cy+rad*Math.sin(a1))}Z" fill="${fill}" stroke="#0b0b0c" stroke-width="2"/>`;
+    const rx = cx+104*Math.cos(am), ry = cy+104*Math.sin(am), rot = `rotate(${(am*180/Math.PI+90).toFixed(0)} ${f(rx)} ${f(ry)})`;
+    if(t==='c') out += `<circle cx="${f(rx)}" cy="${f(ry)}" r="3.2" fill="#aab6cc"/>`;
+    else if(t==='r') out += `<path d="M${f(rx)},${f(ry-7)} l6,7 -6,7 -6,-7Z" fill="#cfe5ff" transform="${rot}"/>`;
+    else out += `<path d="M${f(rx)},${f(ry-10)} l3,6.5 7,.8 -5.2,4.8 1.5,7 -6.3,-3.6 -6.3,3.6 1.5,-7 -5.2,-4.8 7,-.8z" fill="#fff6c8" transform="${rot}"/>`;
+  });
+  return `<svg width="${size}" height="${size}" viewBox="0 0 300 300" aria-hidden="true"><g id="${id||''}" style="transform-origin:150px 150px;">${out}</g><circle cx="150" cy="150" r="${rad+4}" fill="none" stroke="#2a2a2d" stroke-width="8"/><circle cx="150" cy="150" r="${rad+4}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="2 12" opacity=".8"/><circle cx="150" cy="150" r="34" fill="#161617" stroke="#2a2a2d" stroke-width="4"/></svg>`;
+}
+// Decide the prize: roll a rarity (70 / 25 / 5), then give something you don't own yet in that tier.
+// If you already own everything in the tier you get XP instead.
+function spinRoll(){
+  const r = Math.random(), tier = r < .05 ? 's' : r < .30 ? 'r' : 'c';
+  const W = state.ember.wardrobe;
+  const pool = [];
+  ['acc','bg','title'].forEach(type=>WARDROBE[type].forEach(it=>{ if(it.r===tier && !W.owned[type].includes(it.id)) pool.push({type, it}); }));
+  const slices = SPIN_SLICES.map((t,i)=>({t,i})).filter(x=>x.t===(tier==='s'?'S':tier));
+  const slice = slices[Math.floor(Math.random()*slices.length)].i;
+  if(pool.length){
+    const pick = pool[Math.floor(Math.random()*pool.length)];
+    W.owned[pick.type].push(pick.it.id);
+    return {tier, slice, type:pick.type, item:pick.it, dupe:false, xp:0};
+  }
+  const xp = WARD_RARITY[tier].xp;
+  state.ember.bonusXp = (state.ember.bonusXp||0) + xp;
+  return {tier, slice, type:null, item:null, dupe:true, xp};
+}
+function wardEquip(type, id){
+  const W = state.ember.wardrobe;
+  W.equipped[type] = (W.equipped[type]===id) ? null : id;
+  save();
+  const eb = document.getElementById('emberBtn'); if(eb) eb.dataset.sig = '';
+  refreshHero();
+}
+function wardPreviewHtml(type, it, size){
+  if(type==='acc') return `<div class="wd-art" style="width:${size}px;height:${size}px;">${emberFlameSvg('st', null, EMBER_SKINS[0], it.id)}</div>`;
+  if(type==='bg') return `<div class="wd-bg" style="background:${it.css};"><div class="wd-bg-f">${emberFlameSvg('st', null, EMBER_SKINS[0], null)}</div></div>`;
+  return `<span class="wd-title" style="--tc:${WARD_RARITY[it.r].col};">${escapeHtml(it.name)}</span>`;
+}
+function showSpin(){
+  const W = state.ember.wardrobe;
+  if(!(W.spin.banked>0)) return;
+  let ov = document.getElementById('spinOverlay');
+  if(!ov){ ov = document.createElement('div'); ov.id = 'spinOverlay'; ov.className = 'boss-overlay lucky'; ov.setAttribute('aria-hidden','true'); document.body.appendChild(ov); }
+  ov.style.setProperty('--lc', '#ffb23a');
+  const legend = [['c','70%'],['r','25%'],['s','5%']].map(([t,p])=>`<div class="sp-odd" style="border-color:${WARD_RARITY[t].col}55;"><i style="color:${WARD_RARITY[t].col};">${WARD_RARITY[t].tag}</i><b>${p}</b></div>`).join('');
+  ov.innerHTML = `<div class="bo-card sp-card">
+    <div class="bo-k" style="color:#ffb23a;">WEEKLY SPIN</div>
+    <div class="sp-title">Spin for a cosmetic</div>
+    <div class="bo-sub">${W.spin.banked} spin${W.spin.banked!==1?'s':''} ready · every spin wins something</div>
+    <div class="sp-wheel"><svg class="sp-pointer" width="28" height="36" viewBox="0 0 28 36" aria-hidden="true"><path d="M14,34 L2,6 Q14,-2 26,6Z" fill="var(--accent)" stroke="#0b0b0c" stroke-width="2.4" stroke-linejoin="round"/><circle cx="14" cy="11" r="3" fill="#fff" opacity=".8"/></svg>${wheelSvg(300,'spinWheel')}<div class="sp-hub">${emberFlameSvg('st', null, EMBER_SKINS[0], null)}</div></div>
+    <button class="btn bo-ok sp-go" id="spGo">SPIN</button>
+    <div class="sp-odds">${legend}</div>
+    <div class="lk-count">Own everything in a tier? You get XP instead: +25 / +75 / +200</div>
+    <button class="btn secondary bo-ok lt-later" id="spClose">Not now</button>
+  </div>`;
+  ov.classList.add('open'); ov.setAttribute('aria-hidden','false');
+  const close = ()=>{ ov.classList.remove('open'); ov.setAttribute('aria-hidden','true'); ov.innerHTML = ''; refreshHero(); };
+  document.getElementById('spClose').onclick = close;
+  ov.onmousedown = ev=>{ if(ev.target===ov && !ov.dataset.busy) close(); };
+  document.getElementById('spGo').onclick = ()=>{
+    if(ov.dataset.busy) return;
+    ov.dataset.busy = '1';
+    W.spin.banked = Math.max(0, W.spin.banked-1);
+    const res = spinRoll();
+    save();
+    document.getElementById('spGo').disabled = true; document.getElementById('spClose').style.visibility = 'hidden';
+    const wheel = document.getElementById('spinWheel');
+    const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const deg = 360*6 - res.slice*(360/SPIN_SLICES.length) + (Math.random()*10-5);
+    const done = ()=>{ delete ov.dataset.busy; ov.classList.remove('open'); ov.setAttribute('aria-hidden','true'); ov.innerHTML = ''; showSpinPrize(res); };
+    if(reduce){ setTimeout(done, 300); return; }
+    wheel.style.transition = 'transform 4.6s cubic-bezier(.12,.7,.1,1)';
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{ wheel.style.transform = `rotate(${deg}deg)`; }));
+    setTimeout(done, 5000);
+  };
+}
+function showSpinPrize(res){
+  const W = state.ember.wardrobe, R = WARD_RARITY[res.tier];
+  let ov = document.getElementById('prizeOverlay');
+  if(!ov){ ov = document.createElement('div'); ov.id = 'prizeOverlay'; ov.className = 'boss-overlay lucky'; ov.setAttribute('aria-hidden','true'); document.body.appendChild(ov); }
+  ov.style.setProperty('--lc', R.col);
+  const art = res.dupe
+    ? `<div class="pz-xp" style="color:${R.col};">+${res.xp} XP</div>`
+    : res.type==='acc' ? `<div class="pz-ember">${emberFlameSvg('st', null, EMBER_SKINS[0], res.item.id)}</div>`
+    : res.type==='bg' ? `<div class="pz-bg" style="background:${res.item.css};"><div class="pz-bg-f">${emberFlameSvg('st', null, EMBER_SKINS[0], null)}</div></div>`
+    : `<div class="pz-title"><span class="wd-title" style="--tc:${R.col};">${escapeHtml(res.item.name)}</span></div>`;
+  const name = res.dupe ? 'Bonus XP' : res.item.name;
+  const sub = res.dupe ? `You already own every ${R.name.toLowerCase()} cosmetic` : `${WARD_KIND_NAME[res.type]} · new in your wardrobe`;
+  ov.innerHTML = `<div class="bo-card pz-card" style="--bc:${R.col};">
+    <div class="bo-k" style="color:${R.col};">YOU WON</div>
+    <div class="lt-badge" style="margin-top:8px;color:${R.col};border-color:${R.col}77;background:${R.col}22;">${R.tag}</div>
+    <div class="pz-stage">${art}</div>
+    <div class="lt-name" style="color:${R.col};text-shadow:0 0 28px ${R.col}88;">${escapeHtml(name)}</div>
+    <div class="bo-sub">${escapeHtml(sub)}</div>
+    ${res.dupe ? '' : `<button class="btn bo-ok" id="pzWear">${res.type==='title' ? 'Use it now' : res.type==='bg' ? 'Use it now' : 'Wear it now'}</button>`}
+    <button class="btn ${res.dupe?'':'secondary'} bo-ok lt-later" id="pzKeep">${res.dupe ? 'Nice' : 'Keep it for later'}</button>
+    <div class="lk-count">Wardrobe: <b>${wardCount()} of ${wardTotal()}</b> collected · ${W.spin.banked>0 ? W.spin.banked+' spin'+(W.spin.banked!==1?'s':'')+' left' : 'next spin Sunday'}</div>
+  </div>`;
+  ov.classList.add('open'); ov.setAttribute('aria-hidden','false');
+  const close = ()=>{ ov.classList.remove('open'); ov.setAttribute('aria-hidden','true'); ov.innerHTML = ''; refreshHero(); setTimeout(checkEmberMilestones, 250); };
+  const wear = document.getElementById('pzWear');
+  if(wear) wear.onclick = ()=>{ wardEquip(res.type, res.item.id); close(); };
+  document.getElementById('pzKeep').onclick = close;
+  ov.onmousedown = ev=>{ if(ev.target===ov) close(); };
+}
+// Small card on the Month Tracker when a spin is waiting.
+function renderSpinStrip(){
+  const old = document.getElementById('spinStrip'); if(old) old.remove();
+  const W = state.ember.wardrobe, card = document.getElementById('heroCard');
+  if(!card || !(W.spin.banked>0)) return;
+  const strip = document.createElement('div');
+  strip.id = 'spinStrip'; strip.className = 'spin-strip';
+  strip.innerHTML = `<div class="ss-wheel">${wheelSvg(48,'')}</div><div class="ss-t"><i>WEEKLY SPIN</i><b>${W.spin.banked>1 ? W.spin.banked+' spins ready' : 'Ready to spin'}</b><span>Win a cosmetic for your Ember</span></div><button type="button" class="btn small ss-go">Spin</button>`;
+  card.insertAdjacentElement('beforebegin', strip);
+  strip.onclick = showSpin;
+}
+function wardTabHtml(sub){
+  const W = state.ember.wardrobe;
+  const e = emberStats();
+  const accIt = wardEquipped('acc') ? wardItem('acc', wardEquipped('acc')) : null;
+  const bgIt = wardEquipped('bg') ? wardItem('bg', wardEquipped('bg')) : null;
+  const tIt = wardEquipped('title') ? wardItem('title', wardEquipped('title')) : null;
+  const wearing = [accIt && accIt.name, bgIt && bgIt.name, tIt && tIt.name].filter(Boolean).join(' · ') || 'Nothing yet';
+  const spinRow = W.spin.banked>0
+    ? `<button type="button" class="wd-spin ready" id="wdSpin"><span class="ss-wheel">${wheelSvg(34,'')}</span><span><b>${W.spin.banked>1 ? W.spin.banked+' spins ready' : 'Weekly spin ready'}</b><i>Tap to spin</i></span></button>`
+    : `<div class="wd-spin"><span class="ss-wheel dim">${wheelSvg(34,'')}</span><span><b>Next spin on Sunday</b><i>One new spin every week</i></span></div>`;
+  const subs = [['acc','Accessories'],['bg','Backgrounds'],['title','Titles']];
+  const segs = `<div class="seg-toggle wide wd-tabs">${subs.map(([k,l])=>`<button type="button" class="seg-btn${sub===k?' active':''}" data-w="${k}">${l}</button>`).join('')}</div>`;
+  const items = WARDROBE[sub].map(it=>{
+    const own = W.owned[sub].includes(it.id), eq = W.equipped[sub]===it.id, R = WARD_RARITY[it.r];
+    const art = !own ? (sub==='title' ? '<span class="wd-title wd-lock">??? ????</span>' : sub==='acc' ? `<div class="wd-art wd-lock">${emberFlameSvg('st', null, EMBER_SKINS[0], it.id)}</div>` : '<div class="wd-bg wd-lock"></div>') : wardPreviewHtml(sub, it, 64);
+    return `<button type="button" class="wd-item r-${it.r}${eq?' on':''}${own?'':' off'}" data-w="${sub}" data-id="${it.id}">
+      <div class="wd-pv">${art}</div>
+      <div class="wd-n">${own ? escapeHtml(it.name) : '???'}</div><div class="wd-r" style="color:${R.col};">${R.tag}</div></button>`;
+  }).join('');
+  return `<div class="wd-top"><div class="wd-ember">${emberFlameSvg(e.flame, null)}</div><div class="wd-info"><div class="k">WEARING</div><div class="v">${escapeHtml(wearing)}</div><div class="s">${wardCount()} of ${wardTotal()} collected</div></div></div>
+    ${spinRow}${segs}<div class="wd-grid${sub==='title'?' titles':''}">${items}</div>
+    <div class="sk-note">Win cosmetics on the weekly spin. Tap one you own to wear it, tap again to take it off. Flame skins live under Skins.</div>`;
+}
+
+let wardSub = 'acc';
+function emberFlameSvg(flame, ringPct, skinOverride, accOverride){
   const id = 'ef'+(++emberFlameUid);
   const skin = skinOverride || emberCurrentSkin();
+  const accId = accOverride!==undefined ? accOverride : (skinOverride ? null : wardEquipped('acc'));
   const P = emberPalette(flame, skin);
   const ring = ringPct==null ? '' : `<circle cx="56" cy="56" r="51" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="5"/><circle cx="56" cy="56" r="51" fill="none" stroke="${skin.ring}" stroke-width="5" stroke-linecap="round" pathLength="100" stroke-dasharray="${Math.max(0.01,Math.min(100,ringPct))} 100" transform="rotate(-90 56 56)" style="filter:drop-shadow(0 0 5px ${skin.ring});"/>`;
   let deco = `<g fill="${P.spark}" opacity="${P.sparkOp}"><circle class="ember-spark" cx="22" cy="30" r="1.6"/><circle class="ember-spark" style="animation-delay:.9s" cx="92" cy="26" r="1.2"/><circle class="ember-spark" style="animation-delay:1.7s" cx="84" cy="14" r="1"/><circle class="ember-spark" style="animation-delay:.4s" cx="14" cy="52" r="1"/></g>`;
@@ -3761,10 +4062,10 @@ function emberFlameSvg(flame, ringPct, skinOverride){
     </defs>
     ${ring}
     <circle cx="56" cy="58" r="40" fill="url(#${id}g)"/>
-    <g transform="${P.tf}" style="filter:drop-shadow(0 0 ${P.blur||8}px ${P.glow});"><g class="ember-flick ${P.cls}">
+    <g transform="${P.tf}" style="filter:drop-shadow(0 0 ${P.blur||8}px ${P.glow});"><g class="ember-flick ${P.cls}">${accArt(accId,'back')}
       <path d="M50,97 C24,97 9,79 12,58 C14,45 23,36 31,27 C31,38 35,43 39,45 C36,28 44,13 59,3 C58,20 66,29 74,38 C83,48 89,57 89,67 C89,85 73,97 50,97 Z" fill="url(#${id}o)"/>
       <path d="M50,93 C33,93 25,81 27,69 C28,60 34,55 40,49 C40,58 44,62 48,63 C47,52 52,42 61,33 C60,44 66,50 70,58 C76,67 72,93 50,93 Z" fill="url(#${id}i)" opacity="${P.inner}"/>
-      <path d="M50,91 C41,91 37,83 40,76 C42,71 46,69 49,64 C52,70 58,73 59,80 C60,87 56,91 50,91 Z" fill="#fff4d0" opacity="${P.core}"/>
+      <path d="M50,91 C41,91 37,83 40,76 C42,71 46,69 49,64 C52,70 58,73 59,80 C60,87 56,91 50,91 Z" fill="#fff4d0" opacity="${P.core}"/>${accArt(accId,'front')}
     </g></g>
     ${deco}</svg>`;
 }
@@ -3890,7 +4191,7 @@ function openEmberModal(tab){
   const skin = emberCurrentSkin();
   const earnedN = EMBER_BADGES.filter(b=>e.earned[b.id]).length;
   const chip = {lo:['rgba(160,60,60,.18)','#e2837a'], st:['rgba(255,177,90,.16)','#ffb15a'], bl:['rgba(255,214,110,.18)','#ffd66e']}[e.flame];
-  const tabs = `<div class="seg-toggle wide em-tabs"><button type="button" class="seg-btn${emberTab==='milestones'?' active':''}" data-t="milestones">Milestones</button><button type="button" class="seg-btn${emberTab==='skins'?' active':''}" data-t="skins">Skins</button><button type="button" class="seg-btn${emberTab==='loot'?' active':''}" data-t="loot">Boss loot</button></div>`;
+  const tabs = `<div class="seg-toggle wide em-tabs"><button type="button" class="seg-btn${emberTab==='milestones'?' active':''}" data-t="milestones">Milestones</button><button type="button" class="seg-btn${emberTab==='skins'?' active':''}" data-t="skins">Skins</button><button type="button" class="seg-btn${emberTab==='loot'?' active':''}" data-t="loot">Loot</button><button type="button" class="seg-btn${emberTab==='wardrobe'?' active':''}" data-t="wardrobe">Wardrobe</button></div>`;
   let body;
   if(emberTab==='skins' || emberTab==='loot'){
     const nextLocked = EMBER_SKINS.filter(k=>!k.season && k.lvl>e.level).sort((a,b)=>a.lvl-b.lvl)[0];
@@ -3915,6 +4216,8 @@ function openEmberModal(tab){
           <span class="sk-tag ${tcls}">${st==='locked'?iconSvg('M6 11h12v9H6zM8 11V8a4 4 0 0 1 8 0v3'):''}${escapeHtml(tag)}</span></button>`;
       }).join('')}</div>
       <div class="sk-note">Skins only change how the flame looks. Your colours, level and milestones stay the same.</div>`;
+  } else if(emberTab==='wardrobe'){
+    body = wardTabHtml(wardSub);
   } else {
     body = `
       <div class="recap-sub">${escapeHtml(e.why)} Log your spending, pay bills on time and keep your Score up to feed it.</div>
@@ -3930,7 +4233,7 @@ function openEmberModal(tab){
   }
   box.innerHTML = `
     <div class="recap-eyebrow">Your Ember</div>
-    ${(emberTab==='skins' || emberTab==='loot') ? '' : `<div class="em-modal-top">
+    ${(emberTab==='skins' || emberTab==='loot' || emberTab==='wardrobe') ? '' : `<div class="em-modal-top">
       <div class="em-big">${emberFlameSvg(e.flame, e.levelPct)}</div>
       <div>
         <div class="recap-title" style="margin:0;">Level ${e.level}</div>
@@ -3945,6 +4248,13 @@ function openEmberModal(tab){
   bg.onclick = ev=>{ if(ev.target===bg) closeRecapModal(); };
   document.getElementById('emberClose').onclick = closeRecapModal;
   box.querySelectorAll('.em-tabs .seg-btn').forEach(b=>b.onclick = ()=>openEmberModal(b.dataset.t));
+  box.querySelectorAll('.wd-tabs .seg-btn').forEach(b=>b.onclick = ()=>{ wardSub = b.dataset.w; openEmberModal(); });
+  box.querySelectorAll('.wd-item').forEach(c=>c.onclick = ()=>{
+    const type = c.dataset.w, id = c.dataset.id;
+    if(!wardOwned(type).includes(id)){ showToast('Not won yet', 'Cosmetics come from the weekly spin.'); return; }
+    wardEquip(type, id); openEmberModal();
+  });
+  const wdSpin = box.querySelector('#wdSpin'); if(wdSpin) wdSpin.onclick = ()=>{ closeRecapModal(); showSpin(); };
   box.querySelectorAll('.sk-card').forEach(c=>c.onclick = ()=>{
     const k = emberAllSkins().find(x=>x.id===c.dataset.skin);
     const st = emberSkinState(k, e.level);
@@ -3985,6 +4295,12 @@ function refreshHero(){
   const now = new Date();
   const isCurrent = state.currentMonthKey===monthKey(now);
   hi.textContent = name ? `Hey, ${name}` : 'Hey there';
+  { const tIt = wardEquipped('title') ? wardItem('title', wardEquipped('title')) : null;
+    const ht = document.getElementById('heroTitle');
+    if(ht){ ht.textContent = tIt ? tIt.name : ''; if(tIt) ht.style.setProperty('--tc', WARD_RARITY[tIt.r].col); }
+    const bgIt = wardEquipped('bg') ? wardItem('bg', wardEquipped('bg')) : null;
+    const fx = document.getElementById('heroBgfx'); if(fx) fx.style.background = bgIt ? bgIt.css : '';
+    renderSpinStrip(); }
   document.getElementById('heroDate').textContent = isCurrent
     ? now.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'})
     : monthLabelFromKey(state.currentMonthKey);
@@ -3998,13 +4314,13 @@ function refreshHero(){
   const eb = document.getElementById('emberBtn');
   if(eb){
     const e = emberStats();
-    const sig = e.flame+'|'+e.levelPct+'|'+emberCurrentSkin().id;
+    const sig = e.flame+'|'+e.levelPct+'|'+emberCurrentSkin().id+'|'+(wardEquipped('acc')||'');
     if(eb.dataset.sig!==sig){ eb.innerHTML = emberFlameSvg(e.flame, e.levelPct); eb.dataset.sig = sig; }
     eb.title = `Ember · Level ${e.level} · ${EMBER_FLAME_TEXT[e.flame]}`;
     eb.onclick = openEmberModal;
     const chip = document.getElementById('emberChip');
     if(chip){ chip.textContent = `Level ${e.level} · ${EMBER_FLAME_TEXT[e.flame]}`; chip.className = 'ember-chip ' + e.flame; chip.onclick = openEmberModal; }
-    if(!eb.dataset.checked){ eb.dataset.checked = '1'; checkEmberMilestones(); }
+    if(!eb.dataset.checked){ eb.dataset.checked = '1'; checkEmberMilestones(); if(/[?&]spin=1/.test(location.search)) setTimeout(showSpin, 700); }
   }
 }
 // ---------------- Month Tracker ----------------
@@ -4015,12 +4331,12 @@ function renderMonth(){
   const [curYear, curMonthNum] = state.currentMonthKey.split('-').map(Number);
   const el = document.getElementById('view-month');
   el.innerHTML = `
-    <div class="hero-card" id="heroCard">
+    <div class="hero-card" id="heroCard"><div class="hero-bgfx" id="heroBgfx"></div>
       <div class="hero-grid">
         <div>
           <div class="hero-id">
             <button type="button" class="ember-btn" id="emberBtn" aria-label="Your Ember — streaks and milestones"></button>
-            <div class="hero-who"><div class="hero-hi" id="heroHi"></div><div class="hero-date" id="heroDate"></div><button type="button" class="ember-chip" id="emberChip"></button></div>
+            <div class="hero-who"><div class="hero-hi" id="heroHi"></div><div class="hero-title" id="heroTitle"></div><div class="hero-date" id="heroDate"></div><button type="button" class="ember-chip" id="emberChip"></button></div>
           </div>
           <div class="hero-label">Current balance</div>
           <div class="hero-bal"><span class="hero-cur">${escapeHtml(state.currency)}</span><input type="number" step="0.01" id="liveBalanceInput" class="hero-bal-input" value="${t.liveBalance}" aria-label="Current balance" style="${t.liveBalance>=0?'':'color:var(--red);'}"></div>

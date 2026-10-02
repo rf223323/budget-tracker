@@ -1,4 +1,4 @@
-const CACHE_NAME = 'budget-tracker-v4';
+const CACHE_NAME = 'budget-tracker-v5';
 const PRECACHE_URLS = [
   './',
   './index.html',
@@ -76,7 +76,7 @@ self.addEventListener('push', event => {
     body: data.body || '',
     icon: 'icon-192.png',
     badge: 'favicon.png',
-    tag: 'embalance-reminder',
+    tag: data.tag || 'embalance-reminder',
     renotify: true,
     data: {url: data.url || './index.html'}
   }));
