@@ -3830,7 +3830,11 @@ const WARDROBE = {
   acc:[
     {id:'party',name:'Party hat',r:'c'},{id:'shades',name:'Sunglasses',r:'c'},{id:'bowtie',name:'Bow tie',r:'c'},{id:'scarf',name:'Scarf',r:'c'},
     {id:'phones',name:'Headphones',r:'r'},{id:'wizard',name:'Wizard hat',r:'r'},{id:'halo',name:'Halo',r:'r'},{id:'patch',name:'Eyepatch',r:'r'},
-    {id:'crown',name:'Crown',r:'s'},{id:'wings',name:'Angel wings',r:'s'},{id:'cape',name:'Galaxy cape',r:'s'}
+    {id:'crown',name:'Crown',r:'s'},{id:'wings',name:'Angel wings',r:'s'},{id:'cape',name:'Galaxy cape',r:'s'},
+    // anime-inspired
+    {id:'redscarf',name:'Red scarf',r:'c'},{id:'harness',name:'Gear harness',r:'c'},
+    {id:'horns',name:'Devil horns',r:'r'},{id:'grin',name:'Shark grin',r:'r'},{id:'cloak',name:'Scout cloak',r:'r'},{id:'steam',name:'Titan steam',r:'r'},
+    {id:'blades',name:'Twin blades',r:'s'},{id:'chainsaw',name:'Chainsaw head',r:'s'}
   ],
   bg:[
     {id:'dusk',name:'Dusk',r:'c',css:'linear-gradient(160deg,#3a2a5a,#e0705a)'},
@@ -3840,12 +3844,16 @@ const WARDROBE = {
     {id:'stars',name:'Nebula',r:'r',css:'radial-gradient(55% 45% at 20% 25%,rgba(255,110,200,.5),transparent),radial-gradient(55% 45% at 85% 75%,rgba(120,110,255,.55),transparent),linear-gradient(160deg,#150d33,#3a1a6a)'},
     {id:'confetti',name:'Sorbet',r:'r',css:'linear-gradient(135deg,#ff7aa8,#ffb27a 50%,#7affc8)'},
     {id:'aurora',name:'Aurora',r:'s',css:'linear-gradient(135deg,#0b1a2a,#1fa87a 40%,#7a4af0 70%,#0b1a2a)'},
-    {id:'lava',name:'Lava lake',r:'s',css:'radial-gradient(60% 40% at 30% 80%,#ff7a2a,transparent),radial-gradient(50% 35% at 75% 70%,#ffb23a,transparent),#2a0a08'}
+    {id:'lava',name:'Lava lake',r:'s',css:'radial-gradient(60% 40% at 30% 80%,#ff7a2a,transparent),radial-gradient(50% 35% at 75% 70%,#ffb23a,transparent),#2a0a08'},
+    {id:'wall',name:'Stone wall',r:'c',css:'linear-gradient(160deg,#4a5568,#c7b79a)'},
+    {id:'bloodmoon',name:'Blood moon',r:'r',css:'radial-gradient(50% 40% at 78% 22%,rgba(255,170,90,.55),transparent),linear-gradient(160deg,#1a0508,#7a0f1f)'},
+    {id:'wallsdawn',name:'Dawn over the walls',r:'s',css:'linear-gradient(180deg,#14213d 0%,#5b4b8a 40%,#ff8f6b 78%,#ffd9a0 100%)'}
   ],
   title:[
     {id:'penny',name:'Penny Pincher',r:'c'},{id:'early',name:'Early Bird',r:'c'},
     {id:'slayer',name:'Bill Slayer',r:'r'},{id:'keeper',name:'Streak Keeper',r:'r'},
-    {id:'lord',name:'Ember Lord',r:'s'},{id:'tamer',name:'Dragon Tamer',r:'s'}
+    {id:'lord',name:'Ember Lord',r:'s'},{id:'tamer',name:'Dragon Tamer',r:'s'},
+    {id:'scout',name:'Scout',r:'c'},{id:'hunter',name:'Devil Hunter',r:'r'},{id:'titanslayer',name:'Titan Slayer',r:'s'}
   ]
 };
 const WARD_KIND_NAME = {acc:'Ember accessory', bg:'Card background', title:'Title'};
@@ -3872,6 +3880,23 @@ const ACC_ART = (()=>{
     cape:{back:`<g transform="translate(56 56) scale(.8) translate(-56 -56)"><path d="M30,52 C14,74 12,98 20,110 L92,110 C100,98 98,74 82,52 C72,72 40,72 30,52Z" fill="#2a1a6a" stroke="${o}" stroke-width="${sw}" stroke-linejoin="round"/><path d="M30,52 C14,74 12,98 20,110 L56,110 C44,90 40,72 30,52Z" fill="#4a2aa0" opacity=".7"/><g fill="#ffe08a"><circle cx="24" cy="90" r="1.6"/><circle cx="34" cy="100" r="1.2"/><circle cx="80" cy="96" r="1.6"/><circle cx="88" cy="80" r="1.2"/><circle cx="70" cy="104" r="1"/></g></g>`, front:`<path d="M34,70 Q56,82 78,70" fill="none" stroke="#ffc247" stroke-width="3.4" stroke-linecap="round"/><circle cx="56" cy="79" r="3.4" fill="#ffc247" stroke="${o}" stroke-width="1.3"/>`}
   };
 })();
+// Anime-inspired accessories: original art that nods to the shows (chainsaw, steam, gear and cloaks), drawn like the rest.
+Object.assign(ACC_ART, (()=>{
+  const o = ACC_O, sw = 1.7;
+  const blade = a=>`<g transform="translate(54 74) rotate(${a})"><path d="M-3.4,-62 L3.4,-62 L4.6,4 L-4.6,4Z" fill="#dfe6f2" stroke="${o}" stroke-width="${sw}" stroke-linejoin="round"/><path d="M-0.6,-58 L-0.6,0" stroke="#fff" stroke-width="1.4" stroke-linecap="round" opacity=".8"/><rect x="-8" y="4" width="16" height="4.4" rx="1.6" fill="#8a6a2a" stroke="${o}" stroke-width="1.5"/><rect x="-3.2" y="8.4" width="6.4" height="17" rx="2" fill="#5a3a22" stroke="${o}" stroke-width="1.5"/></g>`;
+  const teeth = (side)=>Array.from({length:6},(_,i)=>`<path d="M${side<0?49:59},${12+i*4.6} l${side*5},2.3 l${-side*5},2.3Z" fill="#f4f6fb" stroke="${o}" stroke-width="1"/>`).join('');
+  const steam = `<g fill="none" stroke="#fff" stroke-linecap="round" opacity=".8"><path d="M30,58 C24,50 32,44 26,36 C22,30 28,24 26,18" stroke-width="3.2"/><path d="M80,56 C86,48 78,42 84,34 C88,28 82,22 84,16" stroke-width="3.2"/><path d="M50,28 C44,22 52,16 46,8" stroke-width="2.6"/><path d="M66,30 C72,24 64,18 70,10" stroke-width="2.6"/></g><g fill="#fff" opacity=".45"><circle cx="26" cy="18" r="4"/><circle cx="84" cy="16" r="4.2"/><circle cx="46" cy="8" r="3"/><circle cx="70" cy="10" r="3.2"/><circle cx="22" cy="40" r="3"/><circle cx="88" cy="40" r="3"/></g>`;
+  return {
+    redscarf:{front:`<path d="M30,76 Q56,92 82,76 L84,86 Q56,102 28,86Z" fill="#e0323f" stroke="${o}" stroke-width="${sw}" stroke-linejoin="round"/><path d="M36,80 Q56,92 76,80" fill="none" stroke="#ff7a86" stroke-width="2" stroke-linecap="round" opacity=".8"/><path d="M36,88 L26,108 L42,103 L44,91Z" fill="#e0323f" stroke="${o}" stroke-width="${sw}" stroke-linejoin="round"/>`},
+    harness:{front:`<g stroke-linecap="round"><path d="M33,48 L78,90" stroke="${o}" stroke-width="7.4"/><path d="M33,48 L78,90" stroke="#9a6a3a" stroke-width="4.4"/><path d="M77,48 L32,90" stroke="${o}" stroke-width="7.4"/><path d="M77,48 L32,90" stroke="#9a6a3a" stroke-width="4.4"/></g><rect x="49.5" y="63.5" width="11" height="11" rx="2.4" fill="#d6dce8" stroke="${o}" stroke-width="1.6"/><rect x="53" y="67" width="4" height="4" rx="1" fill="${o}" opacity=".7"/>`},
+    horns:{front:`<path d="M44,46 C33,42 28,26 35,12 C40,24 46,33 53,40Z" fill="#d6303f" stroke="${o}" stroke-width="${sw}" stroke-linejoin="round"/><path d="M64,46 C75,42 80,26 73,12 C68,24 62,33 55,40Z" fill="#d6303f" stroke="${o}" stroke-width="${sw}" stroke-linejoin="round"/><path d="M37,22 C36,28 38,34 42,38 M71,22 C72,28 70,34 66,38" fill="none" stroke="#ff8a96" stroke-width="1.8" stroke-linecap="round" opacity=".85"/>`},
+    grin:{front:`<g stroke="${o}" stroke-width="${sw}" stroke-linejoin="round"><path d="M40,48 L51,52 L40,55Z M68,48 L57,52 L68,55Z" fill="#fff"/></g><path d="M36,62 Q54,84 72,62 Q54,70 36,62Z" fill="${o}"/><g fill="#fff" stroke="${o}" stroke-width="1"><path d="M38,63 l3.4,6 l3.4,-4.4Z"/><path d="M45,66 l3.4,6.4 l3.4,-5.4Z"/><path d="M54,68 l3.4,6.6 l3.4,-6.4Z" transform="translate(-3 0)"/><path d="M60,67 l3.4,6 l3.2,-6.6Z"/><path d="M66,64 l3,5 l2.6,-6Z"/></g>`},
+    cloak:{back:`<path d="M31,58 C16,76 14,100 22,110 L90,110 C98,100 96,76 81,58 C72,72 40,72 31,58Z" fill="#3f6b3a" stroke="${o}" stroke-width="${sw}" stroke-linejoin="round"/><path d="M31,58 C16,76 14,100 22,110 L52,110 C42,92 38,74 31,58Z" fill="#2f5230" opacity=".7"/>`, front:`<path d="M32,72 Q56,84 80,72" fill="none" stroke="${o}" stroke-width="6.4" stroke-linecap="round"/><path d="M32,72 Q56,84 80,72" fill="none" stroke="#4f8a46" stroke-width="3.6" stroke-linecap="round"/><circle cx="56" cy="80" r="3.4" fill="#d6dce8" stroke="${o}" stroke-width="1.4"/>`},
+    steam:{front:steam},
+    blades:{back:blade(-32)+blade(32)},
+    chainsaw:{front:`<g transform="translate(-0 3)"><rect x="49" y="4" width="10" height="34" rx="5" fill="#cfd6e4" stroke="${o}" stroke-width="${sw}"/>${teeth(-1)}${teeth(1)}<rect x="46" y="36" width="16" height="9" rx="3" fill="#e0323f" stroke="${o}" stroke-width="${sw}"/><path d="M52,10 L52,32" stroke="#fff" stroke-width="1.6" stroke-linecap="round" opacity=".7"/></g>`}
+  };
+})());
 function accArt(id, layer){
   const a = ACC_ART[id]; if(!a || !a[layer]) return '';
   return `<g transform="${ACC_MAP}">${a[layer]}</g>`;
