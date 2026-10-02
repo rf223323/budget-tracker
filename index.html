@@ -2355,11 +2355,19 @@ function ensureChartTooltip(){
   document.body.appendChild(chartTooltipEl);
   return chartTooltipEl;
 }
-function showChartTooltip(evt, text, isHtml){
+function showChartTooltip(evt, text, isHtml, anchor){
   const t = ensureChartTooltip();
   if(isHtml) t.innerHTML = text; else t.textContent = text;
   t.style.display = 'block';
   const pad = 12;
+  if(anchor){
+    // Touch: keep the readout above the chart so a finger never covers it.
+    const left = Math.min(Math.max(pad, anchor.x - t.offsetWidth/2), window.innerWidth - t.offsetWidth - pad);
+    let top = anchor.top - t.offsetHeight - 8;
+    if(top < 64) top = anchor.top + 6;
+    t.style.left = left + 'px'; t.style.top = top + 'px';
+    return;
+  }
   let left = evt.clientX + pad, top = evt.clientY - 14;
   const maxLeft = window.innerWidth - t.offsetWidth - pad;
   if(left > maxLeft) left = evt.clientX - t.offsetWidth - pad;
@@ -2416,11 +2424,25 @@ function lineChart(container, data, opts={}){
   if(!visible.length){ hidden.clear(); visible = allSeries.map((s,i)=>({s,i})); }
   const animate = opts.animate !== false;
   const w = opts.width||container.clientWidth||600, h = opts.height||240;
-  const padL=54,padR=16,padT=18,padB=28;
+  const narrow = w < 520;
   const allVals = visible.flatMap(({s})=>s.points.map(p=>p.y));
-  const maxV = Math.max(...allVals, 0), minV = Math.min(...allVals, 0);
+  let maxV = Math.max(...allVals, 0), minV = Math.min(...allVals, 0);
+  // Round the axis to tidy numbers (0, 5k, 10k …) instead of splitting the raw range.
   const rawRange = maxV - minV;
-  const range = rawRange || 1;
+  const nTicks = 4;
+  let tickStep = 0;
+  if(rawRange>0){
+    const rough = rawRange/nTicks, mag = Math.pow(10, Math.floor(Math.log10(rough)));
+    tickStep = [1,2,2.5,5,10].map(f=>f*mag).find(x=>x>=rough) || 10*mag;
+    minV = Math.floor(minV/tickStep+1e-9)*tickStep;
+    maxV = Math.ceil(maxV/tickStep-1e-9)*tickStep;
+  }
+  const tickCount = tickStep ? Math.round((maxV-minV)/tickStep) : 3;
+  const range = (maxV - minV) || 1;
+  const fmtAxis = v => narrow ? fmtCompact(v) : state.currency+Math.round(v).toLocaleString();
+  const axisLabels = Array.from({length:tickCount+1}, (_,i)=>fmtAxis(rawRange===0 ? maxV : maxV - (range*i/tickCount)));
+  const padL = Math.max(narrow ? 34 : 54, Math.max(...axisLabels.map(l=>l.length))*(narrow?6.4:6.2)+12), padR = narrow ? 12 : 16, padT = 18, padB = narrow ? 30 : 28;
+  const axisFont = narrow ? 11 : 10;
   const n = allSeries[0].points.length;
   const uid = ++lineChartUid;
   const svg = svgEl('svg',{viewBox:`0 0 ${w} ${h}`, width:'100%', height:h, style:'display:block;touch-action:pan-y;'});
@@ -2430,11 +2452,10 @@ function lineChart(container, data, opts={}){
   const bottom = h-padB;
   const defs = svgEl('defs',{});
   svg.appendChild(defs);
-  for(let i=0;i<=3;i++){
-    const y = padT + (h-padT-padB)*i/3;
+  for(let i=0;i<=tickCount;i++){
+    const y = padT + (h-padT-padB)*i/tickCount;
     svg.appendChild(svgEl('line',{x1:padL,y1:y,x2:w-padR,y2:y,stroke:gridColor,'stroke-width':1}));
-    const val = rawRange===0 ? maxV : maxV - (range*i/3);
-    const t = svgEl('text',{x:6,y:y+4,'font-size':10,fill:mutedColor}); t.textContent = state.currency+Math.round(val).toLocaleString();
+    const t = svgEl('text',{x:padL-7,y:y+4,'font-size':axisFont,fill:mutedColor,'text-anchor':'end'}); t.textContent = axisLabels[i];
     svg.appendChild(t);
   }
   const xStep = n>1 ? (w-padL-padR)/(n-1) : 0;
@@ -2471,7 +2492,7 @@ function lineChart(container, data, opts={}){
       }
       svg.appendChild(area);
     }
-    const pathAttrs = {d, fill:'none', stroke:color, 'stroke-width':2.4, 'stroke-linejoin':'round','stroke-linecap':'round'};
+    const pathAttrs = {d, fill:'none', stroke:color, 'stroke-width':narrow?2.8:2.4, 'stroke-linejoin':'round','stroke-linecap':'round'};
     if(s.dashed) pathAttrs['stroke-dasharray'] = '6,4';
     const pathEl = svgEl('path', pathAttrs);
     svg.appendChild(pathEl);
@@ -2498,7 +2519,10 @@ function lineChart(container, data, opts={}){
     dotRefs.push({color, name:s.name, pts, ring:null, s});
   });
 
-  const maxLabels = Math.max(1, Math.min(n, Math.floor(w/100)));
+  const maxLabels = Math.max(1, Math.min(n, Math.floor((w-padL-padR)/(narrow?58:90))));
+  // On phones drop the year from month labels ("Apr 2026" → "Apr"); keep a '26 suffix only when the data spans years.
+  const yearsSeen = new Set(allSeries[0].points.map(p=>(String(p.x).match(/\b(20\d\d)$/)||[])[1]).filter(Boolean));
+  const xText = x => { const str = String(x); if(!narrow) return str; return yearsSeen.size>1 ? str.replace(/ 20(\d\d)$/," '$1") : str.replace(/ 20\d\d$/,''); };
   const step = Math.max(1, Math.round(n/maxLabels));
   allSeries[0].points.forEach((p,i)=>{
     // Skip a regular label that would collide with the always-shown last one.
@@ -2506,8 +2530,8 @@ function lineChart(container, data, opts={}){
     const x = xFor(i);
     // First/last labels anchor inward so they can't spill past the chart's own edge.
     const anchor = i===0 ? 'start' : (i===n-1 ? 'end' : 'middle');
-    const t = svgEl('text',{x, y:h-8, 'font-size':10, fill:mutedColor, 'text-anchor':anchor});
-    t.textContent = p.x;
+    const t = svgEl('text',{x, y:h-8, 'font-size':axisFont, fill:mutedColor, 'text-anchor':anchor});
+    t.textContent = xText(p.x);
     svg.appendChild(t);
   });
 
@@ -2542,7 +2566,7 @@ function lineChart(container, data, opts={}){
       }
       return `<div style="display:flex;align-items:center;gap:6px;"><span style="width:8px;height:8px;border-radius:50%;background:${r.color};flex-shrink:0;"></span>${r.name?escapeHtml(r.name)+': ':''}${escapeHtml(fmt(v))}${delta}</div>`;
     }).join('');
-    showChartTooltip(evt, `<div style="margin-bottom:3px;">${escapeHtml(String(label))}</div>${rows}`, true);
+    showChartTooltip(evt, `<div style="margin-bottom:3px;">${escapeHtml(String(label))}</div>${rows}`, true, evt.pointerType==='touch' ? {x:evt.clientX, top:rect.top} : null);
   };
   const endScrub = ()=>{
     guide.setAttribute('opacity',0);
@@ -4911,7 +4935,7 @@ function paintCashflow(dyn, c){
       guide.setAttribute('x1', pt[0]); guide.setAttribute('x2', pt[0]); guide.setAttribute('opacity', .45);
       dot.setAttribute('cx', pt[0]); dot.setAttribute('cy', pt[1]); dot.setAttribute('opacity', 1);
       const evs = c.events.filter(e=>e.day===day);
-      showChartTooltip(evt, `<div style="margin-bottom:3px;">${escapeHtml(dateLabel(day))}</div><div>Balance: <b>${p.bal<0?'−':''}${money(Math.abs(p.bal))}</b></div>${evs.map(e=>`<div style="color:var(--muted);font-weight:500;">${e.kind==='in'?'+':'−'}${money(Math.abs(e.amount))} ${escapeHtml(e.name)}</div>`).join('')}`, true);
+      showChartTooltip(evt, `<div style="margin-bottom:3px;">${escapeHtml(dateLabel(day))}</div><div>Balance: <b>${p.bal<0?'−':''}${money(Math.abs(p.bal))}</b></div>${evs.map(e=>`<div style="color:var(--muted);font-weight:500;">${e.kind==='in'?'+':'−'}${money(Math.abs(e.amount))} ${escapeHtml(e.name)}</div>`).join('')}`, true, evt.pointerType==='touch' ? {x:evt.clientX, top:rect.top} : null);
     };
     const end = ()=>{ guide.setAttribute('opacity',0); dot.setAttribute('opacity',0); hideChartTooltip(); };
     overlay.addEventListener('pointermove', scrub);
