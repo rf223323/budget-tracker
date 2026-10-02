@@ -184,6 +184,12 @@
   .cell-summary{display:none;}
   .del-label{display:none;}
   td.cell-category .cat-dd{display:block;width:140px;}
+  td.cell-incat .cat-dd{display:block;width:100%;}
+  /* Incoming rows have an extra Category column, so fix the layout: the Source
+     column takes whatever width is left instead of the table overflowing. */
+  .income-table{table-layout:fixed;}
+  .income-table th,.income-table td{box-sizing:border-box;}
+  .income-table td select{width:100%;}
   .row-input{border:none;background:transparent;padding:4px 6px;width:100%;}
   .row-input:focus{background:var(--panel2);border-radius:6px;}
   .amt-cell{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
@@ -408,7 +414,7 @@
   .quick-receipt-status.error{color:var(--red);}
   .quick-receipt-status.ok{color:var(--green);}
   .cell-name-flex{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 10px;}
-  .cell-name-flex .row-input{flex:1 1 140px;width:auto;}
+  .cell-name-flex .row-input{flex:1 1 90px;min-width:0;width:auto;}
   .cell-name-flex .schedule-hint{margin-top:0;white-space:nowrap;flex:0 0 auto;}
   .legend-item .dash{width:16px;height:0;border-top:2px dashed;flex-shrink:0;}
   .hidden{display:none !important;}
@@ -490,10 +496,12 @@
     .responsive-table td.cell-name{flex:1 1 100%;}
     .responsive-table td.cell-name input{font-size:15px;font-weight:600;}
     .responsive-table td.cell-category{flex:1 1 100%;}
-    .responsive-table td.cell-category select,.responsive-table td.cell-category .cat-dd{width:100%;}
+    .responsive-table td.cell-category select,.responsive-table td.cell-category .cat-dd,.responsive-table td.cell-incat .cat-dd{width:100%;}
+    .responsive-table td.cell-sched,.responsive-table td.cell-incat{flex:1 1 100%;}
+    .responsive-table td.cell-sched select{width:100%;}
     .responsive-table td.cell-day{flex:0 0 72px;min-width:0;}
     .responsive-table td.cell-day input{width:100%;}
-    .responsive-table td:not(.cell-name):not(.cell-category):not(.cell-day):not(.cell-del){flex:1 1 90px;min-width:90px;}
+    .responsive-table td:not(.cell-name):not(.cell-category):not(.cell-day):not(.cell-del):not(.cell-incat):not(.cell-sched){flex:1 1 90px;min-width:90px;}
     .responsive-table td.cell-del{flex:0 0 auto;margin-left:auto;}
     .responsive-table td[data-label]::before{content:attr(data-label);display:block;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin-bottom:3px;}
     .responsive-table .empty{padding:14px 4px;}
@@ -502,13 +510,14 @@
     .out-row{gap:8px 6px;}
     .out-row td.cell-summary{display:flex;align-items:center;gap:10px;order:0;flex:1 1 0;min-width:0;cursor:pointer;}
     .out-row td.cell-del{order:5;flex:1 1 100%;margin:4px 0 0;padding-top:10px;border-top:1px solid var(--border);}
-    .out-row .out-del{width:100%;padding:9px 12px;border:1px solid color-mix(in srgb, var(--red) 40%, transparent);border-radius:8px;color:var(--red);background:color-mix(in srgb, var(--red) 8%, transparent);font-size:12.5px;font-weight:700;}
-    .out-row .out-del .del-x{display:none;}
-    .out-row .out-del .del-label{display:inline;}
+    .out-row .out-del,.out-row .inc-del{width:100%;padding:9px 12px;border:1px solid color-mix(in srgb, var(--red) 40%, transparent);border-radius:8px;color:var(--red);background:color-mix(in srgb, var(--red) 8%, transparent);font-size:12.5px;font-weight:700;}
+    .out-row .out-del .del-x,.out-row .inc-del .del-x{display:none;}
+    .out-row .out-del .del-label,.out-row .inc-del .del-label{display:inline;}
     .out-row td.cell-name{order:2;flex:1 1 100%;}
     .out-row td.cell-category{order:3;flex:1 1 calc(100% - 82px);min-width:0;}
     .out-row td.cell-day{order:3;flex:0 0 74px;}
-    .out-row td:not(.cell-summary):not(.cell-name):not(.cell-category):not(.cell-day):not(.cell-del){order:4;flex:1 1 84px;min-width:84px;}
+    .out-row td.cell-incat,.out-row td.cell-sched{order:3;flex:1 1 100%;min-width:0;}
+    .out-row td:not(.cell-summary):not(.cell-name):not(.cell-category):not(.cell-day):not(.cell-del):not(.cell-incat):not(.cell-sched){order:4;flex:1 1 84px;min-width:84px;}
     .out-row td:not(.cell-summary)[data-label] select,.out-row td:not(.cell-summary)[data-label] input.amt-cell{width:100%;}
     .out-row td:not(.cell-summary)[data-label] select{padding:7px 4px;font-size:12px;}
     .out-row.collapsed{padding:9px 10px;}
@@ -662,13 +671,18 @@ const CATEGORY_COLORS = {
   'Uncategorized':'#8a93ab','Housing':'#5b8cff','Bills & Utilities':'#7c5bff',
   'Groceries':'#3ecf8e','Transport':'#36c5f0','Subscriptions':'#ffb946',
   'Shopping':'#ff5c7a','Pay in 3':'#2ec4b6','Eating Out':'#f2994a','Health & Fitness':'#00b894',
-  'Grooming':'#d4a373','Entertainment':'#bb6bd9','Savings & Debt':'#e84393','Other':'#636e72'
+  'Grooming':'#d4a373','Entertainment':'#bb6bd9','Savings & Debt':'#e84393','Other':'#636e72',
+  'Salary':'#22c55e','From friend':'#38bdf8','From partner':'#f472b6','Selling goods':'#fbbf24'
 };
 const CATEGORY_ICONS = {
   'Uncategorized':'❔','Housing':'🏠','Bills & Utilities':'🧾','Groceries':'🛒','Transport':'🚗',
   'Subscriptions':'🔁','Shopping':'🛍️','Pay in 3':'📦','Eating Out':'🍽️','Health & Fitness':'💪',
-  'Grooming':'💇','Entertainment':'🎬','Savings & Debt':'💰','Other':'📁'
+  'Grooming':'💇','Entertainment':'🎬','Savings & Debt':'💰','Other':'📁',
+  'Salary':'💼','From friend':'🤝','From partner':'💞','Selling goods':'🏷️'
 };
+// Categories for money coming in (kept separate from spending categories).
+const INCOME_CATEGORIES = ['Uncategorized','Salary','From friend','From partner','Selling goods'];
+function guessIncomeCategory(name){ return /salary|wage|payroll|\bpay\b/i.test(name||'') ? 'Salary' : 'Uncategorized'; }
 function categoryColor(cat){ return CATEGORY_COLORS[cat] || CATEGORY_COLORS['Other']; }
 function categoryIcon(cat){ return CATEGORY_ICONS[cat] || CATEGORY_ICONS['Other']; }
 
@@ -704,12 +718,12 @@ function blankMonth(startingBalance){
 }
 function freshMonth(startingBalance){
   const m = blankMonth(startingBalance);
-  m.incoming.push({id:uid(), name:'Pay', amount:0, status:'none', recurring:false});
+  m.incoming.push({id:uid(), name:'Pay', amount:0, status:'none', recurring:false, category:'Salary'});
   return m;
 }
 function carryForwardMonth(prevMonth, startingBalance){
   const m = blankMonth(startingBalance);
-  m.incoming = prevMonth.incoming.filter(i=>i.recurring).map(i=>({id:uid(), name:i.name, amount:i.amount, status:'none', recurring:true, day:i.day||null, lastWeekday: i.lastWeekday!=null?i.lastWeekday:null}));
+  m.incoming = prevMonth.incoming.filter(i=>i.recurring).map(i=>({id:uid(), name:i.name, amount:i.amount, status:'none', recurring:true, category:i.category||'Uncategorized', day:i.day||null, lastWeekday: i.lastWeekday!=null?i.lastWeekday:null}));
   m.outgoings = prevMonth.outgoings.filter(o=>o.recurring).map(o=>({id:uid(), name:o.name, amount:o.amount, status:'none', recurring:true, category:o.category||'Uncategorized', day:o.day||null, lastWeekday: o.lastWeekday!=null?o.lastWeekday:null}));
   ['week1','week2','week3','week4'].forEach(wk=>{
     if(prevMonth.weekly[wk].recurring){
@@ -731,7 +745,7 @@ function syncRecurringForward(sourceMonth, targetMonth){
   const targetIncomingNames = new Set(targetMonth.incoming.map(i=>normName(i.name)));
   sourceMonth.incoming.filter(i=>i.recurring).forEach(i=>{
     if(!targetIncomingNames.has(normName(i.name))){
-      targetMonth.incoming.push({id:uid(), name:i.name, amount:i.amount, status:'none', recurring:true, day:i.day||null, lastWeekday: i.lastWeekday!=null?i.lastWeekday:null});
+      targetMonth.incoming.push({id:uid(), name:i.name, amount:i.amount, status:'none', recurring:true, category:i.category||'Uncategorized', day:i.day||null, lastWeekday: i.lastWeekday!=null?i.lastWeekday:null});
     }
   });
   const targetOutgoingNames = new Set(targetMonth.outgoings.map(o=>normName(o.name)));
@@ -785,9 +799,9 @@ function syncNewRecurringForward(item, fromMonthKey, listKey){
       copy.amount = item.amount;
       copy.day = item.day||null;
       copy.lastWeekday = item.lastWeekday!=null?item.lastWeekday:null;
-      if(listKey==='outgoings') copy.category = item.category||'Uncategorized';
+      copy.category = item.category||'Uncategorized';
     } else if(listKey==='incoming'){
-      list.push({id:uid(), name:item.name, amount:item.amount, status:'none', recurring:true, syncSourceId:item.id, day:item.day||null, lastWeekday: item.lastWeekday!=null?item.lastWeekday:null});
+      list.push({id:uid(), name:item.name, amount:item.amount, status:'none', recurring:true, syncSourceId:item.id, category:item.category||'Uncategorized', day:item.day||null, lastWeekday: item.lastWeekday!=null?item.lastWeekday:null});
     } else {
       list.push({id:uid(), name:item.name, amount:item.amount, status:'none', recurring:true, syncSourceId:item.id, category:item.category||'Uncategorized', day:item.day||null, lastWeekday: item.lastWeekday!=null?item.lastWeekday:null});
     }
@@ -823,7 +837,11 @@ function normalizeState(){
   Object.values(state.months).forEach(m=>{
     if(!m.stocks) m.stocks = {amount:0, status:'none'};
     if(typeof m.adjustment !== 'number') m.adjustment = 0;
-    m.incoming.forEach(i=>{ if(typeof i.recurring !== 'boolean') i.recurring = false; });
+    m.incoming.forEach(i=>{
+      if(typeof i.recurring !== 'boolean') i.recurring = false;
+      if(/^From (Savings|Stocks & Shares) Pot$/.test(i.name||'') && i.status==='done' && !i.recurring) i.transfer = true;
+      if(!i.category || !INCOME_CATEGORIES.includes(i.category)) i.category = (i.quickAdd || i.transfer) ? 'Uncategorized' : guessIncomeCategory(i.name);
+    });
     m.outgoings.forEach(o=>{ if(typeof o.recurring !== 'boolean') o.recurring = false; if(!o.category || !OUTGOING_CATEGORIES.includes(o.category)) o.category = 'Uncategorized'; });
     ['week1','week2','week3','week4'].forEach(wk=>{
       if(typeof m.weekly[wk].recurring !== 'boolean') m.weekly[wk].recurring = false;
@@ -1225,6 +1243,20 @@ function categoryBreakdown(m, mode){
   return rows;
 }
 
+// Same shape as categoryBreakdown() but for money coming in. Transfers out of a
+// pot aren't income, so they're left out.
+function incomeBreakdown(m, mode){
+  const totals = {};
+  m.incoming.forEach(i=>{
+    if(i.transfer) return;
+    if(mode==='done' && i.status!=='done') return;
+    const cat = i.category || 'Uncategorized';
+    totals[cat] = (totals[cat]||0) + (Number(i.amount)||0);
+  });
+  const rows = Object.entries(totals).filter(([,amt])=>amt>0).map(([category,amount])=>({category, amount:round2(amount)}));
+  rows.sort((a,b)=>b.amount-a.amount);
+  return rows;
+}
 // ---------------- Pots (Savings / Stocks & Shares) ----------------
 function potBalance(potKey){
   let auto = 0;
@@ -1302,7 +1334,7 @@ function addPotTransfer(potKey, type, amount, note){
   const m = ensureMonth(state.currentMonthKey);
   const linkedItemId = uid();
   if(type==='out'){
-    m.incoming.push({id:linkedItemId, name:`From ${potLabel}`, amount, status:'done', recurring:false});
+    m.incoming.push({id:linkedItemId, name:`From ${potLabel}`, amount, status:'done', recurring:false, transfer:true, category:'Uncategorized'});
   } else {
     m.outgoings.push({id:linkedItemId, name:`To ${potLabel}`, amount, status:'done', recurring:false, category:'Savings & Debt'});
   }
@@ -1608,7 +1640,8 @@ function categorySelectHtml(cls, value){
 // can't render anything but text in its open menu). cls still identifies the
 // control the same way a <select class="cls"> used to, so call sites that
 // look it up with a class selector keep working.
-function categoryDropdownHtml(cls, value){
+function categoryDropdownHtml(cls, value, list){
+  list = list || OUTGOING_CATEGORIES;
   const v = value || 'Uncategorized';
   return `<div class="cat-dd ${cls}" data-value="${escapeHtml(v)}" tabindex="0">
     <div class="cat-dd-trigger" style="border-left:3px solid ${categoryColor(v)};">
@@ -1617,7 +1650,7 @@ function categoryDropdownHtml(cls, value){
       <span class="cat-dd-caret">▾</span>
     </div>
     <div class="cat-dd-menu" role="listbox">
-      ${OUTGOING_CATEGORIES.map(c=>`
+      ${list.map(c=>`
         <div class="cat-dd-opt${c===v?' selected':''}" role="option" data-value="${escapeHtml(c)}">
           <span class="cat-dd-chip" style="background:${categoryColor(c)};">${categoryIcon(c)}</span>
           <span>${escapeHtml(c)}</span>
@@ -1663,7 +1696,7 @@ function initCategoryDropdown(dd, onChange){
 // own option handler).
 function setCategoryDropdownValue(dd, val){
   if(!dd) return;
-  const v = OUTGOING_CATEGORIES.includes(val) ? val : 'Uncategorized';
+  const v = [...dd.querySelectorAll('.cat-dd-opt')].some(o=>o.dataset.value===val) ? val : 'Uncategorized';
   dd.dataset.value = v;
   const trigger = dd.querySelector('.cat-dd-trigger');
   trigger.style.borderLeftColor = categoryColor(v);
@@ -2054,6 +2087,7 @@ let currentView = 'month';
 let quickAddLogExpanded = false;
 let categoryBreakdownMonth = null;
 let categoryBreakdownMode = 'all';
+let categoryBreakdownKind = 'out'; // 'out' = spending, 'in' = income
 let monthCatMode = 'all';
 let upcomingBillsWindow = 14;
 
@@ -2113,6 +2147,17 @@ function renderSyncIndicator(){
 // Phone layout collapses each outgoing to a one-line summary; ids here are the
 // ones currently expanded for editing.
 const expandedOutRows = new Set();
+const expandedIncRows = new Set();
+function incomeSummaryHtml(i){
+  const cat = i.category || 'Uncategorized';
+  const bits = [escapeHtml(cat)];
+  if(i.recurring) bits.push('↻');
+  return `<span class="cat-dd-chip" style="background:${categoryColor(cat)};">${categoryIcon(cat)}</span>
+    <span class="cs-main"><span class="cs-name">${escapeHtml(i.name||'Unnamed')}</span><span class="cs-sub">${bits.join(' · ')}</span></span>
+    <span class="cs-amt">${escapeHtml(fmt(Number(i.amount)||0))}</span>
+    <span class="cs-status ${i.status==='done'?'done':'none'}" title="${i.status==='done'?'Received':'Not received yet'}">${i.status==='done'?'✓':''}</span>
+    <span class="cs-caret">▾</span>`;
+}
 function outgoingSummaryHtml(o){
   const cat = o.category || 'Uncategorized';
   const bits = [escapeHtml(cat)];
@@ -2176,6 +2221,7 @@ function renderMonth(){
         <input type="number" step="0.01" id="quickAddAmount" placeholder="Amount" style="max-width:120px;">
         <input type="text" id="quickAddReason" placeholder="Reason (e.g. Bus, Pizza from Sam)" style="max-width:260px;flex:1;min-width:160px;">
         ${categoryDropdownHtml('quickAddCategory', 'Uncategorized')}
+        ${categoryDropdownHtml('quickAddIncomeCategory', 'Uncategorized', INCOME_CATEGORIES)}
         <button class="btn small" id="quickAddBtn">+ Add</button>
       </div>
       <div class="field-inline" style="margin-top:12px;align-items:center;">
@@ -2254,8 +2300,8 @@ function renderMonth(){
         <h2>Incoming</h2>
         <button class="btn small" id="addIncomeBtn">+ Add incoming</button>
       </div>
-      <table class="responsive-table">
-        <thead><tr><th>Source</th><th style="width:150px;">Schedule</th><th style="width:120px;">Amount</th><th style="width:100px;">Status</th><th style="width:110px;">Recurring</th><th style="width:36px;"></th></tr></thead>
+      <table class="responsive-table income-table">
+        <thead><tr><th>Source</th><th style="width:136px;">Category</th><th style="width:128px;">Schedule</th><th style="width:94px;">Amount</th><th style="width:88px;">Status</th><th style="width:106px;">Recurring</th><th style="width:36px;"></th></tr></thead>
         <tbody id="incomeBody"></tbody>
       </table>
     </div>
@@ -2299,8 +2345,12 @@ function renderMonth(){
   const quickAddType = document.getElementById('quickAddType');
   const quickAddCategory = document.querySelector('.quickAddCategory');
   initCategoryDropdown(quickAddCategory, ()=>{});
+  const quickAddIncomeCategory = document.querySelector('.quickAddIncomeCategory');
+  initCategoryDropdown(quickAddIncomeCategory, ()=>{});
   const syncQuickAddCategoryVisibility = ()=>{
-    quickAddCategory.style.display = quickAddType.value==='out' ? '' : 'none';
+    const isOut = quickAddType.value==='out';
+    quickAddCategory.style.display = isOut ? '' : 'none';
+    quickAddIncomeCategory.style.display = isOut ? 'none' : '';
   };
   syncQuickAddCategoryVisibility();
   quickAddType.onchange = syncQuickAddCategoryVisibility;
@@ -2310,7 +2360,7 @@ function renderMonth(){
     const reason = quickAddReason.value.trim();
     const type = quickAddType.value;
     const entry = {id:uid(), name: reason || (type==='out'?'Spent':'Received'), amount: amt, status:'done', recurring:false, quickAdd:true, ts:Date.now()};
-    if(type==='out'){ entry.category = quickAddCategory.dataset.value; m.outgoings.push(entry); } else m.incoming.push(entry);
+    if(type==='out'){ entry.category = quickAddCategory.dataset.value; m.outgoings.push(entry); } else { entry.category = quickAddIncomeCategory.dataset.value; m.incoming.push(entry); }
     save();
     quickAddLogExpanded = true;
     renderMonth();
@@ -2453,30 +2503,42 @@ function renderMonth(){
   const incomeBody = document.getElementById('incomeBody');
   function drawIncome(){
     incomeBody.innerHTML = m.incoming.map(i=>`
-      <tr data-id="${i.id}">
+      <tr data-id="${i.id}" class="out-row inc-row${expandedIncRows.has(i.id)?'':' collapsed'}">
+        <td class="cell-summary" role="button" tabindex="0" aria-label="Show or hide details">${incomeSummaryHtml(i)}</td>
         <td class="cell-name">
           <div class="cell-name-flex">
             <input class="row-input inc-name" type="text" value="${escapeHtml(i.name)}">
             <span class="hint schedule-hint">${scheduleHint(i, curYear, curMonthNum)}</span>
           </div>
         </td>
-        <td class="cell-category" data-label="Schedule">${scheduleSelectHtml('inc-schedule', i)}</td>
+        <td class="cell-incat" data-label="Category">${categoryDropdownHtml('inc-category', i.category, INCOME_CATEGORIES)}</td>
+        <td class="cell-sched" data-label="Schedule">${scheduleSelectHtml('inc-schedule', i)}</td>
         <td data-label="Amount"><input class="row-input inc-amount amt-cell" type="number" step="0.01" value="${i.amount}"></td>
         <td data-label="Status">${statusSelectHtml('inc-status', i.status)}</td>
         <td data-label="Recurring">${recurringSelectHtml('inc-recur', i.recurring)}</td>
-        <td class="cell-del"><button class="del-btn inc-del">✕</button></td>
+        <td class="cell-del"><button class="del-btn inc-del" aria-label="Delete income"><span class="del-x">✕</span><span class="del-label">Delete this income</span></button></td>
       </tr>
-    `).join('') || `<tr><td colspan="6" class="empty">No incoming added yet</td></tr>`;
+    `).join('') || `<tr><td colspan="7" class="empty">No incoming added yet</td></tr>`;
     incomeBody.querySelectorAll('tr').forEach(tr=>{
       const id = tr.dataset.id;
       const item = m.incoming.find(x=>x.id===id);
       if(!item) return;
-      tr.querySelector('.inc-name').oninput = e=>{ item.name=e.target.value; save(); };
-      tr.querySelector('.inc-amount').oninput = e=>{ item.amount=Number(e.target.value); save(); refreshCards(); };
+      const summary = tr.querySelector('.cell-summary');
+      const refreshSummary = ()=>{ summary.innerHTML = incomeSummaryHtml(item); };
+      const toggleRow = ()=>{
+        const open = tr.classList.contains('collapsed');
+        tr.classList.toggle('collapsed', !open);
+        if(open) expandedIncRows.add(id); else expandedIncRows.delete(id);
+      };
+      summary.onclick = toggleRow;
+      summary.onkeydown = e=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); toggleRow(); } };
+      tr.querySelector('.inc-name').oninput = e=>{ item.name=e.target.value; save(); refreshSummary(); };
+      tr.querySelector('.inc-amount').oninput = e=>{ item.amount=Number(e.target.value); save(); refreshCards(); refreshSummary(); };
       const sel = tr.querySelector('.inc-status');
-      sel.onchange = e=>{ item.status=e.target.value; save(); e.target.className = `inc-status status-select status-${e.target.value}`; refreshCards(); };
+      sel.onchange = e=>{ item.status=e.target.value; save(); e.target.className = `inc-status status-select status-${e.target.value}`; refreshCards(); refreshSummary(); };
       const recurSel = tr.querySelector('.inc-recur');
-      recurSel.onchange = e=>{ item.recurring = (e.target.value==='yes'); if(item.recurring) syncNewRecurringForward(item, state.currentMonthKey, 'incoming'); save(); e.target.className = `inc-recur recur-select ${item.recurring?'recur-yes':'recur-no'}`; };
+      recurSel.onchange = e=>{ item.recurring = (e.target.value==='yes'); if(item.recurring) syncNewRecurringForward(item, state.currentMonthKey, 'incoming'); save(); e.target.className = `inc-recur recur-select ${item.recurring?'recur-yes':'recur-no'}`; refreshSummary(); };
+      initCategoryDropdown(tr.querySelector('.inc-category'), val=>{ item.category = val; propagateOutgoingFieldForward(item, state.currentMonthKey, 'category', 'incoming'); save(); refreshSummary(); });
       const schedSel = tr.querySelector('.inc-schedule');
       schedSel.onchange = e=>{
         applyScheduleValue(item, e.target.value);
@@ -2485,12 +2547,18 @@ function renderMonth(){
         tr.querySelector('.schedule-hint').textContent = scheduleHint(item, curYear, curMonthNum);
         renderUpcomingBills();
       };
-      tr.querySelector('.inc-del').onclick = ()=>{ m.incoming = m.incoming.filter(x=>x.id!==id); save(); drawIncome(); refreshCards(); };
+      tr.querySelector('.inc-del').onclick = ()=>{
+        const doDelete = ()=>{ m.incoming = m.incoming.filter(x=>x.id!==id); expandedIncRows.delete(id); save(); drawIncome(); refreshCards(); };
+        if(window.matchMedia('(max-width:860px)').matches) openConfirmModal(`Delete ${escapeHtml(item.name||'this income')}?`, 'This removes it from this month.', doDelete);
+        else doDelete();
+      };
     });
   }
   drawIncome();
   document.getElementById('addIncomeBtn').onclick = ()=>{
-    m.incoming.push({id:uid(), name:'New income', amount:0, status:'none', recurring:false});
+    const newItem = {id:uid(), name:'New income', amount:0, status:'none', recurring:false, category:'Uncategorized'};
+    m.incoming.push(newItem);
+    expandedIncRows.add(newItem.id);
     save(); drawIncome(); refreshCards();
   };
 
@@ -2902,8 +2970,12 @@ function renderTrend(){
   } else if(trendTab==='spending'){
     pane = `
       <div class="panel">
-        <div class="panel-head"><h2>Spending by Category</h2><span class="hint" id="catBreakdownTotal"></span></div>
+        <div class="panel-head"><h2 id="catBreakdownTitle">Spending by Category</h2><span class="hint" id="catBreakdownTotal"></span></div>
         <div class="field-inline" style="margin-bottom:16px;flex-wrap:wrap;">
+          <div class="seg-toggle" id="catBreakdownKindToggle">
+            <button class="seg-btn" data-kind="out">Spending</button>
+            <button class="seg-btn" data-kind="in">Income</button>
+          </div>
           <select id="catBreakdownMonth" style="max-width:220px;"></select>
           <div class="seg-toggle" id="catBreakdownModeToggle">
             <button class="seg-btn" data-mode="all">Budgeted</button>
@@ -3004,6 +3076,14 @@ function renderCategoryBreakdown(){
     b.classList.toggle('active', b.dataset.mode===categoryBreakdownMode);
     b.onclick = ()=>{ categoryBreakdownMode = b.dataset.mode; renderCategoryBreakdown(); renderSpendingHeatmap(); };
   });
+  const isIncome = categoryBreakdownKind==='in';
+  document.querySelectorAll('#catBreakdownKindToggle .seg-btn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.kind===categoryBreakdownKind);
+    b.onclick = ()=>{ categoryBreakdownKind = b.dataset.kind; renderCategoryBreakdown(); };
+  });
+  document.getElementById('catBreakdownTitle').textContent = isIncome ? 'Income by Source' : 'Spending by Category';
+  const modeBtns = document.querySelectorAll('#catBreakdownModeToggle .seg-btn');
+  if(modeBtns[1]) modeBtns[1].textContent = isIncome ? 'Received (Done)' : 'Actual (Done)';
   const bars = document.getElementById('catBreakdownBars');
   const donutEl = document.getElementById('catBreakdownDonut');
   const totalEl = document.getElementById('catBreakdownTotal');
@@ -3016,13 +3096,13 @@ function renderCategoryBreakdown(){
     return;
   }
   const m = state.months[categoryBreakdownMonth];
-  const rows = categoryBreakdown(m, categoryBreakdownMode);
+  const rows = isIncome ? incomeBreakdown(m, categoryBreakdownMode) : categoryBreakdown(m, categoryBreakdownMode);
   const total = rows.reduce((s,r)=>s+r.amount,0);
-  totalEl.textContent = rows.length ? `${fmt(total)} ${categoryBreakdownMode==='done'?'spent so far':'budgeted'}` : '';
+  totalEl.textContent = rows.length ? `${fmt(total)} ${isIncome ? (categoryBreakdownMode==='done'?'received so far':'expected') : (categoryBreakdownMode==='done'?'spent so far':'budgeted')}` : '';
   donutChart(donutEl, rows, {size:220});
-  renderCategoryDeltas(categoryBreakdownMonth, categoryBreakdownMode);
+  renderCategoryDeltas(categoryBreakdownMonth, categoryBreakdownMode, undefined, categoryBreakdownKind);
   if(!rows.length){
-    bars.innerHTML = '<div class="empty">No outgoings for this month yet.</div>';
+    bars.innerHTML = `<div class="empty">No ${isIncome?'income':'outgoings'} for this month yet.</div>`;
     return;
   }
   const max = Math.max(...rows.map(r=>r.amount));
@@ -3036,7 +3116,9 @@ function renderCategoryBreakdown(){
 }
 // Compares this month's category spend against the previous tracked month, one
 // callout per category whose spend actually changed — biggest swings first.
-function renderCategoryDeltas(monthKey, mode, elId){
+function renderCategoryDeltas(monthKey, mode, elId, kind){
+  const isIncome = kind==='in';
+  const rowsFor = mm => isIncome ? incomeBreakdown(mm, mode) : categoryBreakdown(mm, mode);
   const el = document.getElementById(elId||'catBreakdownDeltas');
   if(!el) return;
   const keys = Object.keys(state.months).sort();
@@ -3046,8 +3128,8 @@ function renderCategoryDeltas(monthKey, mode, elId){
     return;
   }
   const prevKey = keys[idx-1];
-  const curMap = {}; categoryBreakdown(state.months[monthKey], mode).forEach(r=>curMap[r.category]=r.amount);
-  const prevMap = {}; categoryBreakdown(state.months[prevKey], mode).forEach(r=>prevMap[r.category]=r.amount);
+  const curMap = {}; rowsFor(state.months[monthKey]).forEach(r=>curMap[r.category]=r.amount);
+  const prevMap = {}; rowsFor(state.months[prevKey]).forEach(r=>prevMap[r.category]=r.amount);
   const cats = new Set([...Object.keys(curMap), ...Object.keys(prevMap)]);
   const deltas = [];
   cats.forEach(category=>{
@@ -3067,15 +3149,18 @@ function renderCategoryDeltas(monthKey, mode, elId){
       const up = d.diff>0;
       let text;
       if(d.prev<=0){
-        text = `New spending on <b>${escapeHtml(d.category)}</b>: ${fmt(d.cur)}`;
+        text = isIncome ? `<b>${escapeHtml(d.category)}</b>: new this month (${fmt(d.cur)})` : `New spending on <b>${escapeHtml(d.category)}</b>: ${fmt(d.cur)}`;
       } else if(d.cur<=0){
-        text = `No more spending on <b>${escapeHtml(d.category)}</b> (was ${fmt(d.prev)})`;
+        text = isIncome ? `<b>${escapeHtml(d.category)}</b>: nothing this month (was ${fmt(d.prev)})` : `No more spending on <b>${escapeHtml(d.category)}</b> (was ${fmt(d.prev)})`;
       } else {
         const pct = Math.round(Math.abs(d.diff)/d.prev*100);
-        text = `You spent <b>${pct}% ${up?'more':'less'}</b> on <b>${escapeHtml(d.category)}</b> than ${monthLabelFromKey(prevKey)} (${fmt(d.cur)} vs ${fmt(d.prev)})`;
+        text = isIncome
+          ? `<b>${escapeHtml(d.category)}</b>: <b>${pct}% ${up?'more':'less'}</b> than ${monthLabelFromKey(prevKey)} (${fmt(d.cur)} vs ${fmt(d.prev)})`
+          : `You spent <b>${pct}% ${up?'more':'less'}</b> on <b>${escapeHtml(d.category)}</b> than ${monthLabelFromKey(prevKey)} (${fmt(d.cur)} vs ${fmt(d.prev)})`;
       }
+      const good = isIncome ? up : !up;
       return `<div class="delta-row">
-        <span class="delta-arrow ${up?'delta-up':'delta-down'}">${up?'▲':'▼'}</span>
+        <span class="delta-arrow ${good?'delta-down':'delta-up'}">${up?'▲':'▼'}</span>
         <span class="delta-icon">${categoryIcon(d.category)}</span>
         <span class="delta-text">${text}</span>
       </div>`;
@@ -3609,9 +3694,9 @@ function renderQuarterly(){
 // ---------------- Recurring ----------------
 function recurringTableHtml(kind){
   const label = kind==='incoming' ? 'Source' : 'Name';
-  const catTh = kind==='outgoing' ? '<th style="width:140px;">Category</th><th style="width:76px;">Day</th>' : '<th style="width:150px;">Schedule</th>';
+  const catTh = kind==='outgoing' ? '<th style="width:140px;">Category</th><th style="width:76px;">Day</th>' : '<th style="width:136px;">Category</th><th style="width:128px;">Schedule</th>';
   return `
-    <table class="responsive-table">
+    <table class="responsive-table${kind==='incoming'?' income-table':''}">
       <thead><tr><th>${label}</th>${catTh}<th style="width:120px;">Amount</th><th style="width:100px;">Status</th><th style="width:36px;"></th></tr></thead>
       <tbody class="recur-body-${kind}"></tbody>
     </table>
@@ -3621,7 +3706,7 @@ function drawRecurringTable(m, kind){
   const list = kind==='incoming' ? m.incoming : m.outgoings;
   const body = document.querySelector(`.recur-body-${kind}`);
   const items = list.filter(x=>x.recurring);
-  const colspan = kind==='outgoing' ? 6 : 5;
+  const colspan = 6;
   const [curYear, curMonthNum] = state.currentMonthKey.split('-').map(Number);
   body.innerHTML = items.map(x=>`
     <tr data-id="${x.id}">
@@ -3633,7 +3718,7 @@ function drawRecurringTable(m, kind){
       </td>
       ${kind==='outgoing'
         ? `<td class="cell-category" data-label="Category">${categoryDropdownHtml(`recur-category-${kind}`, x.category)}</td><td class="cell-day" data-label="Day">${dayInputHtml(`recur-day-${kind}`, x.day)}</td>`
-        : `<td class="cell-category" data-label="Schedule">${scheduleSelectHtml(`recur-schedule-${kind}`, x)}</td>`}
+        : `<td class="cell-incat" data-label="Category">${categoryDropdownHtml(`recur-category-${kind}`, x.category, INCOME_CATEGORIES)}</td><td class="cell-sched" data-label="Schedule">${scheduleSelectHtml(`recur-schedule-${kind}`, x)}</td>`}
       <td data-label="Amount"><input class="row-input recur-amount-${kind} amt-cell" type="number" step="0.01" value="${x.amount}"></td>
       <td data-label="Status">${statusSelectHtml(`recur-status-${kind}`, x.status)}</td>
       <td class="cell-del"><button class="del-btn recur-del-${kind}">✕</button></td>
@@ -3649,7 +3734,7 @@ function drawRecurringTable(m, kind){
     const sel = tr.querySelector(`.recur-status-${kind}`);
     sel.onchange = e=>{ item.status=e.target.value; save(); e.target.className = `recur-status-${kind} status-select status-${e.target.value}`; };
     const catSel = tr.querySelector(`.recur-category-${kind}`);
-    if(catSel) initCategoryDropdown(catSel, val=>{ item.category = val; propagateOutgoingFieldForward(item, state.currentMonthKey, 'category'); save(); });
+    if(catSel) initCategoryDropdown(catSel, val=>{ item.category = val; propagateOutgoingFieldForward(item, state.currentMonthKey, 'category', listKey); save(); });
     const dayInp = tr.querySelector(`.recur-day-${kind}`);
     if(dayInp) dayInp.onchange = e=>{ item.day = clampDay(e.target.value); e.target.value = item.day||''; propagateOutgoingFieldForward(item, state.currentMonthKey, 'day'); save(); };
     const schedSel = tr.querySelector(`.recur-schedule-${kind}`);
@@ -3691,7 +3776,7 @@ function renderRecurring(){
   drawRecurringTable(m, 'incoming');
   drawRecurringTable(m, 'outgoing');
   document.getElementById('addRecurIncomeBtn').onclick = ()=>{
-    const item = {id:uid(), name:'New recurring income', amount:0, status:'none', recurring:true};
+    const item = {id:uid(), name:'New recurring income', amount:0, status:'none', recurring:true, category:'Uncategorized'};
     m.incoming.push(item);
     syncNewRecurringForward(item, state.currentMonthKey, 'incoming');
     save(); renderRecurring();
@@ -3978,9 +4063,12 @@ function monthRecapData(key){
   const catTotal = cats.reduce((s,r)=>s+r.amount,0);
   const topCat = cats[0] ? {...cats[0], pct: catTotal ? Math.round(cats[0].amount/catTotal*100) : 0} : null;
   const biggest = m.outgoings.filter(o=>(Number(o.amount)||0)>0).sort((a,b)=>b.amount-a.amount)[0] || null;
+  const incomeRows = incomeBreakdown(m, 'all');
+  const incomeTotal = incomeRows.reduce((a,r)=>a+r.amount,0);
+  const topIncome = incomeRows[0] && incomeRows[0].category!=='Uncategorized' ? {...incomeRows[0], pct: incomeTotal ? Math.round(incomeRows[0].amount/incomeTotal*100) : 0} : null;
   const prevSpent = pt ? round2(pt.allOutgoing + pt.weeklyTotal) : null;
   const spendChangePct = prevSpent>=0.01 ? Math.round((spent-prevSpent)/prevSpent*100) : null;
-  return {key, prevKey, spent, earned, saved, net, topCat, biggest, spendChangePct, active: spent>0 || earned>0};
+  return {key, prevKey, spent, earned, saved, net, topCat, topIncome, biggest, spendChangePct, active: spent>0 || earned>0};
 }
 function closeRecapModal(){
   const bg = document.getElementById('modalBg');
@@ -4015,6 +4103,12 @@ function openRecapModal(key, opts){
     rows.push(`<div class="recap-row stagger-card" style="--i:6;">
       <span class="cat-dd-chip" style="background:var(--panel);border:1px solid var(--border);">${flat?'＝':up?'▲':'▼'}</span>
       <div class="rl"><div class="rt">Spending vs ${monthLabelFromKey(d.prevKey)}</div><div class="rv" style="color:${flat?'var(--muted)':up?'var(--red)':'var(--green)'};">${flat?'No change':`${up?'Up':'Down'} ${Math.abs(d.spendChangePct)}%`}</div></div></div>`);
+  }
+  if(d.topIncome){
+    rows.push(`<div class="recap-row stagger-card" style="--i:6;">
+      <span class="cat-dd-chip" style="background:${categoryColor(d.topIncome.category)};">${categoryIcon(d.topIncome.category)}</span>
+      <div class="rl"><div class="rt">Top income source</div><div class="rv">${escapeHtml(d.topIncome.category)}</div></div>
+      <div class="ramt">${fmt(d.topIncome.amount)}<small>${d.topIncome.pct}% of income</small></div></div>`);
   }
   if(d.earned>0 && d.saved>0){
     rows.push(`<div class="recap-row stagger-card" style="--i:7;">
