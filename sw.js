@@ -1,4 +1,4 @@
-const CACHE_NAME = 'budget-tracker-v3';
+const CACHE_NAME = 'budget-tracker-v4';
 const PRECACHE_URLS = [
   './',
   './index.html',
@@ -66,4 +66,26 @@ self.addEventListener('fetch', event => {
       return cached || networkFetch;
     })
   );
+});
+
+// ---- Push reminders (sent by the scheduled job in .github/workflows/reminders.yml) ----
+self.addEventListener('push', event => {
+  let data = {};
+  try { data = event.data ? event.data.json() : {}; } catch (e) { data = {body: event.data && event.data.text()}; }
+  event.waitUntil(self.registration.showNotification(data.title || 'Embalance', {
+    body: data.body || '',
+    icon: 'icon-192.png',
+    badge: 'favicon.png',
+    tag: 'embalance-reminder',
+    renotify: true,
+    data: {url: data.url || './index.html'}
+  }));
+});
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  const url = (event.notification.data && event.notification.data.url) || './index.html';
+  event.waitUntil(self.clients.matchAll({type: 'window', includeUncontrolled: true}).then(list => {
+    for (const c of list) { if ('focus' in c) return c.focus(); }
+    return self.clients.openWindow(url);
+  }));
 });

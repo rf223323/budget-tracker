@@ -1,0 +1,31 @@
+name: Bill reminders
+
+on:
+  schedule:
+    - cron: '0 7 * * *'   # 07:00 UTC (8am in summer, 7am in winter, UK time)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install web-push
+        run: npm install --no-audit --no-fund
+        working-directory: scripts
+      - name: Self-test
+        run: node scripts/send-reminders.mjs --selftest
+      - name: Send reminders
+        run: node scripts/send-reminders.mjs
+        env:
+          VAPID_PUBLIC: BA65VlyQdykUQfsM_kB63btFf-qonJe3_gZQnbJhaA2wWnTThnFQ2TutuEBnhTKtOR594VIdZXVg2QA-uBJEikI
+          VAPID_PRIVATE: ${{ secrets.VAPID_PRIVATE_KEY }}
+          SYNC_CODE: ${{ secrets.SYNC_CODE }}
+          FIREBASE_PROJECT: budget-tracker-965d3
+          FIREBASE_API_KEY: AIzaSyBEw3eF4uZeZbEXA9awROWbt2xa1RhbzTw

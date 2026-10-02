@@ -484,6 +484,14 @@
   }
   @media (prefers-reduced-motion:reduce){.pd-spark,.pd-card,.pd-flame .pd-pop{animation:none;}.pd-spark{opacity:.7;}}
   @media (max-width:860px){body:has(#paydayOverlay.open) .toast-stack{bottom:auto;top:12px;}}
+  .push-msg{font-size:13.5px;line-height:1.5;}
+  .push-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+  .push-setup{margin-top:14px;font-size:12.5px;color:var(--muted);}
+  .push-setup summary{cursor:pointer;font-weight:700;color:var(--text);}
+  .push-setup p{margin:8px 0;line-height:1.5;}
+  .push-cmd{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .push-cmd code{flex:1;min-width:200px;padding:9px 11px;border-radius:10px;background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:11.5px;word-break:break-all;}
+  .push-note{font-size:11.5px;}
   .set-toggle{display:flex;align-items:flex-start;gap:12px;cursor:pointer;}
   .set-toggle input{margin-top:3px;width:18px;height:18px;accent-color:var(--accent);flex-shrink:0;}
   .set-toggle b{display:block;font-size:14px;}
@@ -5805,10 +5813,100 @@ function renderPots(){
 }
 
 // ---------------- Settings ----------------
+// ---------------- Push reminders ----------------
+// A scheduled job (.github/workflows/reminders.yml) reads your synced budget each morning and
+// pushes "due today / tomorrow / overdue" to every device that turned reminders on here.
+const PUSH_PUBLIC_KEY = 'BA65VlyQdykUQfsM_kB63btFf-qonJe3_gZQnbJhaA2wWnTThnFQ2TutuEBnhTKtOR594VIdZXVg2QA-uBJEikI';
+function pushB64ToBytes(b64){
+  const pad = '='.repeat((4 - b64.length % 4) % 4);
+  const raw = atob((b64 + pad).replace(/-/g,'+').replace(/_/g,'/'));
+  return Uint8Array.from(raw, c=>c.charCodeAt(0));
+}
+// The service worker can be missing or slow (e.g. over plain http); never wait on it forever.
+function pushRegistration(){
+  if(!('serviceWorker' in navigator)) return Promise.resolve(null);
+  return Promise.race([navigator.serviceWorker.ready, new Promise(r=>setTimeout(()=>r(null), 2500))]).catch(()=>null);
+}
+function pushSupported(){ return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window; }
+function pushIsStandalone(){ return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone===true; }
+function pushIsIOS(){ return /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1); }
+async function pushDocRef(){
+  const p = activeProfileMeta();
+  if(!p || !p.syncEnabled || !p.syncCode) return null;
+  const db = initCloud();
+  return db ? db.collection('budgets').doc(p.syncCode+'__push') : null;
+}
+async function pushReadSubs(ref){
+  const snap = await ref.get();
+  if(!snap.exists) return [];
+  try{ return JSON.parse(snap.data().subs || '[]'); }catch(e){ return []; }
+}
+async function enablePushReminders(){
+  const ref = await pushDocRef();
+  if(!ref){ showToast('Turn on Cloud Sync first', 'Reminders read your synced budget.'); return; }
+  const perm = await Notification.requestPermission();
+  if(perm!=='granted'){ showToast('Notifications are blocked', 'Allow them for this site in your browser or phone settings, then try again.'); return; }
+  const reg = await pushRegistration();
+  if(!reg){ showToast("Reminders aren't ready yet", 'Open the installed app (or the live site) and try again.'); return; }
+  let sub = await reg.pushManager.getSubscription();
+  if(!sub) sub = await reg.pushManager.subscribe({userVisibleOnly:true, applicationServerKey:pushB64ToBytes(PUSH_PUBLIC_KEY)});
+  const subs = (await pushReadSubs(ref)).filter(x=>x.endpoint!==sub.endpoint);
+  subs.push(sub.toJSON());
+  await ref.set({subs: JSON.stringify(subs), updatedAt: Date.now()});
+  showToast('Reminders are on', 'This device will get a daily nudge when something is due.');
+}
+async function disablePushReminders(){
+  try{
+    const reg = await pushRegistration();
+    const sub = reg ? await reg.pushManager.getSubscription() : null;
+    const ref = await pushDocRef();
+    if(sub){
+      if(ref){ const subs = (await pushReadSubs(ref)).filter(x=>x.endpoint!==sub.endpoint); await ref.set({subs: JSON.stringify(subs), updatedAt: Date.now()}); }
+      await sub.unsubscribe();
+    }
+  }catch(e){ console.error(e); }
+  showToast('Reminders are off', 'This device will stop getting them.');
+}
+async function renderPushPanel(){
+  const box = document.getElementById('pushPanelBody');
+  if(!box) return;
+  const p = activeProfileMeta();
+  const code = p && p.syncCode ? p.syncCode : '';
+  let sub = null;
+  if(pushSupported()){ try{ const reg = await pushRegistration(); sub = reg ? await reg.pushManager.getSubscription() : null; }catch(e){} }
+  let msg = '', actions = '';
+  if(!pushSupported()) msg = "This browser can't receive push notifications.";
+  else if(pushIsIOS() && !pushIsStandalone()) msg = 'On iPhone, add Embalance to your Home Screen first (Share → Add to Home Screen), then open it from there and come back to this page.';
+  else if(!p || !p.syncEnabled || !p.syncCode) msg = 'Reminders read your synced budget, so turn on <b>Cloud Sync</b> for this profile first.';
+  else if(sub && Notification.permission==='granted'){
+    msg = 'Reminders are <b>on</b> for this device — a nudge each morning when bills are due, overdue or your pay arrives.';
+    actions = '<button class="btn secondary small" id="pushTest">Show a test notification</button><button class="btn secondary small" id="pushOff">Turn off</button>';
+  } else {
+    msg = 'Get a notification on this device each morning when something is due today or tomorrow, a bill is overdue, or your pay arrives.';
+    actions = '<button class="btn small" id="pushOn">Turn on reminders</button>';
+  }
+  const setup = (code && pushSupported()) ? `
+    <details class="push-setup"><summary>How reminders get sent</summary>
+      <p>A small job in your GitHub repo runs every morning. It needs your sync code saved as a secret named <b>SYNC_CODE</b> (one-time). Run this in a terminal:</p>
+      <div class="push-cmd"><code id="pushCmd">gh secret set SYNC_CODE -R rf223323/budget-tracker --body "${escapeHtml(code)}"</code><button class="btn secondary small" id="pushCopy">Copy</button></div>
+      <p class="push-note">The message is encrypted end-to-end, and the job never writes your bill names or amounts to its log.</p>
+    </details>` : '';
+  box.innerHTML = `<div class="push-msg">${msg}</div>${actions?`<div class="push-actions">${actions}</div>`:''}${setup}`;
+  const on = document.getElementById('pushOn'), off = document.getElementById('pushOff'), test = document.getElementById('pushTest'), copy = document.getElementById('pushCopy');
+  if(on) on.onclick = async ()=>{ on.disabled = true; try{ await enablePushReminders(); }catch(e){ console.error(e); showToast("Couldn't turn on reminders", 'Check that notifications are allowed and try again.'); } renderPushPanel(); };
+  if(off) off.onclick = async ()=>{ off.disabled = true; await disablePushReminders(); renderPushPanel(); };
+  if(test) test.onclick = async ()=>{ const reg = await pushRegistration(); if(!reg) return; reg.showNotification('Embalance', {body:'This is how your reminders will look.', icon:'icon-192.png', badge:'favicon.png'}); };
+  if(copy) copy.onclick = ()=>{ const t = document.getElementById('pushCmd').textContent; (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(()=>showToast('Copied', 'Paste it into a terminal.')).catch(()=>{}); };
+}
 function renderSettings(){
   const el = document.getElementById('view-settings');
   const p = activeProfileMeta();
   el.innerHTML = `
+    <div class="panel">
+      <div class="panel-head"><h2>Reminders</h2><span class="hint">push notifications for bills and payday</span></div>
+      <div id="pushPanelBody"><div class="push-msg">Checking…</div></div>
+    </div>
+
     <div class="panel">
       <div class="panel-head"><h2>Celebrations</h2><span class="hint">little moments when things go well</span></div>
       <label class="set-toggle"><input type="checkbox" id="celebrateToggle" ${state.celebrate?'checked':''}><span><b>Payday moment &amp; milestones</b><small>A short celebration when your pay lands, and a toast when you earn an Ember milestone or level up.</small></span></label>
@@ -5896,6 +5994,7 @@ function renderSettings(){
     });
   }
   drawProfilesTable();
+  renderPushPanel();
   document.getElementById('celebrateToggle').onchange = e=>{ state.celebrate = e.target.checked; save(); };
   document.getElementById('addProfileBtn').onclick = ()=>{
     openInputModal('New profile', "e.g. Sam's Budget", name=>addProfile(name));
