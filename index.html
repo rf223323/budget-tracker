@@ -3433,9 +3433,9 @@ let emberFlameUid = 0;
 function emberFlameSvg(flame, ringPct){
   const id = 'ef'+(++emberFlameUid);
   const P = {
-    lo: {o1:'#c4553f', o2:'#6b1420', i1:'#a34a3a', i2:'#5a1220', inner:.55, core:0, tf:'translate(31 36) scale(.46)', glow:'rgba(160,40,40,.5)', halo:'rgba(160,40,40,.22)', spark:'#7c5b5b', sparkOp:.35, cls:'lo'},
-    st: {o1:'#ff9a45', o2:'#e8222f', i1:'#ffe08a', i2:'#ff8a3c', inner:1, core:1, tf:'translate(26 14) scale(.6)', glow:'rgba(255,120,50,.7)', halo:'rgba(255,110,60,.45)', spark:'#ffd39a', sparkOp:.9, cls:''},
-    bl: {o1:'#ffc060', o2:'#ff3a2a', i1:'#fff2b0', i2:'#ffa040', inner:1, core:1, tf:'translate(18 6) scale(.72)', glow:'rgba(255,170,60,.95)', halo:'rgba(255,150,60,.6)', spark:'#fff0c0', sparkOp:1, cls:'hi'}
+    lo: {o1:'#c4553f', o2:'#6b1420', i1:'#a34a3a', i2:'#5a1220', inner:.55, core:0, tf:'translate(33.5 33) scale(.46)', glow:'rgba(160,40,40,.5)', halo:'rgba(160,40,40,.22)', spark:'#7c5b5b', sparkOp:.35, cls:'lo'},
+    st: {o1:'#ff9a45', o2:'#e8222f', i1:'#ffe08a', i2:'#ff8a3c', inner:1, core:1, tf:'translate(26.6 26) scale(.6)', glow:'rgba(255,120,50,.7)', halo:'rgba(255,110,60,.45)', spark:'#ffd39a', sparkOp:.9, cls:''},
+    bl: {o1:'#ffc060', o2:'#ff3a2a', i1:'#fff2b0', i2:'#ffa040', inner:1, core:1, tf:'translate(20.7 20) scale(.72)', glow:'rgba(255,170,60,.95)', halo:'rgba(255,150,60,.6)', spark:'#fff0c0', sparkOp:1, cls:'hi'}
   }[flame] || {};
   const ring = ringPct==null ? '' : `<circle cx="56" cy="56" r="51" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="5"/><circle cx="56" cy="56" r="51" fill="none" stroke="#ffb15a" stroke-width="5" stroke-linecap="round" pathLength="100" stroke-dasharray="${Math.max(1,Math.min(100,ringPct))} 100" transform="rotate(-90 56 56)" style="filter:drop-shadow(0 0 5px #ff8a3c);"/>`;
   return `<svg viewBox="0 0 112 112" aria-hidden="true"><defs>
@@ -3444,7 +3444,7 @@ function emberFlameSvg(flame, ringPct){
       <radialGradient id="${id}g" cx="50%" cy="60%" r="50%"><stop offset="0" stop-color="${P.halo}"/><stop offset="1" stop-color="${P.halo}" stop-opacity="0"/></radialGradient>
     </defs>
     ${ring}
-    <circle cx="56" cy="62" r="40" fill="url(#${id}g)"/>
+    <circle cx="56" cy="58" r="40" fill="url(#${id}g)"/>
     <g transform="${P.tf}" style="filter:drop-shadow(0 0 8px ${P.glow});"><g class="ember-flick ${P.cls}">
       <path d="M50,97 C24,97 9,79 12,58 C14,45 23,36 31,27 C31,38 35,43 39,45 C36,28 44,13 59,3 C58,20 66,29 74,38 C83,48 89,57 89,67 C89,85 73,97 50,97 Z" fill="url(#${id}o)"/>
       <path d="M50,93 C33,93 25,81 27,69 C28,60 34,55 40,49 C40,58 44,62 48,63 C47,52 52,42 61,33 C60,44 66,50 70,58 C76,67 72,93 50,93 Z" fill="url(#${id}i)" opacity="${P.inner}"/>
