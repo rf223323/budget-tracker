@@ -592,6 +592,32 @@
   .acc-bolt path{animation:accBolt 1.8s steps(1) infinite;}
   @keyframes accBolt{0%,70%,100%{opacity:.25;}10%,30%,50%{opacity:1;}}
   @media (prefers-reduced-motion:reduce){.acc-steam,.acc-bolt path{animation:none;}.acc-steam{opacity:.7;}}
+  .acc-twinkle{transform-box:fill-box;transform-origin:center;animation:accTwinkle 2.4s ease-in-out infinite;}
+  @keyframes accTwinkle{0%,100%{opacity:.1;transform:scale(.4);}50%{opacity:1;transform:scale(1.15);}}
+  .acc-beat{transform-box:fill-box;transform-origin:center;animation:accBeat 1s ease-in-out infinite;}
+  @keyframes accBeat{0%,100%{transform:scale(1);}45%{transform:scale(1.09);}}
+  .acc-note{animation:accNote 2.8s ease-in-out infinite;opacity:0;}
+  @keyframes accNote{0%{transform:translateY(5px);opacity:0;}25%{opacity:1;}100%{transform:translateY(-15px) translateX(2px);opacity:0;}}
+  .acc-spark{animation:accSpark 2.2s ease-out infinite;opacity:0;}
+  @keyframes accSpark{0%{transform:translateY(3px);opacity:0;}25%{opacity:1;}100%{transform:translateY(-11px);opacity:0;}}
+  .acc-halo{animation:accHalo 2.8s ease-in-out infinite;}
+  @keyframes accHalo{0%,100%{transform:translateY(0);filter:drop-shadow(0 0 2px #ffd66e);opacity:.8;}50%{transform:translateY(-1.8px);filter:drop-shadow(0 0 7px #ffd66e);opacity:1;}}
+  .acc-eye{animation:accEye 1.9s ease-in-out infinite;}
+  @keyframes accEye{0%,100%{filter:drop-shadow(0 0 2px #ffe27a);}50%{filter:drop-shadow(0 0 8px #fff3a0) brightness(1.3);}}
+  .acc-sway{transform-box:fill-box;transform-origin:50% 0;animation:accSway 3.8s ease-in-out infinite;}
+  @keyframes accSway{0%,100%{transform:skewX(-3deg);}50%{transform:skewX(3deg);}}
+  .acc-flap{transform-box:fill-box;animation:accFlap 1.6s ease-in-out infinite;}
+  .acc-flap.l{transform-origin:100% 60%;}
+  .acc-flap.r{transform-origin:0% 60%;animation-name:accFlapR;}
+  @keyframes accFlap{0%,100%{transform:rotate(0) scaleX(1);}50%{transform:rotate(-10deg) scaleX(.84);}}
+  @keyframes accFlapR{0%,100%{transform:rotate(0) scaleX(1);}50%{transform:rotate(10deg) scaleX(.84);}}
+  .hero-bgfx.bg-anim{background-size:170% 170% !important;animation:bgDrift 16s ease-in-out infinite alternate;}
+  @keyframes bgDrift{from{background-position:0% 25%;}to{background-position:100% 75%;}}
+  .hero-bgfx.bg-pulse{animation:bgPulse 4.5s ease-in-out infinite alternate;}
+  @keyframes bgPulse{from{filter:brightness(.82);}to{filter:brightness(1.35);}}
+  .hero-bgfx.bg-hue{animation:bgDrift 14s ease-in-out infinite alternate, bgHue 18s ease-in-out infinite alternate;}
+  @keyframes bgHue{to{filter:hue-rotate(45deg);}}
+  @media (prefers-reduced-motion:reduce){.acc-twinkle,.acc-beat,.acc-note,.acc-spark,.acc-halo,.acc-eye,.acc-sway,.acc-flap,.hero-bgfx.bg-anim,.hero-bgfx.bg-pulse,.hero-bgfx.bg-hue{animation:none !important;}.acc-twinkle,.acc-note,.acc-spark{opacity:.75;}}
   .hero-bgfx{position:absolute;inset:0;border-radius:inherit;z-index:-1;opacity:.42;pointer-events:none;}
   [data-theme="paper"] .hero-bgfx,[data-theme="soft"] .hero-bgfx{opacity:.28;}
   .hero-title{display:inline-block;margin-top:3px;padding:2px 9px;border-radius:999px;font-size:10.5px;font-weight:800;letter-spacing:.04em;color:var(--tc,var(--accent));background:color-mix(in srgb, var(--tc,var(--accent)) 16%, transparent);}
@@ -3921,6 +3947,27 @@ Object.assign(ACC_ART, (()=>{
   };
   return {harness:gear, grin, steam};
 })());
+// Rare and super rare accessories move: each gets a small looping animation (CSS classes live in the stylesheet).
+(()=>{
+  const A = ACC_ART, o = ACC_O, sw = 1.7;
+  const star = (x,y,r,cls,delay,fill)=>`<path class="${cls||'acc-twinkle'}" style="animation-delay:${delay||0}s" d="M${x},${y-r} L${x+r*.28},${y-r*.28} L${x+r},${y} L${x+r*.28},${y+r*.28} L${x},${y+r} L${x-r*.28},${y+r*.28} L${x-r},${y} L${x-r*.28},${y-r*.28}Z" fill="${fill||'#fff'}"/>`;
+  const note = (x,y,d)=>`<g class="acc-note" style="animation-delay:${d}s"><ellipse cx="${x}" cy="${y}" rx="2.6" ry="1.9" fill="#bfe0ff" transform="rotate(-20 ${x} ${y})"/><path d="M${x+2.2},${y-.6} L${x+2.2},${y-8.4} L${x+6},${y-6.6}" fill="none" stroke="#bfe0ff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></g>`;
+  const wing = s=>`<path d="M${56+s*24},60 C${56+s*60},20 ${56+s*70},58 ${56+s*52},64 C${56+s*66},66 ${56+s*60},82 ${56+s*44},76 C${56+s*54},88 ${56+s*40},94 ${56+s*28},82Z" fill="#fff" stroke="${o}" stroke-width="${sw}" stroke-linejoin="round"/><path d="M${56+s*34},64 C${56+s*50},54 ${56+s*56},60 ${56+s*50},66 M${56+s*34},74 C${56+s*46},68 ${56+s*50},74 ${56+s*44},78" fill="none" stroke="#cfd8ea" stroke-width="1.5" stroke-linecap="round"/>`;
+  // rare
+  A.phones.front = A.phones.front.replace('<rect x="20" y="54" width="13"','<rect class="acc-beat" x="20" y="54" width="13"').replace('<rect x="76" y="54" width="13"','<rect class="acc-beat" style="animation-delay:.5s" x="76" y="54" width="13"')
+    + note(18,50,0) + note(94,48,1.3);
+  A.wizard.front += star(70,8,3.2,'acc-twinkle',0,'#ffe08a') + star(40,24,2.6,'acc-twinkle',.9,'#d6c4ff') + star(80,26,2.2,'acc-twinkle',1.7,'#ffe08a');
+  A.halo.front = A.halo.front.replace('<ellipse cx="62" cy="14" rx="17"','<ellipse class="acc-halo" cx="62" cy="14" rx="17"');
+  A.patch.front += star(42,56,3,'acc-twinkle',.3,'#fff');
+  A.horns.front += `<circle class="acc-spark" cx="35" cy="14" r="1.5" fill="#ffb15a"/><circle class="acc-spark" style="animation-delay:.9s" cx="73" cy="14" r="1.5" fill="#ffb15a"/><circle class="acc-spark" style="animation-delay:1.7s" cx="38" cy="18" r="1.1" fill="#ffd66e"/>`;
+  A.grin.front = A.grin.front.replace('<g style="filter:drop-shadow(0 0 3px #ffe27a)">','<g class="acc-eye">') + star(60,66,2.6,'acc-twinkle',.6,'#fff');
+  A.cloak.back = `<g class="acc-sway">${A.cloak.back}</g>`;
+  // super rare
+  A.crown.front += star(54,31,2.4,'acc-twinkle',0,'#fff') + star(42,40,2,'acc-twinkle',.8,'#fff') + star(66,40,2,'acc-twinkle',1.5,'#fff') + star(36,26,2.2,'acc-twinkle',1.1,'#ffe08a') + star(72,24,2.6,'acc-twinkle',.4,'#ffe08a');
+  A.wings.back = `<g transform="translate(56 62) scale(.78) translate(-56 -62)"><g class="acc-flap l">${wing(-1)}</g><g class="acc-flap r">${wing(1)}</g></g>`;
+  A.cape.back = `<g class="acc-sway">${A.cape.back}</g>`.replace('<circle cx="24" cy="90" r="1.6"/>','<circle class="acc-twinkle" cx="24" cy="90" r="1.6"/>').replace('<circle cx="80" cy="96" r="1.6"/>','<circle class="acc-twinkle" style="animation-delay:.7s" cx="80" cy="96" r="1.6"/>').replace('<circle cx="88" cy="80" r="1.2"/>','<circle class="acc-twinkle" style="animation-delay:1.4s" cx="88" cy="80" r="1.2"/>').replace('<circle cx="34" cy="100" r="1.2"/>','<circle class="acc-twinkle" style="animation-delay:2s" cx="34" cy="100" r="1.2"/>');
+  A.blades.back += star(21,21,4.4,'acc-twinkle',0,'#fff') + star(87,21,4.4,'acc-twinkle',1.1,'#fff');
+})();
 function accArt(id, layer, P){
   const a = ACC_ART[id]; if(!a || !a[layer]) return '';
   const art = typeof a[layer]==='function' ? a[layer](P) : a[layer];
@@ -4351,7 +4398,8 @@ function refreshHero(){
     const ht = document.getElementById('heroTitle');
     if(ht){ ht.textContent = tIt ? tIt.name : ''; if(tIt) ht.style.setProperty('--tc', WARD_RARITY[tIt.r].col); }
     const bgIt = wardEquipped('bg') ? wardItem('bg', wardEquipped('bg')) : null;
-    const fx = document.getElementById('heroBgfx'); if(fx) fx.style.background = bgIt ? bgIt.css : '';
+    const fx = document.getElementById('heroBgfx');
+    if(fx){ fx.style.background = bgIt ? bgIt.css : ''; fx.className = 'hero-bgfx' + (bgIt && bgIt.r!=='c' ? (bgIt.id==='lava'||bgIt.id==='bloodmoon' ? ' bg-pulse' : bgIt.id==='aurora' ? ' bg-anim bg-hue' : ' bg-anim') : ''); }
     renderSpinStrip(); }
   document.getElementById('heroDate').textContent = isCurrent
     ? now.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'})
