@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Budget Tracker</title>
+<title>Embalance</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="theme-color" content="#5b8cff">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Budget">
+<meta name="apple-mobile-web-app-title" content="Embalance">
 <style>
   :root{
     --bg:#0f1420; --panel:#161d2e; --panel2:#1d2740; --border:#2a3552;
@@ -756,7 +756,7 @@
     <div class="brand">
       <div class="logo"><svg viewBox="0 0 100 100" width="24" height="24" aria-hidden="true"><defs><linearGradient id="logoFlame" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff8034"/><stop offset="1" stop-color="#d61c30"/></linearGradient><linearGradient id="logoInner" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd66e"/><stop offset="1" stop-color="#ff7030"/></linearGradient></defs><path d="M50,97 C24,97 9,79 12,58 C14,45 23,36 31,27 C31,38 35,43 39,45 C36,28 44,13 59,3 C58,20 66,29 74,38 C83,48 89,57 89,67 C89,85 73,97 50,97 Z" fill="url(#logoFlame)"/><path d="M50,93 C33,93 25,81 27,69 C28,60 34,55 40,49 C40,58 44,62 48,63 C47,52 52,42 61,33 C60,44 66,50 70,58 C76,67 72,93 50,93 Z" fill="url(#logoInner)"/><path d="M50,91 C41,91 37,83 40,76 C42,71 46,69 49,64 C52,70 58,73 59,80 C60,87 56,91 50,91 Z" fill="#fff4d0"/></svg></div>
       <div>
-        <div class="name">Budget Tracker</div>
+        <div class="name">Embalance</div>
         <div class="sub">personal finance</div>
       </div>
     </div>
@@ -5547,7 +5547,7 @@ function importJson(e){
       currentView='month';
       render();
     }catch(err){
-      alert('Could not import this file — it doesn\'t look like a Budget Tracker backup.');
+      alert('Could not import this file — it doesn\'t look like an Embalance backup.');
     }
   };
   reader.readAsText(file);

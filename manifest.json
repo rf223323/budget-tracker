@@ -1,6 +1,6 @@
 {
-  "name": "Budget Tracker",
-  "short_name": "Budget",
+  "name": "Embalance",
+  "short_name": "Embalance",
   "description": "A personal, month-by-month budget tracker.",
   "start_url": "./index.html",
   "scope": "./",

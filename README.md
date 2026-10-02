@@ -1,4 +1,4 @@
-# Budget Tracker
+# Embalance
 
 A personal, single-file budget tracker. No build step, no backend — just open `index.html`.
 
