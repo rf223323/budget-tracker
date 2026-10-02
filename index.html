@@ -174,6 +174,7 @@
   .cat-dd.open .cat-dd-trigger,.cat-dd:focus-visible .cat-dd-trigger{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);}
   .cat-dd-chip{width:22px;height:22px;border-radius:7px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;}
   .cat-dd-label{font-size:12.5px;font-weight:600;color:var(--text);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .cat-dd.auto .cat-dd-label::after{content:' · auto';font-weight:500;font-size:11px;color:var(--muted);}
   .cat-dd-caret{font-size:9px;color:var(--muted);flex-shrink:0;transition:transform .15s ease;}
   .cat-dd.open .cat-dd-caret{transform:rotate(180deg);}
   .cat-dd-menu{position:absolute;top:calc(100% + 6px);left:0;min-width:210px;max-height:280px;overflow-y:auto;background:var(--panel2);border:1px solid var(--border);border-radius:10px;box-shadow:0 16px 40px rgba(0,0,0,.4);z-index:60;padding:5px;display:none;}
@@ -1696,6 +1697,109 @@ function removeWithUndo(m, listKey, id, label, afterChange, afterUndo){
   });
 }
 
+// ---------------- Smart categorising ----------------
+// Suggests a category from what you type, learning from your own history first
+// (every outgoing/income name you've already categorised) and falling back to a
+// built-in list of common merchants and words. Nothing extra is stored — the
+// history IS your existing entries, so it improves as you use the app.
+function normText(s){ return String(s||'').toLowerCase().replace(/['’]/g,'').replace(/[^a-z0-9& ]+/g,' ').replace(/\s+/g,' ').trim(); }
+const SMART_KEYWORDS = {
+  out: [
+    ['Groceries', ['tesco','sainsbury','asda','morrisons','lidl','aldi','waitrose','iceland','co-op','coop','ocado','supermarket','groceries','grocery','milk','bread','eggs','fruit','veg']],
+    ['Transport', ['bus','train','tube','tfl','oyster','uber','bolt','taxi','cab','petrol','diesel','fuel','parking','shell','esso','texaco','bp','flight','ryanair','easyjet','mot','car wash','toll']],
+    ['Eating Out', ['coffee','costa','starbucks','greggs','mcdonald','kfc','burger','nando','pret','subway','deliveroo','just eat','uber eats','domino','pizza','takeaway','lunch','dinner','breakfast','brunch','cafe','restaurant','pub','bar','drinks','wagamama','pizza express']],
+    ['Subscriptions', ['netflix','spotify','disney','prime','amazon prime','icloud','apple music','youtube','now tv','subscription','audible','dropbox','patreon']],
+    ['Health & Fitness', ['gym','boots','superdrug','pharmacy','prescription','doctor','dentist','optician','physio','vitamins','fitness','swim']],
+    ['Grooming', ['haircut','barber','salon','nails','hairdresser','beauty','spa','wax']],
+    ['Entertainment', ['cinema','concert','ticket','tickets','theatre','game','games','steam','playstation','xbox','gig','festival','bowling','museum']],
+    ['Shopping', ['amazon','ebay','asos','primark','zara','h&m','next','clothes','shoes','shopping','argos','ikea','currys','jd sports','gift','present']],
+    ['Bills & Utilities', ['electric','electricity','gas bill','water','broadband','wifi','internet','council tax','phone bill','sky','virgin','bt','tv licence','insurance','utilities','energy']],
+    ['Housing', ['rent','mortgage','landlord','service charge','ground rent']],
+    ['Pay in 3', ['klarna','clearpay','afterpay','laybuy']],
+    ['Savings & Debt', ['savings','loan','credit card','overdraft','debt']]
+  ],
+  in: [
+    ['Salary', ['salary','wages','wage','payroll','pay','paycheck','bonus','overtime']],
+    ['From partner', ['partner','wife','husband','girlfriend','boyfriend','fiance','fiancee','other half']],
+    ['Selling goods', ['sold','sale','selling','ebay','vinted','depop','gumtree','marketplace','facebook marketplace','cex']],
+    ['From friend', ['friend','mate','owes','paid me back','pay back','split','mum','dad','gift','birthday']]
+  ]
+};
+let smartHistoryCache = {stamp:null, out:null, in:null};
+function getSmartHistory(kind){
+  if(smartHistoryCache.stamp !== state.__updatedAt){ smartHistoryCache = {stamp: state.__updatedAt, out:null, in:null}; }
+  if(smartHistoryCache[kind]) return smartHistoryCache[kind];
+  const hist = new Map();
+  Object.values(state.months).forEach(m=>{
+    (kind==='in' ? m.incoming : m.outgoings).forEach(it=>{
+      if(it.pay3Id || it.transfer) return;
+      const cat = it.category;
+      if(!cat || cat==='Uncategorized') return;
+      // strip things like "(2/3)" and trailing numbers so "Gym 2" and "Gym" match
+      const key = normText(String(it.name||'').replace(/\(\d+\/\d+\)/g,''));
+      if(key.length<2) return;
+      const entry = hist.get(key) || {};
+      entry[cat] = (entry[cat]||0) + 1;
+      hist.set(key, entry);
+    });
+  });
+  smartHistoryCache[kind] = hist;
+  return hist;
+}
+// Returns {category, source:'history'|'keyword'} or null.
+function suggestCategory(text, kind){
+  const q = normText(text);
+  if(q.length<2) return null;
+  const list = kind==='in' ? INCOME_CATEGORIES : OUTGOING_CATEGORIES;
+  const qTokens = q.split(' ').filter(t=>t.length>=3);
+  const scores = {};
+  getSmartHistory(kind).forEach((cats, name)=>{
+    let s = 0;
+    if(name===q) s = 4;
+    else if(q.length>=3 && name.length>=3 && (name.startsWith(q) || q.startsWith(name))) s = 3;
+    else if(qTokens.length && name.split(' ').some(t=>qTokens.includes(t))) s = 1.5;
+    if(!s) return;
+    Object.entries(cats).forEach(([cat,c])=>{ scores[cat] = (scores[cat]||0) + s*c; });
+  });
+  let best = null;
+  Object.entries(scores).forEach(([cat,sc])=>{ if(list.includes(cat) && sc>=1.5 && (!best || sc>best.sc)) best = {cat, sc}; });
+  if(best) return {category:best.cat, source:'history'};
+  const tokens = q.split(' ');
+  for(const [cat, words] of SMART_KEYWORDS[kind==='in'?'in':'out']){
+    if(!list.includes(cat)) continue;
+    if(words.some(w=> w.includes(' ') ? q.includes(w) : (w.length>=5 ? q.includes(w) : tokens.includes(w)))) return {category:cat, source:'keyword'};
+  }
+  return null;
+}
+// Wires a "reason" text input to a category dropdown: as you type, the dropdown
+// follows the suggestion (marked "auto") until you pick a category yourself.
+function attachSmartCategory(reasonInput, dd, kind){
+  let picked = false, applied = false, timer = null;
+  const setAuto = (on, why)=>{
+    dd.classList.toggle('auto', on);
+    dd.title = on ? (why==='history' ? 'Suggested from your past entries' : 'Suggested from the name — pick another to override') : '';
+  };
+  const apply = ()=>{
+    if(picked) return;
+    const sug = suggestCategory(reasonInput.value, kind);
+    if(sug){ setCategoryDropdownValue(dd, sug.category); setAuto(true, sug.source); applied = true; }
+    else if(applied){ setCategoryDropdownValue(dd, 'Uncategorized'); setAuto(false); applied = false; }
+  };
+  reasonInput.addEventListener('input', ()=>{ clearTimeout(timer); timer = setTimeout(apply, 120); });
+  return {
+    markPicked(){ picked = true; applied = false; setAuto(false); },
+    markAuto(category, why){ if(picked) return; setCategoryDropdownValue(dd, category); setAuto(true, why); applied = true; },
+    apply
+  };
+}
+// For rows in the tables: when a name is entered and the category was never set,
+// fill it in (and tell the caller so it can save and redraw).
+function autoCategoryForName(name, currentCategory, kind){
+  if(currentCategory && currentCategory!=='Uncategorized') return null;
+  const sug = suggestCategory(name, kind);
+  return sug ? sug.category : null;
+}
+
 // ---------------- Receipt scanning (client-side OCR via Tesseract.js) ----------------
 // Loaded lazily from a CDN on first use, never bundled, so a normal page load
 // doesn't pay for it. The photo itself never leaves the browser — Tesseract
@@ -2638,9 +2742,12 @@ function renderMonth(){
   const quickAddReason = document.getElementById('quickAddReason');
   const quickAddType = document.getElementById('quickAddType');
   const quickAddCategory = document.querySelector('.quickAddCategory');
-  initCategoryDropdown(quickAddCategory, ()=>{});
+  const quickAddReasonEl = document.getElementById('quickAddReason');
+  const smartOut = attachSmartCategory(quickAddReasonEl, quickAddCategory, 'out');
+  initCategoryDropdown(quickAddCategory, ()=>smartOut.markPicked());
   const quickAddIncomeCategory = document.querySelector('.quickAddIncomeCategory');
-  initCategoryDropdown(quickAddIncomeCategory, ()=>{});
+  const smartIn = attachSmartCategory(quickAddReasonEl, quickAddIncomeCategory, 'in');
+  initCategoryDropdown(quickAddIncomeCategory, ()=>smartIn.markPicked());
   const syncQuickAddCategoryVisibility = ()=>{
     const isOut = quickAddType.value==='out';
     quickAddCategory.style.display = isOut ? '' : 'none';
@@ -2687,7 +2794,8 @@ function renderMonth(){
         const parsed = parseReceiptText(text, confidence);
         if(parsed.amount) quickAddAmount.value = parsed.amount;
         if(parsed.reason) quickAddReason.value = parsed.reason;
-        if(parsed.category) setCategoryDropdownValue(quickAddCategory, parsed.category);
+        const scanCat = parsed.category || (parsed.reason && (suggestCategory(parsed.reason,'out')||{}).category);
+        if(scanCat) smartOut.markAuto(scanCat, 'keyword');
         receiptStatus.className = 'quick-receipt-status ok';
         receiptStatus.textContent = !parsed.amount ? "Couldn't find a total — fill it in manually. (A flat, well-lit photo that fills the frame reads best.)"
           : confidence < 60 ? 'Low confidence — double-check the amount before adding.'
@@ -2841,6 +2949,14 @@ function renderMonth(){
       summary.onclick = toggleRow;
       summary.onkeydown = e=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); toggleRow(); } };
       tr.querySelector('.inc-name').oninput = e=>{ item.name=e.target.value; save(); refreshSummary(); };
+      tr.querySelector('.inc-name').onchange = ()=>{
+        const c = autoCategoryForName(item.name, item.category, 'in');
+        if(!c) return;
+        item.category = c;
+        setCategoryDropdownValue(tr.querySelector('.inc-category'), c);
+        propagateOutgoingFieldForward(item, state.currentMonthKey, 'category', 'incoming');
+        save(); refreshCards(); refreshSummary();
+      };
       tr.querySelector('.inc-amount').oninput = e=>{ item.amount=Number(e.target.value); save(); refreshCards(); refreshSummary(); };
       const sel = tr.querySelector('.inc-status');
       sel.onchange = e=>{ item.status=e.target.value; save(); e.target.className = `inc-status status-select status-${e.target.value}`; refreshCards(); refreshSummary(); };
@@ -2896,6 +3012,14 @@ function renderMonth(){
       summary.onclick = toggleRow;
       summary.onkeydown = e=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); toggleRow(); } };
       tr.querySelector('.out-name').oninput = e=>{ item.name=e.target.value; save(); refreshSummary(); };
+      tr.querySelector('.out-name').onchange = ()=>{
+        const c = autoCategoryForName(item.name, item.category, 'out');
+        if(!c) return;
+        item.category = c;
+        setCategoryDropdownValue(tr.querySelector('.out-category'), c);
+        propagateOutgoingFieldForward(item, state.currentMonthKey, 'category');
+        save(); refreshCards(); refreshSummary();
+      };
       tr.querySelector('.out-amount').oninput = e=>{ item.amount=Number(e.target.value); save(); refreshCards(); refreshSummary(); };
       const sel = tr.querySelector('.out-status');
       sel.onchange = e=>{ item.status=e.target.value; save(); e.target.className = `out-status status-select status-${e.target.value}`; refreshCards(); refreshSummary(); };
@@ -3881,8 +4005,9 @@ function openDayModal(mk, day){
   });
   if(canAdd){
     const cat = box.querySelector('.dmCategory');
-    initCategoryDropdown(cat, ()=>{});
     const amountEl = document.getElementById('dmAmount'), reasonEl = document.getElementById('dmReason');
+    const smartDm = attachSmartCategory(reasonEl, cat, 'out');
+    initCategoryDropdown(cat, ()=>smartDm.markPicked());
     const add = ()=>{
       const amt = Number(amountEl.value);
       if(!amt || amt<=0) return;
@@ -4068,6 +4193,15 @@ function drawRecurringTable(m, kind){
     summary.onclick = toggleRow;
     summary.onkeydown = e=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); toggleRow(); } };
     tr.querySelector(`.recur-name-${kind}`).oninput = e=>{ item.name=e.target.value; syncNewRecurringForward(item, state.currentMonthKey, listKey); save(); refreshSummary(); };
+    tr.querySelector(`.recur-name-${kind}`).onchange = ()=>{
+      const c = autoCategoryForName(item.name, item.category, kind==='incoming' ? 'in' : 'out');
+      if(!c) return;
+      item.category = c;
+      setCategoryDropdownValue(tr.querySelector(`.recur-category-${kind}`), c);
+      propagateOutgoingFieldForward(item, state.currentMonthKey, 'category', listKey);
+      syncNewRecurringForward(item, state.currentMonthKey, listKey);
+      save(); refreshSummary();
+    };
     tr.querySelector(`.recur-amount-${kind}`).oninput = e=>{ item.amount=Number(e.target.value); syncNewRecurringForward(item, state.currentMonthKey, listKey); save(); refreshSummary(); };
     const sel = tr.querySelector(`.recur-status-${kind}`);
     sel.onchange = e=>{ item.status=e.target.value; save(); e.target.className = `recur-status-${kind} status-select status-${e.target.value}`; refreshSummary(); };
