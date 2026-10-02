@@ -472,75 +472,6 @@
   .rc-whatif{margin-top:12px;font-size:13px;color:var(--text);}
   .rc-whatif:empty{display:none;}
   @media (max-width:700px){.p3-toggle{min-width:84px;}.p3-inst{gap:9px;padding:8px;}.p3-date{font-size:13px;}}
-  .cf-title{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
-  .cf-pill{font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:999px;}
-  .cf-pill.cf-fine{background:color-mix(in srgb, var(--green) 18%, transparent);color:var(--green);}
-  .cf-pill.cf-tight{background:color-mix(in srgb, var(--amber) 18%, transparent);color:var(--amber);}
-  .cf-pill.cf-short{background:color-mix(in srgb, var(--red) 18%, transparent);color:var(--red);}
-  .cf-controls{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;}
-  .cf-slider,.cf-buffer{background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;}
-  .cf-slider{flex:1 1 300px;}
-  .cf-buffer{flex:0 0 190px;}
-  .cf-ctl-label{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
-  .cf-ctl-sub{font-size:11.5px;color:var(--muted);margin-top:8px;}
-  .cf-ctl-sub a{color:var(--accent);}
-  .cf-slider-row{display:flex;align-items:center;gap:12px;}
-  .cf-slider-row input[type=range]{flex:1;width:auto;accent-color:var(--accent);padding:0;background:none;border:none;}
-  .cf-slider-row b{font-size:14px;white-space:nowrap;}
-  .cf-buffer .sv-amt{margin:0;}
-  .cf-banner{display:flex;gap:12px;align-items:flex-start;border-radius:12px;padding:12px 14px;margin-bottom:16px;font-size:14px;line-height:1.5;border:1px solid var(--border);}
-  .cf-banner svg{flex-shrink:0;margin-top:1px;}
-  .cf-b-fine{background:color-mix(in srgb, var(--green) 10%, transparent);border-color:color-mix(in srgb, var(--green) 35%, transparent);}
-  .cf-b-tight{background:color-mix(in srgb, var(--amber) 10%, transparent);border-color:color-mix(in srgb, var(--amber) 35%, transparent);}
-  .cf-b-short{background:color-mix(in srgb, var(--red) 10%, transparent);border-color:color-mix(in srgb, var(--red) 40%, transparent);}
-  .cf-main{display:grid;grid-template-columns:minmax(0,1fr);gap:18px;align-items:start;}
-  .cf-chart{min-width:0;}
-  .cf-side{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
-  .cf-side .cf-card{grid-column:1 / -1;}
-  @media (min-width:1220px){
-    .cf-main{grid-template-columns:minmax(0,1fr) 240px;gap:22px;}
-    .cf-side{display:flex;flex-direction:column;}
-  }
-  .cf-stat{background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;}
-  .cf-stat .k{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);}
-  .cf-stat .v{font-size:19px;font-weight:800;margin-top:3px;}
-  .cf-stat .s{font-size:11.5px;color:var(--muted);margin-top:2px;}
-  .cf-card{background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:14px 16px;}
-  .cf-card-title{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);}
-  .cf-fixes{display:flex;flex-direction:column;gap:10px;margin-top:10px;font-size:13px;line-height:1.45;}
-  .cf-fix{display:flex;gap:10px;}
-  .cf-fix-n{flex-shrink:0;width:22px;height:22px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:800;}
-  .cf-fix-n.cf-fix-ok{background:var(--green);color:#06281a;}
-  .cf-legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:6px;font-size:12px;color:var(--muted);}
-  .cf-legend span{display:inline-flex;align-items:center;gap:6px;}
-  .cf-lg-line{display:inline-block;width:16px;height:0;border-top:2.6px solid var(--accent);}
-  .cf-lg-line.dash{border-top-style:dashed;}
-  .cf-lg-dot{display:inline-block;width:9px;height:9px;border-radius:50%;border:2px solid;}
-  .cf-lg-sq{display:inline-block;width:12px;height:9px;background:color-mix(in srgb, var(--red) 40%, transparent);border-radius:2px;}
-  .cf-ev-title{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:20px 0 8px;}
-  .cf-ev-list{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;}
-  @media (min-width:1220px){.cf-ev-list{grid-template-columns:repeat(2,minmax(0,1fr));}}
-  .cf-ev{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--panel2);border:1px solid var(--border);border-radius:10px;font-size:13px;}
-  .cf-ev-in{border-color:color-mix(in srgb, var(--green) 45%, var(--border));}
-  .cf-ev-neg .cf-ev-b{color:var(--red);}
-  .cf-ev-d{width:92px;flex-shrink:0;color:var(--muted);font-size:12px;}
-  .cf-ev-n{flex:1;min-width:0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .cf-ev-a{font-weight:700;white-space:nowrap;}
-  .cf-ev-b{width:84px;text-align:right;color:var(--muted);font-size:12.5px;white-space:nowrap;}
-  .cf-late{margin-left:8px;font-size:10px;font-weight:800;text-transform:uppercase;color:var(--red);}
-  .cf-tagp3{margin-left:8px;font-size:10px;font-weight:700;color:var(--muted);}
-  .cf-showall{display:none;margin-top:8px;background:none;border:none;color:var(--accent);font:inherit;font-size:12.5px;font-weight:600;padding:4px 0;cursor:pointer;}
-  .cf-note{margin-top:14px;font-size:12.5px;color:var(--muted);line-height:1.5;}
-  @media (max-width:700px){
-    .cf-buffer{flex:1 1 100%;}
-    .cf-ev-list.cf-collapsed .cf-ev:nth-child(n+4){display:none;}
-    .cf-showall{display:inline-block;}
-    .cf-ev{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;}
-    .cf-ev-d{grid-column:1;grid-row:2;width:auto;font-size:11.5px;}
-    .cf-ev-n{grid-column:1;grid-row:1;white-space:normal;}
-    .cf-ev-a{grid-column:2;grid-row:1;text-align:right;}
-    .cf-ev-b{grid-column:2;grid-row:2;width:auto;font-size:11.5px;}
-  }
   .trend-range{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
   .trend-range .hint{font-size:12px;color:var(--muted);}
   .trend-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:20px;}
@@ -880,10 +811,6 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/><circle cx="8" cy="15" r="1.2" fill="currentColor" stroke="none"/><circle cx="12" cy="15" r="1.2" fill="currentColor" stroke="none"/><circle cx="16" cy="15" r="1.2" fill="currentColor" stroke="none"/></svg>
       Calendar
     </div>
-    <div class="nav-item" data-view="cashflow">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17c3 0 3-9 6-9s3 9 6 9 3-6 6-6"/><path d="M3 21h18"/></svg>
-      Cash flow
-    </div>
     <div class="nav-item" data-view="trend">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>
       Trend
@@ -966,7 +893,6 @@
     <div id="view-trend" class="view hidden"></div>
     <div id="view-quarterly" class="view hidden"></div>
     <div id="view-recurring" class="view hidden"></div>
-    <div id="view-cashflow" class="view hidden"></div>
     <div id="view-pay3" class="view hidden"></div>
     <div id="view-pots" class="view hidden"></div>
     <div id="view-settings" class="view hidden"></div>
@@ -1210,7 +1136,6 @@ function defaultState(){
     months: {},
     pots: { savings:{manualLedger:[]}, stocks:{manualLedger:[]} },
     pay3: [],
-    cashflow: {buffer:100}
   };
   state.months[key] = freshMonth(0);
   return state;
@@ -1221,7 +1146,6 @@ function normalizeState(){
   if(state.theme==='light') state.theme = 'paper';
   if(!THEME_NAMES.includes(state.theme)) state.theme = 'midnight';
   if(!Array.isArray(state.pay3)) state.pay3 = [];
-  if(!state.cashflow || typeof state.cashflow!=='object') state.cashflow = {buffer:100};
   if(!state.pots) state.pots = {};
   if(!state.pots.savings) state.pots.savings = {manualLedger:[]};
   if(!state.pots.stocks) state.pots.stocks = {manualLedger:[]};
@@ -2967,7 +2891,7 @@ function render(){
   const activeProfile = profilesMeta.profiles.find(p=>p.id===profilesMeta.activeId);
   document.getElementById('sfAvatar').textContent = ((activeProfile && activeProfile.name || '?').trim().charAt(0) || '?').toUpperCase();
   renderSyncIndicator();
-  const titles = {month:'Month Tracker', calendar:'Calendar', cashflow:'Cash flow', trend:'Trend', quarterly:'Quarterly', recurring:'Recurring', pay3:'Pay in 3', pots:'Pots', settings:'Settings'};
+  const titles = {month:'Month Tracker', calendar:'Calendar', trend:'Trend', quarterly:'Quarterly', recurring:'Recurring', pay3:'Pay in 3', pots:'Pots', settings:'Settings'};
   document.getElementById('viewTitle').textContent = titles[currentView];
   document.querySelectorAll('.view').forEach(v=>v.classList.add('hidden'));
   document.getElementById('view-'+currentView).classList.remove('hidden');
@@ -2976,7 +2900,6 @@ function render(){
   if(currentView==='trend') renderTrend();
   if(currentView==='quarterly') renderQuarterly();
   if(currentView==='recurring') renderRecurring();
-  if(currentView==='cashflow') renderCashflow();
   if(currentView==='pay3') renderPay3();
   if(currentView==='pots') renderPots();
   if(currentView==='settings') renderSettings();
@@ -3086,6 +3009,29 @@ function refreshSafeSpend(){
     `<span class="ss-pair"><span class="ss-op">=</span><span class="ss-chip ss-free"><b>${escapeHtml(fmt(d.free))}</b>Free</span></span>` +
     (d.pendingIncoming>=0.005 ? `<div class="ss-note">${escapeHtml(fmt(d.pendingIncoming))} of income still to arrive isn't counted.</div>` : '');
 }
+// Days until the next dated income that hasn't been received yet (this month or next),
+// preferring regular pay (recurring or Salary). null when nothing is scheduled.
+function daysUntilPayday(){
+  const today = new Date(); today.setHours(0,0,0,0);
+  const cur = monthKey(today), nxt = monthKey(new Date(today.getFullYear(), today.getMonth()+1, 1));
+  let regular = null, any = null;
+  [cur, nxt].forEach(k=>{
+    const m = state.months[k];
+    if(!m) return;
+    const [y, mo] = k.split('-').map(Number);
+    m.incoming.forEach(i=>{
+      if(i.status==='done' || i.transfer || !((Number(i.amount)||0)>0)) return;
+      const d = resolveScheduledDay(i, y, mo);
+      if(!d) return;
+      const date = new Date(y, mo-1, d);
+      if(date<=today) return;
+      if(any===null || date<any) any = date;
+      if((i.recurring || i.category==='Salary') && (regular===null || date<regular)) regular = date;
+    });
+  });
+  const pick = regular || any;
+  return pick ? Math.round((pick-today)/86400000) : null;
+}
 // Greeting, date and "payday in N days" for the Month Tracker's main card.
 function refreshHero(){
   const hi = document.getElementById('heroHi');
@@ -3101,11 +3047,8 @@ function refreshHero(){
   const pill = document.getElementById('heroPayday');
   let txt = '';
   if(isCurrent){
-    const cf = computeCashflow(state.currentMonthKey, 0, 0);
-    if(cf && !cf.past && !cf.noPay){
-      const n = cf.endDay - cf.startDay;
-      txt = n<=0 ? 'Payday today' : n===1 ? 'Payday tomorrow' : `${n} days until payday`;
-    }
+    const n = daysUntilPayday();
+    if(n!==null) txt = n<=0 ? 'Payday today' : n===1 ? 'Payday tomorrow' : `${n} days until payday`;
   }
   pill.innerHTML = txt ? `${iconSvg(CALENDAR_ICON_PATH)}${escapeHtml(txt)}` : '';
 }
@@ -4887,473 +4830,6 @@ function drawRecurringTable(m, kind){
     };
   });
 }
-// ---------------- Cash-flow forecast page ----------------
-// Walks your balance day by day for the viewed month: starts from today's live
-// balance (or the month's opening balance for a future month), takes off every
-// pending bill on its Day, adds pending income on its scheduled day, and
-// subtracts an assumed everyday-spending figure per day. Anything pending
-// without a date can't be placed, so it's listed separately instead.
-function cashflowSettings(){
-  if(!state.cashflow || typeof state.cashflow!=='object') state.cashflow = {};
-  if(typeof state.cashflow.buffer!=='number') state.cashflow.buffer = 100;
-  return state.cashflow;
-}
-// The default everyday-spending figure: your own plan first (the unpaid weeks of
-// the Weekly Budget spread over the days left), then your recent Quick Add
-// average if there's no plan. quickAvg is returned too so the page can compare.
-function cashflowDefaultDaily(key){
-  const now = Date.now(), cutoff = now - 60*86400000;
-  let total = 0, first = null;
-  Object.values(state.months).forEach(m=>m.outgoings.forEach(o=>{
-    if(o.quickAdd && o.ts && o.ts>=cutoff && o.ts<=now){ total += Number(o.amount)||0; if(first===null || o.ts<first) first = o.ts; }
-  }));
-  const quickAvg = total>0 ? Math.round(total/Math.max(14, Math.ceil((now-first)/86400000)+1)) : null;
-  const m = state.months[key];
-  if(m){
-    const pending = ['week1','week2','week3','week4'].map(k=>m.weekly[k]).filter(w=>w.status!=='done' && (Number(w.amount)||0)>0);
-    const pendingWeekly = pending.reduce((a,w)=>a+(Number(w.amount)||0),0);
-    if(pendingWeekly>0){
-      const [y,mo] = key.split('-').map(Number);
-      const dim = new Date(y, mo, 0).getDate();
-      const today = key===monthKey(new Date()) ? new Date().getDate() : 1;
-      const days = Math.max(1, dim-today+1);
-      return {value: Math.round(pendingWeekly/days), source:`From your weekly budget — ${pending.length} unpaid week${pending.length!==1?'s':''} (${fmt(pendingWeekly)}) over ${days} day${days!==1?'s':''}`, quickAvg};
-    }
-  }
-  if(quickAvg!==null) return {value: quickAvg, source:'Your recent Quick Add average (no unpaid weekly budget)', quickAvg};
-  return {value:0, source:'No weekly budget or Quick Add history yet — set your own', quickAvg:null};
-}
-function computeCashflow(key, daily, buffer){
-  const m = state.months[key];
-  if(!m) return null;
-  const now = new Date(), curKey = monthKey(now);
-  if(key < curKey) return {past:true};
-  const [y, mo] = key.split('-').map(Number);
-  const dim = new Date(y, mo, 0).getDate();
-  const isCurrent = key===curKey;
-  const startDay = isCurrent ? now.getDate() : 1;
-  const mt = monthTotals(m);
-  // A future month's opening cash includes last month's pay that funds it (it arrives before the month starts).
-  const opening = round2(mt.liveBalance + (isCurrent ? 0 : mt.virtualPending));
-  // Days are counted from the 1st of the viewed month, so the line can run past
-  // month end (day dim+1 = the 1st of next month) and a date is just new Date(y, mo-1, day).
-  const nk = monthKey(new Date(y, mo, 1));
-  const nm = state.months[nk] || null;
-  const events = [];
-  const unplaced = {outAmt:0, outN:0, inAmt:0, inN:0, lateIn:0};
-  const isPayLike = i => !!i.recurring || i.category==='Salary';
-  m.outgoings.forEach(o=>{
-    if(o.status==='done' || o.quickAdd) return;
-    const amt = Number(o.amount)||0;
-    if(amt<=0) return;
-    const d = resolveScheduledDay(o, y, mo);
-    if(!d){ unplaced.outAmt += amt; unplaced.outN++; return; }
-    const late = isCurrent && d<startDay;
-    events.push({day: late ? startDay : d, due:d, name:o.name, amount:-amt, kind:'out', late, pay3: !!o.pay3Id});
-  });
-  m.incoming.forEach(i=>{
-    if(i.status==='done' || i.transfer) return;
-    const amt = Number(i.amount)||0;
-    if(amt<=0) return;
-    const d = resolveScheduledDay(i, y, mo);
-    if(!d){ unplaced.inAmt += amt; unplaced.inN++; return; }
-    if(isCurrent && d<startDay){ unplaced.lateIn += amt; return; }
-    events.push({day:d, due:d, name:i.name, amount:amt, kind:'in', payLike:isPayLike(i)});
-  });
-  // Next month's dated items, in case payday falls there (only used up to that payday).
-  const nextEvents = [];
-  if(nm){
-    nm.outgoings.forEach(o=>{
-      if(o.status==='done' || o.quickAdd) return;
-      const amt = Number(o.amount)||0, d = resolveScheduledDay(o, ...nk.split("-").map(Number));
-      if(amt>0 && d) nextEvents.push({day:dim+d, due:dim+d, name:o.name, amount:-amt, kind:'out', late:false, pay3:!!o.pay3Id});
-    });
-    nm.incoming.forEach(i=>{
-      if(i.status==='done' || i.transfer) return;
-      const amt = Number(i.amount)||0, d = resolveScheduledDay(i, ...nk.split('-').map(Number));
-      if(amt>0 && d) nextEvents.push({day:dim+d, due:dim+d, name:i.name, amount:amt, kind:'in', payLike:isPayLike(i)});
-    });
-  }
-  // Money you plan to move into savings / stocks has no date, so it's taken off on the
-  // first day of the forecast (it's committed, matching the Month Tracker's left-over).
-  const savAmt = m.savings.status!=='done' ? Number(m.savings.amount)||0 : 0;
-  const stkAmt = m.stocks.status!=='done' ? Number(m.stocks.amount)||0 : 0;
-  const setAside = round2(savAmt + stkAmt);
-  if(savAmt>0) events.push({day:startDay, due:startDay, name:'Move to savings', amount:-savAmt, kind:'out', late:false, setAside:true});
-  if(stkAmt>0) events.push({day:startDay, due:startDay, name:'Move to stocks & shares', amount:-stkAmt, kind:'out', late:false, setAside:true});
-
-  // Horizon: today → the next payday (strictly after the start day, so pay due today
-  // counts as already here). Prefer regular pay; fall back to any income.
-  const incAfter = list => list.filter(e=>e.kind==='in' && e.day>startDay).sort((a,b)=>a.day-b.day || b.amount-a.amount);
-  const pool = [...events, ...nextEvents];
-  const payPick = incAfter(pool.filter(e=>e.payLike))[0] || incAfter(pool)[0] || null;
-  const endDay = payPick ? payPick.day : dim;
-  const noPay = !payPick;
-  const horizon = [...events, ...nextEvents].filter(e=>e.day<=endDay);
-  horizon.sort((a,b)=>a.day-b.day || a.amount-b.amount);
-  events.length = 0; horizon.forEach(e=>events.push(e));
-
-  let bal = opening;
-  const series = [];
-  for(let d=startDay; d<=endDay; d++){
-    events.filter(e=>e.day===d).forEach(e=>{ bal += e.amount; });
-    bal -= daily;
-    series.push({day:d, bal:round2(bal)});
-  }
-  events.forEach(e=>{ e.after = series.find(p=>p.day===e.day).bal; });
-
-  // Lowest point counts every day before payday; on payday itself, the balance before the pay lands.
-  let low = {day:startDay, bal:opening, fromOpening:true};
-  series.forEach(p=>{
-    let b = p.bal;
-    if(p.day===endDay && payPick) b = round2(b - events.filter(e=>e.day===p.day && e.kind==='in').reduce((a,e)=>a+e.amount,0));
-    if(b < low.bal) low = {day:p.day, bal:b};
-  });
-  const status = low.bal < 0 ? 'short' : (low.bal < buffer ? 'tight' : 'fine');
-  const negDays = series.filter(p=>p.bal<0 && !(payPick && p.day===endDay && p.bal>=0));
-  const firstNeg = negDays[0] || null;
-  const nextPay = payPick ? events.find(e=>e===payPick) || payPick : null;
-  const payAmount = payPick ? events.filter(e=>e.kind==='in' && e.day===endDay).reduce((a,e)=>a+e.amount,0) : 0;
-
-  // Suggestions when short: push the biggest bill due before the low point past payday,
-  // and/or trim the daily figure.
-  let fixes = null;
-  if(status==='short'){
-    const shortfall = round2(-low.bal);
-    const before = events.filter(e=>e.kind==='out' && e.day<=low.day);
-    const big = before.sort((a,b)=>a.amount-b.amount)[0] || null;
-    const bigAmt = big ? -big.amount : 0;
-    const remainingAfterBill = round2(shortfall - bigAmt);
-    const daysToLow = Math.max(1, low.day - startDay + 1);
-    let trimPerDay = 0, trimTotal = 0;
-    if(remainingAfterBill>0){
-      trimPerDay = Math.ceil(remainingAfterBill/daysToLow);
-      trimTotal = trimPerDay*daysToLow;
-    } else if(!big){
-      trimPerDay = Math.ceil(shortfall/daysToLow); trimTotal = trimPerDay*daysToLow;
-    }
-    fixes = {shortfall, big, bigAmt, trimPerDay, trimTotal, daysToLow,
-             newDaily: Math.max(0, daily-trimPerDay),
-             canTrim: trimPerDay<=daily,
-             leftover: round2(bigAmt + trimTotal - shortfall)};
-  }
-  return {key, isCurrent, startDay, dim, endDay, noPay, payAmount, opening, daily, buffer, events, series, low, status, negDays, firstNeg, nextPay, unplaced, setAside, fixes, y, mo};
-}
-
-let cashflowShowAll = false;
-function cashflowChartSvg(c){
-  const narrow = window.innerWidth<=700;
-  const W = narrow ? 360 : 740, H = narrow ? 270 : 310, L = narrow ? 44 : 48, R = narrow ? 344 : 716, T = 30, B = narrow ? 230 : 268;
-  const vals = [c.opening, ...c.series.map(p=>p.bal)];
-  let vmin = Math.min(...vals, 0), vmax = Math.max(...vals, c.buffer>0?c.buffer:0);
-  if(vmax-vmin < 1) vmax = vmin + 1;
-  const rough = (vmax-vmin)/5;
-  const mag = Math.pow(10, Math.floor(Math.log10(rough)));
-  const step = [1,2,2.5,5,10].map(f=>f*mag).find(s=>s>=rough) || 10*mag;
-  vmin = Math.floor(vmin/step)*step; vmax = Math.ceil(vmax/step)*step;
-  const x0 = c.startDay-1, span = Math.max(1, c.endDay-x0);
-  const xOf = d => L + ((d-x0)/span)*(R-L);
-  const yOf = v => B - (v-vmin)/(vmax-vmin)*(B-T);
-  const accent = cssVar('--accent','#5b8cff'), green = cssVar('--green','#3ecf8e'), red = cssVar('--red','#ff5c7a'), amber = cssVar('--amber','#ffb946');
-  const muted = cssVar('--muted','#8a93ab'), border = cssVar('--border','#2a3552'), text = cssVar('--text','#e8ecf7'), panel2 = cssVar('--panel2','#1d2740'), panel = cssVar('--panel','#161d2e');
-  const startX = xOf(c.startDay-1);
-  const pts = [{x:startX, y:yOf(c.opening)}, ...c.series.map(p=>({x:xOf(p.day), y:yOf(p.bal)}))];
-  const poly = pts.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
-  const zeroY = yOf(0);
-  let grid = '', labels = '';
-  for(let v=vmin; v<=vmax+step/2; v+=step){
-    const y = yOf(v);
-    grid += `<line x1="${L}" y1="${y.toFixed(1)}" x2="${R}" y2="${y.toFixed(1)}" stroke="${border}" stroke-width="1"${v===0&&vmin<0?' opacity=".0"':''}/>`;
-    labels += `<text x="${L-8}" y="${(y+4).toFixed(1)}" font-size="10.5" fill="${muted}" text-anchor="end">${escapeHtml(state.currency)}${Math.round(v).toLocaleString()}</text>`;
-  }
-  const zeroLine = vmin<0 ? `<line x1="${L}" y1="${zeroY.toFixed(1)}" x2="${R}" y2="${zeroY.toFixed(1)}" stroke="${text}" stroke-width="1.2" opacity=".55"/>` : '';
-  const bufferLine = (c.buffer>0 && c.buffer<=vmax && c.buffer>vmin) ? `<line x1="${L}" y1="${yOf(c.buffer).toFixed(1)}" x2="${R}" y2="${yOf(c.buffer).toFixed(1)}" stroke="${amber}" stroke-width="1" stroke-dasharray="4 4" opacity=".75"/><text x="${L+4}" y="${(yOf(c.buffer)-5).toFixed(1)}" font-size="10" fill="${amber}">${escapeHtml(fmtCompact(c.buffer))} buffer</text>` : '';
-  // red shading where the balance is below zero
-  let shade = '';
-  for(let i=0; i<pts.length-1; i++){
-    const a = pts[i], b = pts[i+1];
-    const av = i===0 ? c.opening : c.series[i-1].bal, bv = c.series[i].bal;
-    if(av>=0 && bv>=0) continue;
-    const xs = [], ys = [];
-    let x0 = a.x, x1 = b.x, y0 = a.y, y1 = b.y;
-    if(av>=0 && bv<0){ const t = av/(av-bv); x0 = a.x + (b.x-a.x)*t; y0 = zeroY; }
-    if(av<0 && bv>=0){ const t = av/(av-bv); x1 = a.x + (b.x-a.x)*t; y1 = zeroY; }
-    shade += `<polygon points="${x0.toFixed(1)},${zeroY.toFixed(1)} ${x0.toFixed(1)},${y0.toFixed(1)} ${x1.toFixed(1)},${y1.toFixed(1)} ${x1.toFixed(1)},${zeroY.toFixed(1)}" fill="${red}" opacity=".28"/>`;
-  }
-  const area = `M${poly.replace(/ /g,' L')} L${pts[pts.length-1].x.toFixed(1)},${(vmin<0?zeroY:B).toFixed(1)} L${startX.toFixed(1)},${(vmin<0?zeroY:B).toFixed(1)} Z`;
-  // lowest point callout (geometry first, so labels can steer clear of it)
-  const lx = xOf(c.low.fromOpening ? c.startDay-1 : c.low.day), ly = yOf(c.low.bal);
-  const boxW = narrow ? 112 : 128, boxH = 46;
-  let bx = Math.min(Math.max(lx - boxW/2, L+4), R-boxW-4);
-  let by = ly - boxH - 26; if(by < T-4) by = ly + 26;
-  const placed = [{x0:bx, x1:bx+boxW, y0:Math.min(by,ly-9), y1:Math.max(by+boxH,ly+9)}];
-  // markers: one per day, even when several things fall on it
-  const dayY = d => yOf(c.series.find(p=>p.day===d).bal);
-  const groups = {};
-  c.events.forEach(e=>{ (groups[e.day] = groups[e.day] || {day:e.day, outs:[], ins:[]})[e.kind==='in'?'ins':'outs'].push(e); });
-  const glist = Object.values(groups);
-  const markers = glist.map(g=>{
-    const x = xOf(g.day), y = dayY(g.day);
-    if(g.ins.length) return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="5" fill="${green}" stroke="${panel}" stroke-width="2"/>`;
-    const late = g.outs.some(e=>e.late);
-    return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${g.outs.length>1?5:4.2}" fill="${panel}" stroke="${late?red:amber}" stroke-width="2.2"/>`;
-  }).join('');
-  // labels: biggest outgoing days + payday, each placed where it doesn't collide
-  const outTotal = g => g.outs.reduce((a,e)=>a+e.amount,0);
-  const toLabel = glist.filter(g=>g.outs.length && !g.ins.length).sort((a,b)=>outTotal(a)-outTotal(b)).slice(0, narrow?2:3).map(g=>{
-    const big = g.outs.slice().sort((a,b)=>a.amount-b.amount)[0];
-    return {g, kind:'out', text:`${big.name}${g.outs.length>1?` +${g.outs.length-1} more`:''} −${fmtCompact(Math.abs(outTotal(g)))}`};
-  });
-  const payG = c.nextPay && groups[c.nextPay.day];
-  if(payG){
-    const ins = payG.ins.reduce((a,e)=>a+e.amount,0);
-    toLabel.push({g:payG, kind:'in', text:`${c.nextPay.name}${payG.ins.length>1?` +${payG.ins.length-1} more`:''} +${fmtCompact(ins)}`});
-  }
-  const charW = narrow ? 6.2 : 6.6, lh = 12;
-  toLabel.sort((a,b)=>(a.kind==='in'?-1:0)-(b.kind==='in'?-1:0));   // payday places first, then the biggest bills
-  let evLabels = '';
-  toLabel.forEach(lb=>{
-    const x = xOf(lb.g.day), y = dayY(lb.g.day);
-    const w = lb.text.length*charW;
-    const anchor = x + 9 + w > R+4 ? 'end' : 'start';
-    const tx = anchor==='end' ? x-9 : x+9;
-    const x0 = anchor==='end' ? tx-w : tx, x1 = x0+w;
-    const tries = lb.kind==='in' ? [4,-12,20,-28] : [-9,-24,-39,15,30];
-    const hit = (y0,y1)=>placed.some(r=>x0<r.x1 && x1>r.x0 && y0<r.y1 && y1>r.y0);
-    let chosen = null;
-    for(const dy of tries){
-      const ty = y+dy, y0 = ty-lh+2, y1 = ty+3;
-      if(y0 < T-6 || y1 > B+2) continue;
-      if(!hit(y0,y1)){ chosen = {ty, y0, y1}; break; }
-    }
-    if(!chosen) return;
-    placed.push({x0, x1, y0:chosen.y0, y1:chosen.y1});
-    evLabels += `<text x="${tx.toFixed(1)}" y="${chosen.ty.toFixed(1)}" font-size="10.5" font-weight="700" fill="${lb.kind==='in'?green:text}" text-anchor="${anchor}" stroke="${panel}" stroke-width="3" paint-order="stroke">${escapeHtml(lb.text)}</text>`;
-  });
-  const lowCol = c.status==='short' ? red : (c.status==='tight' ? amber : accent);
-  const lowDate = new Date(c.y, c.mo-1, c.low.day).toLocaleDateString('en-GB',{day:'numeric',month:'short'});
-  const callout = `
-    <circle cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="9" fill="none" stroke="${lowCol}" stroke-width="2"/>
-    <line x1="${lx.toFixed(1)}" y1="${(by<ly?by+boxH:by).toFixed(1)}" x2="${lx.toFixed(1)}" y2="${(by<ly?ly-9:ly+9).toFixed(1)}" stroke="${lowCol}" stroke-width="1.4"/>
-    <rect x="${bx.toFixed(1)}" y="${by.toFixed(1)}" width="${boxW}" height="${boxH}" rx="9" fill="${panel2}" stroke="${lowCol}" stroke-width="1.2"/>
-    <text x="${(bx+12).toFixed(1)}" y="${(by+19).toFixed(1)}" font-size="10.5" fill="${muted}">Lowest point</text>
-    <text x="${(bx+12).toFixed(1)}" y="${(by+37).toFixed(1)}" font-size="${narrow?12.5:14}" font-weight="800" fill="${c.status==='short'?red:text}">${c.low.bal<0?'−':''}${escapeHtml(fmtCompact(Math.abs(c.low.bal)))} · ${escapeHtml(lowDate)}</text>`;
-  const nowLine = c.isCurrent ? `<line x1="${startX.toFixed(1)}" y1="${T-8}" x2="${startX.toFixed(1)}" y2="${B}" stroke="${muted}" stroke-width="1" stroke-dasharray="3 3" opacity=".7"/><text x="${startX.toFixed(1)}" y="${T-12}" font-size="10" fill="${muted}" text-anchor="middle" font-weight="600">Now</text>` : '';
-  const nTicks = Math.min(c.endDay-c.startDay+1, narrow ? 4 : 7);
-  const ticks = [];
-  for(let t=0; t<nTicks; t++) ticks.push(nTicks<=1 ? c.startDay : Math.round(c.startDay + t*(c.endDay-c.startDay)/(nTicks-1)));
-  const xl = ticks.filter((d,i,a)=>a.indexOf(d)===i).map((d,i)=>{
-    const dt = new Date(c.y, c.mo-1, d);
-    const lab = (i===0 || dt.getDate()===1 || dt.getMonth()!==new Date(c.y, c.mo-1, ticks[0]).getMonth()) ? dt.toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : String(dt.getDate());
-    const anchor = d===c.startDay && c.startDay!==c.endDay ? 'start' : (d===c.endDay ? 'end' : 'middle');
-    return `<text x="${(xOf(d)+(anchor==='start'?-4:anchor==='end'?4:0)).toFixed(1)}" y="${H-12}" font-size="10.5" fill="${muted}" text-anchor="${anchor}">${lab}</text>`;
-  }).join('');
-  return `<svg viewBox="0 0 ${W} ${H}" width="100%" data-w="${W}" data-l="${L}" data-r="${R}" style="display:block;touch-action:pan-y;" id="cfSvg" role="img" aria-label="Daily balance forecast">
-    <defs><linearGradient id="cfGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${accent}" stop-opacity=".30"/><stop offset="1" stop-color="${accent}" stop-opacity="0"/></linearGradient></defs>
-    ${grid}${labels}${bufferLine}${shade}
-    <path d="${area}" fill="url(#cfGrad)"/>
-    ${zeroLine}
-    <polyline points="${poly}" fill="none" stroke="${accent}" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"${c.isCurrent?' stroke-dasharray="7 5"':''}/>
-    ${nowLine}${markers}${evLabels}${callout}
-    <circle id="cfGuideDot" r="5.5" fill="${panel}" stroke="${accent}" stroke-width="2.4" opacity="0" style="pointer-events:none;"/>
-    <line id="cfGuide" y1="${T-4}" y2="${B}" stroke="${text}" stroke-width="1" stroke-dasharray="3 3" opacity="0" style="pointer-events:none;"/>
-    <rect id="cfOverlay" x="${L}" y="0" width="${R-L}" height="${H}" fill="transparent" style="cursor:crosshair;"/>
-    ${xl}
-  </svg>`;
-}
-
-function renderCashflow(){
-  hideChartTooltip();
-  const el = document.getElementById('view-cashflow');
-  const key = state.currentMonthKey;
-  const s = cashflowSettings();
-  const def = cashflowDefaultDaily(key);
-  const daily = typeof s.daily==='number' ? s.daily : def.value;
-  const monthLabel = monthLabelFromKey(key);
-
-  if(key < monthKey(new Date())){
-    el.innerHTML = `<div class="panel"><div class="panel-head"><h2>Cash-flow forecast · ${monthLabel}</h2></div>
-      <div class="empty">A forecast looks forward, so it isn't available for a month that's already over. Use the arrows at the top to switch to this month or a later one.</div></div>`;
-    return;
-  }
-  el.innerHTML = `
-    <div class="panel cf-panel">
-      <div class="panel-head">
-        <div class="cf-title"><h2>Cash-flow forecast · up to payday</h2><span class="cf-pill" id="cfPill"></span></div>
-        <span class="hint" id="cfHint">daily balance from today to your next payday</span>
-      </div>
-      <div class="cf-controls">
-        <div class="cf-slider">
-          <div class="cf-ctl-label">Everyday spending assumed</div>
-          <div class="cf-slider-row"><input type="range" id="cfDaily" min="0" max="${Math.max(60, Math.ceil(Math.max(daily,def.value)*3/10)*10)}" step="1" value="${daily}" aria-label="Everyday spending per day"><b id="cfDailyVal">${escapeHtml(fmt(daily))}/day</b></div>
-          <div class="cf-ctl-sub" id="cfDailySrc"></div>
-          <div class="cf-ctl-sub cf-compare" id="cfCompare"></div>
-        </div>
-        <div class="cf-buffer">
-          <div class="cf-ctl-label">Safety buffer</div>
-          <label class="sv-amt"><span class="sv-cur">${escapeHtml(state.currency)}</span><input type="number" min="0" step="10" id="cfBuffer" value="${s.buffer}" aria-label="Safety buffer"></label>
-          <div class="cf-ctl-sub">warn when the balance gets this low</div>
-        </div>
-      </div>
-      <div id="cfDynamic"></div>
-    </div>`;
-
-  const dyn = document.getElementById('cfDynamic');
-  const update = ()=>{
-    const d = Number(document.getElementById('cfDaily').value)||0;
-    const buf = Math.max(0, Number(document.getElementById('cfBuffer').value)||0);
-    const c = computeCashflow(key, d, buf);
-    paintCashflow(dyn, c);
-  };
-  const dailyInput = document.getElementById('cfDaily');
-  dailyInput.oninput = ()=>{
-    document.getElementById('cfDailyVal').textContent = fmt(Number(dailyInput.value)||0)+'/day';
-    s.daily = Number(dailyInput.value)||0;
-    paintSource();
-    update();
-  };
-  dailyInput.onchange = ()=>save();
-  const wireReset = ()=>{
-    const r = document.getElementById('cfDailyReset');
-    if(r) r.onclick = e=>{ e.preventDefault(); delete s.daily; save(); renderCashflow(); };
-  };
-  const paintSource = ()=>{
-    const custom = typeof s.daily==='number';
-    document.getElementById('cfDailySrc').innerHTML = custom
-      ? `Your own figure · <a href="#" id="cfDailyReset">reset to ${escapeHtml(fmt(def.value))}/day</a>`
-      : escapeHtml(def.source);
-    const cur = Number(document.getElementById('cfDaily').value)||0;
-    const cmp = document.getElementById('cfCompare');
-    if(def.quickAvg!==null && def.quickAvg!==undefined){
-      const diff = def.quickAvg - cur;
-      cmp.innerHTML = diff>=2
-        ? `<span style="color:var(--amber);">You've actually been spending about ${escapeHtml(fmt(def.quickAvg))}/day</span> (Quick Add) — more than this.`
-        : `Your Quick Add average is about ${escapeHtml(fmt(def.quickAvg))}/day.`;
-    } else cmp.innerHTML = '';
-    wireReset();
-  };
-  paintSource();
-  document.getElementById('cfBuffer').oninput = ()=>{ s.buffer = Math.max(0, Number(document.getElementById('cfBuffer').value)||0); update(); };
-  document.getElementById('cfBuffer').onchange = ()=>save();
-  update();
-}
-
-function paintCashflow(dyn, c){
-  const pill = document.getElementById('cfPill');
-  if(!c){ dyn.innerHTML = '<div class="empty">No data for this month.</div>'; return; }
-  const dateLabel = (d, long)=>new Date(c.y, c.mo-1, d).toLocaleDateString('en-GB', long ? {weekday:'long',day:'numeric',month:'long'} : {weekday:'short',day:'numeric',month:'short'});
-  const noItems = !c.events.length;
-  const money = n => escapeHtml(fmt(n));
-  const tone = {fine:'var(--green)', tight:'var(--amber)', short:'var(--red)'}[c.status];
-  pill.className = 'cf-pill cf-'+c.status;
-  pill.textContent = c.status==='short' ? `Short by ${fmt(-c.low.bal)}` : (c.status==='tight' ? 'Tight' : 'Looking fine');
-
-  // headline
-  let headline;
-  const nextPayTxt = c.nextPay ? ` (${dateLabel(c.nextPay.day)})` : '';
-  const lowDay = dateLabel(c.low.day);
-  if(c.status==='short'){
-    headline = `<b>You go below zero on ${dateLabel(c.firstNeg.day)}</b>${c.negDays.length>1 ? ` and stay there for ${c.negDays.length} day${c.negDays.length!==1?'s':''}` : ''}. At the worst point (${lowDay}) you'd be <b>${money(-c.low.bal)} short</b>${c.nextPay ? ` — just before payday${nextPayTxt}` : ''}.`;
-  } else if(c.status==='tight'){
-    headline = `<b>Lowest point: ${money(c.low.bal)} on ${lowDay}</b>${c.nextPay ? `, before payday${nextPayTxt}` : ''}. That's under your ${money(c.buffer)} buffer, so keep an eye on spending.`;
-  } else {
-    headline = `<b>You stay comfortably above your buffer.</b> Lowest point is ${money(c.low.bal)} on ${lowDay}${c.nextPay ? `, before payday${nextPayTxt}` : ''}.`;
-  }
-  const icon = c.status==='fine'
-    ? `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${tone}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><path d="M8 12.5l2.7 2.7L16 9.5"/></svg>`
-    : c.status==='tight'
-    ? `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${tone}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>`
-    : `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${tone}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><path d="M12 7.5v5"/><path d="M12 16.5h.01"/></svg>`;
-
-  // fixes
-  let fixesHtml = '';
-  if(c.fixes){
-    const f = c.fixes;
-    const lines = [];
-    if(f.big) lines.push(`<div class="cf-fix"><span class="cf-fix-n">1</span><span><b>${f.big.setAside ? `Hold off ${escapeHtml(f.big.name.toLowerCase())} until` : `Pay ${escapeHtml(f.big.name)}`} after payday</b>${f.big.setAside ? '' : ` instead of ${dateLabel(f.big.day)}`}. That clears <b>${money(f.bigAmt)}</b>.</span></div>`);
-    if(f.trimPerDay>0 && f.canTrim) lines.push(`<div class="cf-fix"><span class="cf-fix-n">${f.big?2:1}</span><span><b>Trim everyday spending</b> from ${money(c.daily)} to ${money(f.newDaily)} a day. That clears about <b>${money(f.trimTotal)}</b>.</span></div>`);
-    else if(f.trimPerDay>0) lines.push(`<div class="cf-fix"><span class="cf-fix-n">${f.big?2:1}</span><span>Trimming everyday spending alone can't cover the rest — you'd need an extra <b>${money(f.shortfall - f.bigAmt)}</b> in, or another bill moved.</span></div>`);
-    if(f.big && f.trimPerDay>0 && f.canTrim) lines.push(`<div class="cf-fix"><span class="cf-fix-n cf-fix-ok">✓</span><span><b>Both together</b> and you bottom out at <b style="color:var(--green);">${f.leftover>=0?'+':'−'}${money(Math.abs(f.leftover))}</b> instead of −${money(f.shortfall)}.</span></div>`);
-    if(f.big && f.trimPerDay===0) lines.push(`<div class="cf-fix"><span class="cf-fix-n cf-fix-ok">✓</span><span>That alone brings your lowest point to about <b style="color:var(--green);">${f.leftover>=0?'+':'−'}${money(Math.abs(f.leftover))}</b>.</span></div>`);
-    fixesHtml = `<div class="cf-card"><div class="cf-card-title">Ways to close the gap</div><div class="cf-fixes">${lines.join('')}</div></div>`;
-  }
-
-  const stat = (k, v, sub, col) => `<div class="stat cf-stat"><div class="k">${k}</div><div class="v"${col?` style="color:${col};"`:''}>${v}</div><div class="s">${sub}</div></div>`;
-  const endBal = c.series[c.series.length-1].bal;
-  const stats = [
-    stat('Lowest point', `${c.low.bal<0?'−':''}${money(Math.abs(c.low.bal))}`, `${dateLabel(c.low.day)}${c.nextPay ? ' · before payday' : ''}`, tone),
-    c.nextPay ? stat('Next payday', `+${money(c.payAmount)}`, `${dateLabel(c.nextPay.day)} · ${c.isCurrent ? (c.nextPay.day-c.startDay===0?'today':`in ${c.nextPay.day-c.startDay} day${c.nextPay.day-c.startDay!==1?'s':''}`) : `${escapeHtml(c.nextPay.name)}`}`, 'var(--green)') : stat('Next payday', '—', 'no dated income found ahead'),
-    stat(c.nextPay ? 'On payday' : 'Ends the month at', `${endBal<0?'−':''}${money(Math.abs(endBal))}`, c.nextPay ? 'once pay has landed' : 'on current plans', endBal<0?'var(--red)':''),
-    c.status==='short' ? stat('Days below zero', String(c.negDays.length), `${dateLabel(c.negDays[0].day)} – ${dateLabel(c.negDays[c.negDays.length-1].day)}`, 'var(--red)') : ''
-  ].join('');
-
-  // events
-  const rows = c.events.map(e=>`
-    <div class="cf-ev${e.kind==='in'?' cf-ev-in':''}${e.after<0?' cf-ev-neg':''}">
-      <span class="cf-ev-d">${dateLabel(e.day)}</span>
-      <span class="cf-ev-n">${escapeHtml(e.name)}${e.late?'<span class="cf-late">Overdue</span>':''}${e.pay3?'<span class="cf-tagp3">Pay in 3</span>':''}</span>
-      <span class="cf-ev-a" style="${e.kind==='in'?'color:var(--green);':''}">${e.kind==='in'?'+':'−'}${money(Math.abs(e.amount))}</span>
-      <span class="cf-ev-b">→ ${e.after<0?'−':''}${money(Math.abs(e.after))}</span>
-    </div>`);
-  const showAll = cashflowShowAll;
-  const evHtml = rows.length ? `<div class="cf-ev-list${showAll?'':' cf-collapsed'}">${rows.join('')}</div>${rows.length>3?`<button type="button" class="cf-showall" id="cfShowAll">${showAll?'Show fewer ▴':`Show all ${rows.length} ▾`}</button>`:''}` : '';
-
-  const un = c.unplaced;
-  const notes = [];
-  if(un.outN) notes.push(`${un.outN} pending bill${un.outN!==1?'s':''} with no Day (${money(un.outAmt)})`);
-  if(un.inN) notes.push(`${un.inN} income item${un.inN!==1?'s':''} with no schedule (${money(un.inAmt)})`);
-  if(un.lateIn>0) notes.push(`${money(un.lateIn)} of income whose date has already passed`);
-  const noteHtml = notes.length ? `<div class="cf-note"><b>Not on the chart:</b> ${notes.join(' · ')}. Give bills a Day (and income a schedule) in the Month Tracker to include them.</div>` : '';
-
-  dyn.innerHTML = `
-    <div class="cf-banner cf-b-${c.status}">${icon}<div>${headline}</div></div>
-    ${c.noPay ? '<div class="cf-note" style="margin-bottom:12px;">No upcoming payday found, so this runs to the end of the month. Give your pay a date (or set up next month) and the forecast will run up to payday instead.</div>' : ''}
-    ${noItems ? '<div class="cf-note" style="margin-bottom:12px;">No dated bills or income found before payday yet — the line below is just your balance minus everyday spending.</div>' : ''}
-    <div class="cf-main">
-      <div class="cf-chart">
-        ${cashflowChartSvg(c)}
-        <div class="cf-legend">
-          <span><i class="cf-lg-line${c.isCurrent?' dash':''}"></i>Forecast</span>
-          <span><i class="cf-lg-dot" style="border-color:var(--amber);"></i>Bill due</span>
-          <span><i class="cf-lg-dot" style="background:var(--green);border-color:var(--green);"></i>Payday</span>
-          ${c.status==='short' ? '<span><i class="cf-lg-sq"></i>Below zero</span>' : ''}
-        </div>
-      </div>
-      <div class="cf-side">${stats}${fixesHtml}</div>
-    </div>
-    ${rows.length ? `<div class="cf-ev-title">Coming up</div>${evHtml}` : ''}
-    ${noteHtml}`;
-
-  const showAllBtn = document.getElementById('cfShowAll');
-  if(showAllBtn) showAllBtn.onclick = ()=>{ cashflowShowAll = !cashflowShowAll; paintCashflow(dyn, c); };
-
-  // hover / touch scrub on the chart
-  const svg = document.getElementById('cfSvg'), overlay = document.getElementById('cfOverlay');
-  if(svg && overlay){
-    const L = Number(svg.dataset.l), R = Number(svg.dataset.r), VW = Number(svg.dataset.w);
-    const guide = document.getElementById('cfGuide'), dot = document.getElementById('cfGuideDot');
-    const vals = [c.opening, ...c.series.map(p=>p.bal)];
-    // reuse the same scale as the chart by reading the polyline's points
-    const poly = svg.querySelector('polyline').getAttribute('points').split(' ').map(p=>p.split(',').map(Number));
-    const scrub = evt=>{
-      const rect = svg.getBoundingClientRect();
-      const px = (evt.clientX-rect.left)*(VW/rect.width);
-      const x0 = c.startDay-1, day = Math.max(c.startDay, Math.min(c.endDay, x0+Math.round((px-L)/(R-L)*(c.endDay-x0))));
-      const p = c.series.find(s=>s.day===day);
-      const pt = poly[day-c.startDay+1];
-      guide.setAttribute('x1', pt[0]); guide.setAttribute('x2', pt[0]); guide.setAttribute('opacity', .45);
-      dot.setAttribute('cx', pt[0]); dot.setAttribute('cy', pt[1]); dot.setAttribute('opacity', 1);
-      const evs = c.events.filter(e=>e.day===day);
-      showChartTooltip(evt, `<div style="margin-bottom:3px;">${escapeHtml(dateLabel(day))}</div><div>Balance: <b>${p.bal<0?'−':''}${money(Math.abs(p.bal))}</b></div>${evs.map(e=>`<div style="color:var(--muted);font-weight:500;">${e.kind==='in'?'+':'−'}${money(Math.abs(e.amount))} ${escapeHtml(e.name)}</div>`).join('')}`, true, evt.pointerType==='touch' ? {x:evt.clientX, top:rect.top} : null);
-    };
-    const end = ()=>{ guide.setAttribute('opacity',0); dot.setAttribute('opacity',0); hideChartTooltip(); };
-    overlay.addEventListener('pointermove', scrub);
-    overlay.addEventListener('pointerdown', scrub);
-    overlay.addEventListener('pointerleave', end);
-    overlay.addEventListener('pointercancel', end);
-  }
-}
-
 // ---------------- Pay in 3 page ----------------
 let p3FormOpen = null;
 function renderPay3(){
