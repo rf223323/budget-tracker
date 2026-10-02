@@ -659,6 +659,32 @@
   .mt-bill-dot{flex:1 1 0;height:5px;min-width:2px;background:var(--border);border-radius:1px;}
   .mt-bill-dot.due{background:var(--amber);cursor:pointer;}
   .mt-bill-dot.pay{background:var(--green);cursor:pointer;}
+  .ub-next{border-radius:calc(var(--radius) + 4px);padding:16px 18px;margin-bottom:18px;border:1px solid color-mix(in srgb, var(--accent) 38%, var(--border));background:linear-gradient(135deg, color-mix(in srgb, var(--accent) 28%, var(--panel)) 0%, color-mix(in srgb, var(--accent) 7%, var(--panel)) 60%, var(--panel) 100%);}
+  .ub-next-top{display:flex;align-items:center;justify-content:space-between;}
+  .ub-next-k{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
+  .ub-chip{padding:3px 10px;border-radius:999px;font-size:11.5px;font-weight:800;background:color-mix(in srgb, var(--text) 10%, transparent);color:var(--muted);}
+  .ub-chip.soon{background:color-mix(in srgb, var(--amber) 18%, transparent);color:var(--amber);}
+  .ub-next-main{display:flex;align-items:center;gap:14px;margin-top:12px;}
+  .ub-next-info{flex:1;min-width:0;}
+  .ub-next-name{font-size:17px;font-weight:800;}
+  .ub-next-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+  .ub-next-amt{font-size:24px;font-weight:800;letter-spacing:-.02em;white-space:nowrap;}
+  .ub-next-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid color-mix(in srgb, var(--text) 10%, transparent);font-size:12px;color:var(--muted);}
+  .ub-next-foot b{color:var(--text);}
+  .ub-groups{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px;}
+  .ub-groups.single{grid-template-columns:minmax(0,1fr);}
+  .ub-group-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+  .ub-group-title{font-size:13px;font-weight:800;}
+  .ub-group-sum{font-size:12px;color:var(--muted);}
+  .ub-group-sum b{color:var(--text);}
+  .ub-list{display:flex;flex-direction:column;gap:8px;}
+  .ub-row{display:flex;align-items:center;gap:12px;}
+  .ub-info{flex:1;min-width:0;}
+  .ub-name{font-size:13.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .ub-date{font-size:11.5px;color:var(--muted);margin-top:1px;}
+  .ub-date.due-soon{color:var(--amber);font-weight:600;}
+  .ub-amt{font-size:13.5px;font-weight:800;white-space:nowrap;}
+  @media (max-width:860px){.ub-groups{grid-template-columns:minmax(0,1fr);gap:18px;}.ub-next{padding:14px;}.ub-next-amt{font-size:21px;}}
   .bill-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
   .bill-row:last-child{border-bottom:none;}
   .bill-icon{font-size:18px;flex-shrink:0;width:34px;height:34px;display:flex;align-items:center;justify-content:center;background:var(--panel2);border-radius:9px;}
@@ -3192,8 +3218,9 @@ function renderMonth(){
       <div class="panel-head">
         <h2>Upcoming Bills</h2>
         <div class="seg-toggle" id="upcomingBillsToggle">
-          <button class="seg-btn" data-days="7">Next 7 days</button>
-          <button class="seg-btn" data-days="14">Next 14 days</button>
+          <button class="seg-btn" data-days="7">7 days</button>
+          <button class="seg-btn" data-days="14">14 days</button>
+          <button class="seg-btn" data-days="30">30 days</button>
         </div>
       </div>
       <div id="upcomingBillsList"></div>
@@ -3701,7 +3728,7 @@ function upcomingBills(daysAhead){
     m.outgoings.forEach(o=>{
       if(o.status==='done') return;
       if(resolveScheduledDay(o, yy, mo) === d.getDate()){
-        results.push({type:'out', name:o.name, amount:o.amount, category:o.category, daysAway:i, dueDate:new Date(d)});
+        results.push({type:'out', name:o.name, amount:o.amount, category:o.category, recurring:!!o.recurring, daysAway:i, dueDate:new Date(d)});
       }
     });
     m.incoming.forEach(inc=>{
@@ -3721,28 +3748,53 @@ function renderUpcomingBills(){
     b.classList.toggle('active', Number(b.dataset.days)===upcomingBillsWindow);
     b.onclick = ()=>{ upcomingBillsWindow = Number(b.dataset.days); renderUpcomingBills(); };
   });
-  const bills = upcomingBills(upcomingBillsWindow);
-  if(!bills.length){
+  const items = upcomingBills(upcomingBillsWindow);
+  if(!items.length){
     el.innerHTML = `<div class="empty">Nothing due or arriving in the next ${upcomingBillsWindow} days.</div>`;
     return;
   }
-  el.innerHTML = bills.map(b=>{
+  const fmtDate = d => d.toLocaleDateString('en-GB',{weekday:'short', day:'numeric', month:'short'});
+  const when = n => n===0 ? 'today' : n===1 ? 'tomorrow' : `in ${n} days`;
+  const bills = items.filter(b=>b.type==='out');
+  const next = bills[0] || null;
+  const thisWeek = items.filter(b=>b.daysAway<=7);
+  const later = items.filter(b=>b.daysAway>7);
+  const sum = list => round2(list.filter(b=>b.type==='out').reduce((a,b)=>a+(Number(b.amount)||0),0));
+  const count = list => list.filter(b=>b.type==='out').length;
+  const row = (b, showWhen) => {
     const isIn = b.type==='in';
-    const verb = isIn ? 'Arriving' : 'Due';
-    const dueText = b.daysAway===0 ? `${verb} today` : b.daysAway===1 ? `${verb} tomorrow` : `${verb} in ${b.daysAway} days`;
-    const dateText = b.dueDate.toLocaleDateString('en-GB',{weekday:'short', day:'numeric', month:'short'});
-    const icon = catTile(isIn ? 'Salary' : (b.category||'Uncategorized'), 'md');
-    return `
-      <div class="bill-row">
-        ${icon}
-        <div class="bill-info">
-          <div class="bill-name">${escapeHtml(b.name)}</div>
-          <div class="bill-due${b.daysAway<=1?' due-soon':''}">${dueText} · ${dateText}</div>
-        </div>
-        <div class="bill-amount" style="${isIn?'color:var(--green);':''}">${isIn?'+':''}${fmt(b.amount)}</div>
+    const cat = isIn ? 'Salary' : (b.category||'Uncategorized');
+    return `<div class="ub-row">
+      ${catTile(cat,'sm')}
+      <div class="ub-info"><div class="ub-name">${escapeHtml(b.name)}</div><div class="ub-date${b.daysAway<=1?' due-soon':''}">${isIn?'Arrives ':''}${fmtDate(b.dueDate)}${showWhen?` · ${when(b.daysAway)}`:''}</div></div>
+      <div class="ub-amt" style="${isIn?'color:var(--green);':''}">${isIn?'+':''}${escapeHtml(fmt(b.amount))}</div>
+    </div>`;
+  };
+  const group = (title, list, showWhen) => {
+    if(!list.length) return '';
+    const n = count(list);
+    return `<div class="ub-group">
+      <div class="ub-group-head"><div class="ub-group-title">${title}</div><div class="ub-group-sum">${n?`${n} bill${n!==1?'s':''} · <b>${escapeHtml(fmt(sum(list)))}</b>`:'income only'}</div></div>
+      <div class="ub-list">${list.map(b=>row(b, showWhen)).join('')}</div>
+    </div>`;
+  };
+  // Hero card for the very next bill
+  let nextHtml = '';
+  if(next){
+    const others = thisWeek.filter(b=>b.type==='out' && b!==next);
+    const cat = next.category || 'Uncategorized';
+    nextHtml = `<div class="ub-next">
+      <div class="ub-next-top"><span class="ub-next-k">Next due</span><span class="ub-chip${next.daysAway<=1?' soon':''}">${next.daysAway===0?'Today':next.daysAway===1?'Tomorrow':'In '+next.daysAway+' days'}</span></div>
+      <div class="ub-next-main">
+        ${catTile(cat,'md')}
+        <div class="ub-next-info"><div class="ub-next-name">${escapeHtml(next.name)}</div><div class="ub-next-sub">${fmtDate(next.dueDate)} · ${escapeHtml(cat)} · ${next.recurring?'Recurring':'One-off'}</div></div>
+        <div class="ub-next-amt">${escapeHtml(fmt(next.amount))}</div>
       </div>
-    `;
-  }).join('');
+      ${others.length ? `<div class="ub-next-foot"><span>After this, ${others.length} more bill${others.length!==1?'s':''} this week</span><b>${escapeHtml(fmt(sum(others)))}</b></div>` : ''}
+    </div>`;
+  }
+  const groups = group('This week', thisWeek, true) + group('Later', later, false);
+  el.innerHTML = nextHtml + `<div class="ub-groups${thisWeek.length && later.length ? '' : ' single'}">${groups}</div>`;
 }
 
 // ---------------- Calendar ----------------
