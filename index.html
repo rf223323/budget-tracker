@@ -1010,7 +1010,7 @@ const CATEGORY_ICONS = {
 const INCOME_CATEGORIES = ['Uncategorized','Salary','From friend','From partner','Selling goods'];
 function guessIncomeCategory(name){ return /salary|wage|payroll|\bpay\b/i.test(name||'') ? 'Salary' : 'Uncategorized'; }
 // Some themes swap a category colour that clashes with their palette (purple on Ember's warm black).
-const THEME_CATEGORY_COLORS = { ember: {'Bills & Utilities':'#ff7a59'} };
+const THEME_CATEGORY_COLORS = { ember: {'Bills & Utilities':'#f0453a'} };
 function categoryColor(cat){
   const o = THEME_CATEGORY_COLORS[state && state.theme];
   return (o && o[cat]) || CATEGORY_COLORS[cat] || CATEGORY_COLORS['Other'];
