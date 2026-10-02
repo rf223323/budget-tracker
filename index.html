@@ -3063,6 +3063,22 @@ function renderMonth(){
       </div>
     </div>
 
+    <div class="panel">
+      <div class="panel-head"><h2>Spending by Category</h2><span class="hint" id="monthCatTotal"></span></div>
+      <div class="field-inline" style="margin-bottom:16px;flex-wrap:wrap;">
+        <div class="seg-toggle" id="monthCatModeToggle">
+          <button class="seg-btn" data-mode="all">Budgeted</button>
+          <button class="seg-btn" data-mode="done">Actual (Done)</button>
+        </div>
+        <a href="#" id="monthCatSeeTrend" style="font-size:12px;color:var(--muted);text-decoration:underline;margin-left:auto;">See full Trend breakdown →</a>
+      </div>
+      <div class="cat-breakdown-layout">
+        <div id="monthCatDonut" class="cat-breakdown-donut"></div>
+        <div id="monthCatBars" class="cat-breakdown-bars"></div>
+      </div>
+      <div id="monthCatDeltas" style="margin-top:8px;"></div>
+    </div>
+
     <div class="panel quick-add-panel">
       <div class="panel-head"><h2>Quick Add</h2><span class="hint">added as Done right away</span></div>
       <select id="quickAddType" style="display:none;" aria-hidden="true" tabindex="-1">
@@ -3181,22 +3197,6 @@ function renderMonth(){
           </div>
         </div>
       </div>
-    </div>
-
-    <div class="panel">
-      <div class="panel-head"><h2>Spending by Category</h2><span class="hint" id="monthCatTotal"></span></div>
-      <div class="field-inline" style="margin-bottom:16px;flex-wrap:wrap;">
-        <div class="seg-toggle" id="monthCatModeToggle">
-          <button class="seg-btn" data-mode="all">Budgeted</button>
-          <button class="seg-btn" data-mode="done">Actual (Done)</button>
-        </div>
-        <a href="#" id="monthCatSeeTrend" style="font-size:12px;color:var(--muted);text-decoration:underline;margin-left:auto;">See full Trend breakdown →</a>
-      </div>
-      <div class="cat-breakdown-layout">
-        <div id="monthCatDonut" class="cat-breakdown-donut"></div>
-        <div id="monthCatBars" class="cat-breakdown-bars"></div>
-      </div>
-      <div id="monthCatDeltas" style="margin-top:8px;"></div>
     </div>
   `;
 
