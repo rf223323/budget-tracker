@@ -625,6 +625,7 @@
     .wk-item.collapsed .week-input,.wk-item.collapsed select{display:none;}
     .wk-item:not(.collapsed) .cs-caret{transform:rotate(180deg);}
     #monthCatDeltas{display:none;}
+    .hide-sm{display:none;}
   }
 </style>
 </head>
@@ -2428,6 +2429,7 @@ let safeSpendOpen = false;
 const expandedOutRows = new Set();
 const expandedIncRows = new Set();
 const expandedWeeks = new Set();
+const expandedRecurRows = new Set();
 function weekSummaryHtml(i, w){
   const amt = Number(w.amount)||0;
   return `<span class="cat-dd-chip" style="background:color-mix(in srgb, var(--accent) 35%, var(--panel2));">🗓️</span>
@@ -4033,8 +4035,10 @@ function drawRecurringTable(m, kind){
   const items = list.filter(x=>x.recurring);
   const colspan = 6;
   const [curYear, curMonthNum] = state.currentMonthKey.split('-').map(Number);
+  const summaryFor = x => kind==='incoming' ? incomeSummaryHtml(x) : outgoingSummaryHtml(x);
   body.innerHTML = items.map(x=>`
-    <tr data-id="${x.id}">
+    <tr data-id="${x.id}" class="out-row${kind==='incoming'?' inc-row':''}${expandedRecurRows.has(x.id)?'':' collapsed'}">
+      <td class="cell-summary" role="button" tabindex="0" aria-label="Show or hide details">${summaryFor(x)}</td>
       <td class="cell-name">
         <div class="cell-name-flex">
           <input class="row-input recur-name-${kind}" type="text" value="${escapeHtml(x.name)}">
@@ -4046,7 +4050,7 @@ function drawRecurringTable(m, kind){
         : `<td class="cell-incat" data-label="Category">${categoryDropdownHtml(`recur-category-${kind}`, x.category, INCOME_CATEGORIES)}</td><td class="cell-sched" data-label="Schedule">${scheduleSelectHtml(`recur-schedule-${kind}`, x)}</td>`}
       <td data-label="Amount"><input class="row-input recur-amount-${kind} amt-cell" type="number" step="0.01" value="${x.amount}"></td>
       <td data-label="Status">${statusSelectHtml(`recur-status-${kind}`, x.status)}</td>
-      <td class="cell-del"><button class="del-btn recur-del-${kind}">✕</button></td>
+      <td class="cell-del"><button class="del-btn out-del recur-del-${kind}" aria-label="Delete"><span class="del-x">✕</span><span class="del-label">Delete this ${kind==='incoming'?'income':'outgoing'}</span></button></td>
     </tr>
   `).join('') || `<tr><td colspan="${colspan}" class="empty">No recurring ${kind==='incoming'?'incoming':'outgoings'} yet</td></tr>`;
   body.querySelectorAll('tr').forEach(tr=>{
@@ -4054,14 +4058,23 @@ function drawRecurringTable(m, kind){
     const item = list.find(x=>x.id===id);
     if(!item) return;
     const listKey = kind==='incoming' ? 'incoming' : 'outgoings';
-    tr.querySelector(`.recur-name-${kind}`).oninput = e=>{ item.name=e.target.value; syncNewRecurringForward(item, state.currentMonthKey, listKey); save(); };
-    tr.querySelector(`.recur-amount-${kind}`).oninput = e=>{ item.amount=Number(e.target.value); syncNewRecurringForward(item, state.currentMonthKey, listKey); save(); };
+    const summary = tr.querySelector('.cell-summary');
+    const refreshSummary = ()=>{ summary.innerHTML = summaryFor(item); };
+    const toggleRow = ()=>{
+      const open = tr.classList.contains('collapsed');
+      tr.classList.toggle('collapsed', !open);
+      if(open) expandedRecurRows.add(id); else expandedRecurRows.delete(id);
+    };
+    summary.onclick = toggleRow;
+    summary.onkeydown = e=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); toggleRow(); } };
+    tr.querySelector(`.recur-name-${kind}`).oninput = e=>{ item.name=e.target.value; syncNewRecurringForward(item, state.currentMonthKey, listKey); save(); refreshSummary(); };
+    tr.querySelector(`.recur-amount-${kind}`).oninput = e=>{ item.amount=Number(e.target.value); syncNewRecurringForward(item, state.currentMonthKey, listKey); save(); refreshSummary(); };
     const sel = tr.querySelector(`.recur-status-${kind}`);
-    sel.onchange = e=>{ item.status=e.target.value; save(); e.target.className = `recur-status-${kind} status-select status-${e.target.value}`; };
+    sel.onchange = e=>{ item.status=e.target.value; save(); e.target.className = `recur-status-${kind} status-select status-${e.target.value}`; refreshSummary(); };
     const catSel = tr.querySelector(`.recur-category-${kind}`);
-    if(catSel) initCategoryDropdown(catSel, val=>{ item.category = val; propagateOutgoingFieldForward(item, state.currentMonthKey, 'category', listKey); save(); });
+    if(catSel) initCategoryDropdown(catSel, val=>{ item.category = val; propagateOutgoingFieldForward(item, state.currentMonthKey, 'category', listKey); save(); refreshSummary(); });
     const dayInp = tr.querySelector(`.recur-day-${kind}`);
-    if(dayInp) dayInp.onchange = e=>{ item.day = clampDay(e.target.value); e.target.value = item.day||''; propagateOutgoingFieldForward(item, state.currentMonthKey, 'day'); save(); };
+    if(dayInp) dayInp.onchange = e=>{ item.day = clampDay(e.target.value); e.target.value = item.day||''; propagateOutgoingFieldForward(item, state.currentMonthKey, 'day'); save(); refreshSummary(); };
     const schedSel = tr.querySelector(`.recur-schedule-${kind}`);
     if(schedSel) schedSel.onchange = e=>{
       applyScheduleValue(item, e.target.value);
@@ -4070,6 +4083,7 @@ function drawRecurringTable(m, kind){
       tr.querySelector('.schedule-hint').textContent = scheduleHint(item, curYear, curMonthNum);
     };
     tr.querySelector(`.recur-del-${kind}`).onclick = ()=>{
+      expandedRecurRows.delete(id);
       removeWithUndo(m, kind==='incoming' ? 'incoming' : 'outgoings', id, item.name || 'recurring item', ()=>renderRecurring());
     };
   });
@@ -4273,14 +4287,14 @@ function renderRecurring(){
     <div class="panel">
       <div class="panel-head">
         <h2>Recurring Incoming</h2>
-        <button class="btn small" id="addRecurIncomeBtn">+ Add recurring incoming</button>
+        <button class="btn small" id="addRecurIncomeBtn">+ Add <span class="hide-sm">recurring </span>incoming</button>
       </div>
       ${recurringTableHtml('incoming')}
     </div>
     <div class="panel">
       <div class="panel-head">
         <h2>Recurring Outgoings</h2>
-        <button class="btn small" id="addRecurOutgoingBtn">+ Add recurring outgoing</button>
+        <button class="btn small" id="addRecurOutgoingBtn">+ Add <span class="hide-sm">recurring </span>outgoing</button>
       </div>
       ${recurringTableHtml('outgoing')}
     </div>
@@ -4294,12 +4308,14 @@ function renderRecurring(){
   document.getElementById('addRecurIncomeBtn').onclick = ()=>{
     const item = {id:uid(), name:'New recurring income', amount:0, status:'none', recurring:true, category:'Uncategorized'};
     m.incoming.push(item);
+    expandedRecurRows.add(item.id);
     syncNewRecurringForward(item, state.currentMonthKey, 'incoming');
     save(); renderRecurring();
   };
   document.getElementById('addRecurOutgoingBtn').onclick = ()=>{
     const item = {id:uid(), name:'New recurring outgoing', amount:0, status:'none', recurring:true, category:'Uncategorized'};
     m.outgoings.push(item);
+    expandedRecurRows.add(item.id);
     syncNewRecurringForward(item, state.currentMonthKey, 'outgoings');
     save(); renderRecurring();
   };
