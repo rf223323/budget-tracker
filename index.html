@@ -551,6 +551,8 @@
         <option value="soft" style="background:#f4f2fa;color:#1c1a22;">Soft Gradient</option>
         <option value="ignite" style="background:#161616;color:#f5f5f0;">Ignite</option>
       </select>
+      <button class="btn secondary small" id="forceRefreshBtn" style="width:100%;margin-top:6px;" title="Clears the app's cached files and reloads the latest version. Your budget data is not touched.">⟳ Force refresh</button>
+      <div class="hint" style="font-size:10.5px;line-height:1.35;">Not seeing an update? This reloads the latest version. Your data stays safe.</div>
     </div>
   </div>
 
@@ -4039,7 +4041,35 @@ if(bootstrapFromUrlIfNeeded()) render();
 syncActiveProfileFromCloud();
 setInterval(renderSyncIndicator, 60000);
 
+// Clears the app's cached files (service worker + Cache Storage, plus the browser's
+// cached copy of this page) and reloads. Budget data lives in localStorage and
+// Firestore, neither of which is touched.
+async function forceRefresh(){
+  const btn = document.getElementById('forceRefreshBtn');
+  btn.disabled = true;
+  btn.textContent = 'Refreshing…';
+  try{
+    if('serviceWorker' in navigator){
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r=>r.unregister()));
+    }
+    if(window.caches){
+      const names = await caches.keys();
+      await Promise.all(names.map(n=>caches.delete(n)));
+    }
+    await fetch(location.pathname, {cache:'reload'});
+  }catch(e){
+    console.error('Force refresh partly failed', e);
+  }
+  location.reload();
+}
+document.getElementById('forceRefreshBtn').onclick = forceRefresh;
+
 if('serviceWorker' in navigator){
+  const hadController = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('controllerchange', ()=>{
+    if(hadController) showToast('Updated', 'Reload to get the latest version');
+  });
   window.addEventListener('load', ()=>{
     navigator.serviceWorker.register('sw.js').catch(e=>console.error('Service worker registration failed', e));
   });
