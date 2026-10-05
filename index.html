@@ -7057,27 +7057,57 @@ function bossArt2(kind, mood, hit){
       ${eye(45,58,9,-1)}${eye(75,58,9,1)}${mouth(60,84,26)}
       ${dead?'':`<path d="M52,90 l-2,8 l5,-5Z M68,90 l2,8 l-5,-5Z" fill="#fff" stroke="${O}" stroke-width="1.4" stroke-linejoin="round"/>`}`;
   } else if(kind==='kraken'){
-    const p1='#ff5fa8', p2='#c12a7c';
-    const tent = (x0,x1,y1,s)=>tube(`M${x0},86 C${x0+s*2},100 ${x1},96 ${x1},${y1} C${x1},${y1+8} ${x1+s*8},${y1+10} ${x1+s*6},${y1+2}`, 12, p1);
-    b = `<ellipse cx="60" cy="116" rx="40" ry="4" fill="#000" opacity=".22"/>
-      ${tent(22,12,102,-1)}${tent(38,34,112,-1)}${tent(82,86,112,1)}${tent(98,108,102,1)}${tent(52,52,114,-1)}${tent(68,70,114,1)}
-      ${PS('M60,8 C92,8 104,34 100,60 C98,80 84,92 60,92 C36,92 22,80 20,60 C16,34 28,8 60,8Z', p1)}
-      <g fill="${p2}" opacity=".7"><circle cx="40" cy="22" r="4.5"/><circle cx="82" cy="20" r="3.4"/><circle cx="90" cy="38" r="3"/><circle cx="30" cy="38" r="3.4"/><circle cx="62" cy="14" r="2.6"/></g>
-      ${shine(40,26,11,5.5,-35)}
-      ${eye(42,54,11,-1)}${eye(78,54,11,1)}${mouth(60,78,26)}`;
+    const p1='#ff5fa8', p2='#c12a7c', suc='#ffd6ea';
+    const mx = d=>d.replace(/(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/g,(m,x,y)=>(120-x)+','+y);
+    const bez = (P,t)=>{ const u=1-t; return [0,1].map(i=>u*u*u*P[0][i]+3*u*u*t*P[1][i]+3*u*t*t*P[2][i]+t*t*t*P[3][i]); };
+    const tent = (P, tail, w, mirror)=>{
+      const pts = mirror ? P.map(p=>[120-p[0],p[1]]) : P;
+      const d = `M${pts[0]} C${pts[1]} ${pts[2]} ${pts[3]}${mirror?mx(tail):tail}`;
+      let s=''; for(let t=.2;t<.95;t+=.15){ const q=bez(pts,t); s+=`<circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="${(1.9-t*.7).toFixed(2)}" fill="${suc}" opacity=".85"/>`; }
+      return tube(d,w,p1)+(dead?'':s);
+    };
+    const coin = (x,y,r)=>`<circle cx="${x}" cy="${y}" r="${r}" fill="#f2c14e" stroke="#7a5412" stroke-width="2.4"/><circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="${GD}" stroke-width="1.2"/><circle cx="${x}" cy="${y}" r="${r*.62}" fill="none" stroke="#b8862a" stroke-width="1"/><text x="${x}" y="${y+r*.36}" text-anchor="middle" font-family="Georgia,serif" font-weight="700" font-size="${r*1.05}" fill="#9a6a1c">£</text><path d="M${x-r*.55},${y-r*.55} Q${x-r*.2},${y-r*.8} ${x+r*.2},${y-r*.72}" fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round" opacity=".8"/>`;
+    const lower = [
+      [[[38,66],[18,74],[14,96],[28,106]],' C35,111 44,105 40,100'],
+      [[[52,72],[44,88],[46,106],[56,111]],' C62,114 67,108 62,104']
+    ];
+    const dome = 'M60,4 C90,4 100,26 98,46 C97,60 88,70 74,72 L46,72 C32,70 23,60 22,46 C20,26 30,4 60,4Z';
+    let arms = '';
+    {
+      arms += tent([[30,60],[8,64],[2,44],[10,34]],' C13,29 18,31 17,36', 10.5);
+      arms += tent([[30,60],[8,64],[2,44],[10,34]],' C13,29 18,31 17,36', 10.5, true);
+    }
+    arms += lower.map(([P,t])=>tent(P,t,10.5,false)+tent(P,t,10.5,true)).join('');
+    const holds = `${coin(13,25,9)}${coin(107,25,9)}`;
+    b = `<ellipse cx="60" cy="116" rx="44" ry="3.6" fill="#000" opacity=".22"/>
+      ${arms}
+      ${PS(dome, p1)}
+      <g fill="${p2}" opacity=".7"><circle cx="38" cy="16" r="4"/><circle cx="82" cy="14" r="3.2"/><circle cx="92" cy="32" r="3"/><circle cx="28" cy="34" r="3.2"/><circle cx="62" cy="9" r="2.2"/></g>
+      ${`<g><circle cx="60" cy="18" r="7.4" fill="#f2c14e" stroke="#7a5412" stroke-width="2.2"/><circle cx="60" cy="18" r="7.4" fill="none" stroke="${GD}" stroke-width="1.1"/><text x="60" y="22.2" text-anchor="middle" font-family="Georgia,serif" font-weight="900" font-size="11" fill="#7a5412">%</text></g>`}
+      ${shine(38,30,10,5,-35)}
+      ${eye(43,44,9,-1)}${eye(77,44,9,1)}
+      ${mouth(60,62,22)}
+      ${holds}`;
   } else if(kind==='piggy'){
-    const k1='#ff9ab8', k2='#e0527c';
-    b = `<ellipse cx="60" cy="114" rx="40" ry="5" fill="#000" opacity=".25"/>
-      ${P('M22,98 v12 h12 v-12Z M86,98 v12 h12 v-12Z M44,102 v10 h10 v-10Z M66,102 v10 h10 v-10Z', k2)}
-      ${P('M100,70 C118,66 116,86 106,84 C112,80 106,74 100,76Z', k2)}
-      ${P('M28,32 L22,10 L46,24Z M92,32 L98,10 L74,24Z', k2)}<path d="M29,27 L26,16 L38,24Z M91,27 L94,16 L82,24Z" fill="#ffd0de" opacity=".8"/>
-      ${PS('M60,22 C92,22 106,48 104,72 C102,96 84,106 60,106 C36,106 18,96 16,72 C14,48 28,22 60,22Z', k1)}
-      <rect x="46" y="20" width="28" height="7" rx="3.5" fill="${O}"/><circle cx="66" cy="22" r="6" fill="#f2c14e" ${ln(2)}/><ellipse cx="64.5" cy="20.5" rx="2" ry="1.4" fill="#fff" opacity=".6"/>
-      ${shine(36,40,10,5,-35)}
-      ${eye(42,52,8,-1)}${eye(78,52,8,1)}
-      ${PS('M60,64 C76,64 82,74 82,80 C82,90 72,94 60,94 C48,94 38,90 38,80 C38,74 44,64 60,64Z', '#ffb3c8', 2.6)}
-      <ellipse cx="52" cy="78" rx="3.2" ry="4.6" fill="${O}"/><ellipse cx="68" cy="78" rx="3.2" ry="4.6" fill="${O}"/>
-      ${dead?'':`<path d="M42,92 l-4,-12 l9,8Z M78,92 l4,-12 l-9,8Z" fill="#fff6e0" stroke="${O}" stroke-width="1.8" stroke-linejoin="round"/>`}`;
+    const k1='#ff9ab8', k2='#e0527c', snout='#ffb3c8', red='#d6402e', redD='#8f2218';
+    const coin = (x,y,r)=>`<circle cx="${x}" cy="${y}" r="${r}" fill="#f2c14e" stroke="#7a5412" stroke-width="2.2"/><circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="${GD}" stroke-width="1.1"/><circle cx="${x}" cy="${y}" r="${r*.6}" fill="none" stroke="#b8862a" stroke-width=".9"/><path d="M${x-r*.5},${y-r*.5} Q${x-r*.2},${y-r*.78} ${x+r*.2},${y-r*.7}" fill="none" stroke="#fff" stroke-width="1.3" stroke-linecap="round" opacity=".8"/>`;
+      const body='M60,22 C94,22 108,48 106,72 C104,98 86,108 60,108 C34,108 16,98 14,72 C12,48 26,22 60,22Z';
+      b = `<ellipse cx="60" cy="115" rx="44" ry="4" fill="#000" opacity=".25"/>
+        ${coin(62,22,10)}
+        ${P('M24,96 L22,111 H40 L38,100Z M96,96 L98,111 H80 L82,100Z', k2)}
+        ${P('M28,34 C18,32 14,20 20,8 C24,18 32,22 42,24Z M92,34 C102,32 106,20 100,8 C96,18 88,22 78,24Z', red)}
+        ${P('M20,48 C6,44 2,60 10,72 C14,64 22,60 28,56Z M100,48 C114,44 118,60 110,72 C106,64 98,60 92,56Z', k2)}
+        <path d="M18,52 C10,52 8,62 12,68 C16,62 20,58 24,56Z M102,52 C110,52 112,62 108,68 C104,62 100,58 96,56Z" fill="#ffd0de" opacity=".85"/>
+        ${PS(body, k1)}
+        <rect x="44" y="21" width="32" height="8" rx="4" fill="#4a1a28" stroke="#7a5412" stroke-width="2"/><rect x="44" y="21" width="32" height="8" rx="4" fill="none" stroke="${GD}" stroke-width="1"/>
+        <path d="M30,40 C36,30 48,26 60,26" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".5"/><path d="M24,52 C25,48 26,46 28,43" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".4"/>
+        <g fill="#ff6a8e" opacity=".55"><ellipse cx="30" cy="68" rx="7" ry="4.6"/><ellipse cx="90" cy="68" rx="7" ry="4.6"/></g>
+        ${eye(40,50,8.4,-1)}${eye(80,50,8.4,1)}
+        ${PS('M60,64 C78,64 84,74 84,80 C84,91 74,95 60,95 C46,95 36,91 36,80 C36,74 42,64 60,64Z', snout, 2.8)}
+        <ellipse cx="52" cy="79" rx="3.4" ry="5" fill="${O}"/><ellipse cx="68" cy="79" rx="3.4" ry="5" fill="${O}"/>
+        ${dead?'':`<path d="M42,96 C34,96 30,86 34,76 C38,84 44,90 50,92Z M78,96 C86,96 90,86 86,76 C82,84 76,90 70,92Z" fill="#fff6e0" stroke="${O}" stroke-width="1.8" stroke-linejoin="round"/>`}
+        <path d="M96,84 C112,78 116,92 108,94 C102,95 102,88 106,88" fill="none" stroke="#7a5412" stroke-width="4" stroke-linecap="round"/><path d="M96,84 C112,78 116,92 108,94 C102,95 102,88 106,88" fill="none" stroke="${k2}" stroke-width="2" stroke-linecap="round"/>
+        ${coin(20,106,6)}${coin(100,108,5.6)}`;
   } else if(kind==='skull'){
     const bone = dead?'#bbb':'#f4ecd8', boneD = dead?'#888':'#d9c9a0';
     const hat='#2b1a4a';
