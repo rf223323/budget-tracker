@@ -675,6 +675,8 @@
   .acc-exhaust{animation:accExhaust .24s ease-in-out infinite alternate;transform-box:fill-box;transform-origin:100% 50%;}
   @keyframes accExhaust{from{transform:scaleX(.7);}to{transform:scaleX(1.15);}}
   @media (prefers-reduced-motion:reduce){.acc-hop,.acc-pixbob,.acc-rainbow,.acc-swordglow,.acc-comet,.acc-beam,.acc-exhaust{animation:none !important;}.acc-comet{opacity:0;}}
+  #hideBtn.on{color:var(--accent);border-color:color-mix(in srgb, var(--accent) 55%, var(--border));background:color-mix(in srgb, var(--accent) 14%, var(--panel2));}
+  body.hide-money input[type=number]:not(:focus){filter:blur(7px);}
   .hero-bgfx{position:absolute;inset:0;border-radius:inherit;z-index:-1;opacity:.42;pointer-events:none;}
   [data-theme="paper"] .hero-bgfx,[data-theme="soft"] .hero-bgfx{opacity:.28;}
   .hero-title{display:inline-block;margin-top:3px;padding:2px 9px;border-radius:999px;font-size:10.5px;font-weight:800;letter-spacing:.04em;color:var(--tc,var(--accent));background:color-mix(in srgb, var(--tc,var(--accent)) 16%, transparent);}
@@ -1535,6 +1537,7 @@
         <button class="btn secondary" id="recapBtn" title="Recap of this month"><svg class="hero-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg><span class="recap-btn-text"> Recap</span></button>
         <button class="btn secondary" id="scoreBtn" title="Monthly score"><svg class="hero-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg><span class="recap-btn-text"> Score</span></button>
         <button class="btn secondary" id="searchBtn" title="Search (Ctrl/⌘ K)" aria-label="Search"><svg class="hero-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
+        <button class="btn secondary" id="hideBtn" type="button" title="Hide balances" aria-label="Hide balances" aria-pressed="false"><svg class="hero-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg></button>
         <button class="btn" id="newMonthBtn">+ New<span class="nm-text"> Month</span></button>
       </div>
     </div>
@@ -2507,7 +2510,29 @@ function deletePotTransfer(potKey, entryId){
   };
 }
 
+// Hide balances: swaps every money figure for dots (this device only; tap the eye in the top bar).
+let hideMoney = false;
+try{ hideMoney = localStorage.getItem('embalance-hide-money')==='1'; }catch(e){}
+const MONEY_MASK = '•••••';
+const EYE_OPEN = 'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z';
+const EYE_OFF = 'M3 3l18 18M10.6 6.2A9.8 9.8 0 0 1 12 6c6 0 10 6 10 6a17 17 0 0 1-3.2 3.9M6.6 6.7A16.6 16.6 0 0 0 2 12s4 7 10 7a9.7 9.7 0 0 0 4.2-.9M9.9 9.9a3 3 0 0 0 4.2 4.2';
+function updateHideBtn(){
+  document.body.classList.toggle('hide-money', hideMoney);
+  const b = document.getElementById('hideBtn'); if(!b) return;
+  b.setAttribute('aria-pressed', hideMoney ? 'true' : 'false');
+  b.classList.toggle('on', hideMoney);
+  b.title = hideMoney ? 'Show balances' : 'Hide balances';
+  b.setAttribute('aria-label', b.title);
+  b.innerHTML = `<svg class="hero-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${hideMoney ? EYE_OFF : EYE_OPEN}"/></svg>`;
+}
+function setHideMoney(on){
+  hideMoney = !!on;
+  try{ localStorage.setItem('embalance-hide-money', hideMoney ? '1' : '0'); }catch(e){}
+  updateHideBtn();
+  render();
+}
 function fmt(n){
+  if(hideMoney) return state.currency + MONEY_MASK;
   const v = Number(n)||0;
   const sign = v<0 ? '-' : '';
   return sign + state.currency + Math.abs(v).toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -3280,7 +3305,7 @@ function lineChart(container, data, opts={}){
   }
   const tickCount = tickStep ? Math.round((maxV-minV)/tickStep) : 3;
   const range = (maxV - minV) || 1;
-  const fmtAxis = v => narrow ? fmtCompact(v) : state.currency+Math.round(v).toLocaleString();
+  const fmtAxis = v => hideMoney ? state.currency+'•••' : narrow ? fmtCompact(v) : state.currency+Math.round(v).toLocaleString();
   const axisLabels = Array.from({length:tickCount+1}, (_,i)=>fmtAxis(rawRange===0 ? maxV : maxV - (range*i/tickCount)));
   const padL = Math.max(narrow ? 34 : 54, Math.max(...axisLabels.map(l=>l.length))*(narrow?6.4:6.2)+12), padR = narrow ? 12 : 16, padT = 18, padB = narrow ? 30 : 28;
   const axisFont = narrow ? 11 : 10;
@@ -5967,6 +5992,7 @@ const WEEKDAY_FULL = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturd
 
 // Compact money for tiny cells: £42, £4.50, £1.2k.
 function fmtCompact(n){
+  if(hideMoney) return state.currency+'•••';
   const v = Math.abs(n), sign = n<0 ? '-' : '';
   if(v>=10000) return sign+state.currency+Math.round(v/1000)+'k';
   if(v>=1000) return sign+state.currency+(v/1000).toFixed(1).replace(/\.0$/,'')+'k';
@@ -8513,6 +8539,8 @@ document.querySelectorAll('.nav-item').forEach(n=>{
 });
 document.getElementById('prevMonth').onclick = ()=>{ state.currentMonthKey = shiftKey(state.currentMonthKey,-1); ensureMonth(state.currentMonthKey); save(); render(); };
 document.getElementById('nextMonth').onclick = ()=>{ state.currentMonthKey = shiftKey(state.currentMonthKey,1); ensureMonth(state.currentMonthKey); save(); render(); };
+document.getElementById('hideBtn').onclick = ()=>setHideMoney(!hideMoney);
+updateHideBtn();
 document.getElementById('recapBtn').onclick = ()=>openRecapModal(state.currentMonthKey);
 document.getElementById('scoreBtn').onclick = ()=>openScoreModal(state.currentMonthKey);
 document.getElementById('newMonthBtn').onclick = ()=>{
