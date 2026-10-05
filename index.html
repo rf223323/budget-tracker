@@ -1210,6 +1210,16 @@
   .seg-btn:active{transform:scale(.96);}
   .seg-btn.active{background:var(--accent);color:var(--on-accent);}
   .seg-toggle.wide{width:100%;margin-bottom:16px;}
+  /* Month Tracker section tabs (Outgoings / Incoming / Weekly / Savings / Upcoming / Categories) */
+  .plan-tabs{margin:0 0 14px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+  .plan-tabs::-webkit-scrollbar{display:none;}
+  .plan-tabs .seg-btn{flex:1 0 auto;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;gap:6px;}
+  @media (max-width:640px){ .plan-tabs{display:grid;grid-template-columns:repeat(3,1fr);overflow:visible;} .plan-tabs .seg-btn{padding:9px 6px;font-size:12px;} }
+  .pt-n{min-width:18px;padding:1px 6px;border-radius:999px;font-size:10.5px;font-weight:800;line-height:1.5;background:color-mix(in srgb, var(--text) 12%, transparent);color:var(--text);}
+  .seg-btn.active .pt-n{background:color-mix(in srgb, var(--on-accent) 26%, transparent);color:var(--on-accent);}
+  .pt-n:empty{display:none;}
+  .plan-pane{display:none;}
+  .plan-pane.active{display:block;}
   .seg-toggle.wide .seg-btn{flex:1;padding:10px 8px;font-size:13px;}
   @media (max-width:600px){
     .cat-bar-label{width:100%;}
@@ -3753,6 +3763,26 @@ let safeSpendOpen = false;
 const expandedOutRows = new Set();
 const expandedIncRows = new Set();
 const expandedWeeks = new Set();
+// Month Tracker is split into tabs so the long lists don't stack into one endless scroll.
+const PLAN_TABS = [['out','Outgoings'],['in','Incoming'],['wk','Weekly'],['sv','Savings'],['up','Upcoming'],['cat','Categories']];
+const PLAN_TAB_KEY = 'budgetTracker.planTab';
+let planTab = (()=>{ try{ const v = localStorage.getItem(PLAN_TAB_KEY); return PLAN_TABS.some(t=>t[0]===v) ? v : 'out'; }catch(e){ return 'out'; } })();
+function setPlanTab(id){
+  if(!PLAN_TABS.some(t=>t[0]===id)) id = 'out';
+  planTab = id;
+  try{ localStorage.setItem(PLAN_TAB_KEY, id); }catch(e){}
+  document.querySelectorAll('#planTabs .seg-btn').forEach(b=>{ const on = b.dataset.pt===id; b.classList.toggle('active', on); b.setAttribute('aria-selected', on?'true':'false'); });
+  document.querySelectorAll('.plan-pane').forEach(p=>p.classList.toggle('active', p.dataset.pane===id));
+}
+// Small count on a tab = how many items in it are still to do this month.
+function updatePlanBadges(){
+  const m = state.months[state.currentMonthKey]; if(!m) return;
+  const todo = a=>a.filter(x=>x.status!=='done').length;
+  const wk = Object.values(m.weekly||{}).filter(w=>w.amount>0 && w.status!=='done').length;
+  const sv = ((m.savings&&m.savings.amount>0&&m.savings.status!=='done')?1:0) + ((m.stocks&&m.stocks.amount>0&&m.stocks.status!=='done')?1:0);
+  const set = (id,n)=>{ const el = document.querySelector(`[data-ptn="${id}"]`); if(el) el.textContent = n>0 ? String(n) : ''; };
+  set('out', todo(m.outgoings||[])); set('in', todo(m.incoming||[])); set('wk', wk); set('sv', sv);
+}
 const expandedRecurRows = new Set();
 function weekSummaryHtml(i, w){
   const amt = Number(w.amount)||0;
@@ -4946,22 +4976,6 @@ function renderMonth(){
       </div>
     </div>
 
-    <div class="panel">
-      <div class="panel-head"><h2>Spending by Category</h2><span class="hint" id="monthCatTotal"></span></div>
-      <div class="field-inline" style="margin-bottom:16px;flex-wrap:wrap;">
-        <div class="seg-toggle" id="monthCatModeToggle">
-          <button class="seg-btn" data-mode="all">Budgeted</button>
-          <button class="seg-btn" data-mode="done">Actual (Done)</button>
-        </div>
-        <a href="#" id="monthCatSeeTrend" style="font-size:12px;color:var(--muted);text-decoration:underline;margin-left:auto;">See full Trend breakdown →</a>
-      </div>
-      <div class="cat-breakdown-layout">
-        <div id="monthCatDonut" class="cat-breakdown-donut"></div>
-        <div id="monthCatBars" class="cat-breakdown-bars"></div>
-      </div>
-      <div id="monthCatDeltas" style="margin-top:8px;"></div>
-    </div>
-
     <div class="panel quick-add-panel">
       <div class="panel-head"><h2>Quick Add</h2><span class="hint">added as Done right away</span></div>
       <select id="quickAddType" style="display:none;" aria-hidden="true" tabindex="-1">
@@ -5002,18 +5016,38 @@ function renderMonth(){
       </div>
     </div>
 
+    <div class="seg-toggle plan-tabs" id="planTabs" role="tablist" aria-label="Month sections">
+      ${PLAN_TABS.map(([id,label])=>`<button type="button" class="seg-btn" role="tab" data-pt="${id}">${label}<span class="pt-n" data-ptn="${id}"></span></button>`).join('')}
+    </div>
+    <div class="plan-pane" data-pane="out">
     <div class="panel">
       <div class="panel-head">
-        <h2>Upcoming Bills</h2>
-        <div class="seg-toggle" id="upcomingBillsToggle">
-          <button class="seg-btn" data-days="7">7 days</button>
-          <button class="seg-btn" data-days="14">14 days</button>
-          <button class="seg-btn" data-days="30">30 days</button>
-        </div>
+        <h2>Outgoings</h2>
+        <button class="btn small" id="addOutgoingBtn">+ Add outgoing</button>
       </div>
-      <div id="upcomingBillsList"></div>
+      <table class="responsive-table">
+        <thead><tr><th>Name</th><th style="width:140px;">Category</th><th style="width:76px;">Day</th><th style="width:110px;">Amount</th><th style="width:124px;">Status</th><th style="width:116px;">Recurring</th><th style="width:36px;"></th></tr></thead>
+        <tbody id="outgoingBody"></tbody>
+      </table>
+      <div class="formula-note">
+        <b>Current Balance</b> = Starting Balance + Incoming marked Done − Weekly Budget marked Done − Outgoings marked Done − Savings (if Done) − Stocks &amp; Shares (if Done).<br>
+        <b>Total Left Over</b> = Starting Balance + all Incoming − Weekly Budget − all Outgoings − Savings − Stocks &amp; Shares (regardless of status) — this becomes next month's Starting Balance.
+      </div>
     </div>
-
+    </div>
+    <div class="plan-pane" data-pane="in">
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Incoming</h2>
+        <button class="btn small" id="addIncomeBtn">+ Add incoming</button>
+      </div>
+      <table class="responsive-table income-table">
+        <thead><tr><th>Source</th><th style="width:136px;">Category</th><th style="width:152px;">Schedule</th><th style="width:94px;">Amount</th><th style="width:124px;">Status</th><th style="width:116px;">Recurring</th><th style="width:36px;"></th></tr></thead>
+        <tbody id="incomeBody"></tbody>
+      </table>
+    </div>
+    </div>
+    <div class="plan-pane" data-pane="wk">
     <div class="panel">
       <div class="panel-head"><h2>Weekly Budget</h2><span class="hint">amount for each week of the month</span></div>
       <div class="weekly-grid">
@@ -5031,7 +5065,8 @@ function renderMonth(){
         `).join('')}
       </div>
     </div>
-
+    </div>
+    <div class="plan-pane" data-pane="sv">
     <div class="panel">
       <div class="panel-head"><h2>Savings &amp; Stocks</h2><span class="hint">money you're setting aside this month</span></div>
       <div class="sv-grid">
@@ -5051,35 +5086,42 @@ function renderMonth(){
         </div>
       </div>
     </div>
-
-    <div class="panel">
-      <div class="panel-head">
-        <h2>Incoming</h2>
-        <button class="btn small" id="addIncomeBtn">+ Add incoming</button>
-      </div>
-      <table class="responsive-table income-table">
-        <thead><tr><th>Source</th><th style="width:136px;">Category</th><th style="width:152px;">Schedule</th><th style="width:94px;">Amount</th><th style="width:124px;">Status</th><th style="width:116px;">Recurring</th><th style="width:36px;"></th></tr></thead>
-        <tbody id="incomeBody"></tbody>
-      </table>
     </div>
-
+    <div class="plan-pane" data-pane="up">
     <div class="panel">
       <div class="panel-head">
-        <h2>Outgoings</h2>
-        <button class="btn small" id="addOutgoingBtn">+ Add outgoing</button>
+        <h2>Upcoming Bills</h2>
+        <div class="seg-toggle" id="upcomingBillsToggle">
+          <button class="seg-btn" data-days="7">7 days</button>
+          <button class="seg-btn" data-days="14">14 days</button>
+          <button class="seg-btn" data-days="30">30 days</button>
+        </div>
       </div>
-      <table class="responsive-table">
-        <thead><tr><th>Name</th><th style="width:140px;">Category</th><th style="width:76px;">Day</th><th style="width:110px;">Amount</th><th style="width:124px;">Status</th><th style="width:116px;">Recurring</th><th style="width:36px;"></th></tr></thead>
-        <tbody id="outgoingBody"></tbody>
-      </table>
-      <div class="formula-note">
-        <b>Current Balance</b> = Starting Balance + Incoming marked Done − Weekly Budget marked Done − Outgoings marked Done − Savings (if Done) − Stocks &amp; Shares (if Done).<br>
-        <b>Total Left Over</b> = Starting Balance + all Incoming − Weekly Budget − all Outgoings − Savings − Stocks &amp; Shares (regardless of status) — this becomes next month's Starting Balance.
+      <div id="upcomingBillsList"></div>
+    </div>
+    </div>
+    <div class="plan-pane" data-pane="cat">
+    <div class="panel">
+      <div class="panel-head"><h2>Spending by Category</h2><span class="hint" id="monthCatTotal"></span></div>
+      <div class="field-inline" style="margin-bottom:16px;flex-wrap:wrap;">
+        <div class="seg-toggle" id="monthCatModeToggle">
+          <button class="seg-btn" data-mode="all">Budgeted</button>
+          <button class="seg-btn" data-mode="done">Actual (Done)</button>
+        </div>
+        <a href="#" id="monthCatSeeTrend" style="font-size:12px;color:var(--muted);text-decoration:underline;margin-left:auto;">See full Trend breakdown →</a>
       </div>
+      <div class="cat-breakdown-layout">
+        <div id="monthCatDonut" class="cat-breakdown-donut"></div>
+        <div id="monthCatBars" class="cat-breakdown-bars"></div>
+      </div>
+      <div id="monthCatDeltas" style="margin-top:8px;"></div>
+    </div>
     </div>
 
   `;
 
+  document.querySelectorAll('#planTabs .seg-btn').forEach(b=>b.onclick = ()=>setPlanTab(b.dataset.pt));
+  setPlanTab(planTab);
   const quickAddAmount = document.getElementById('quickAddAmount');
   const quickAddReason = document.getElementById('quickAddReason');
   const quickAddType = document.getElementById('quickAddType');
@@ -5315,6 +5357,7 @@ function renderMonth(){
       </tr>
     `).join('');
     if(!incomeBody.innerHTML.trim()) incomeBody.innerHTML = `<tr><td colspan="7" class="empty">No incoming added yet</td></tr>`;
+    updatePlanBadges();
     incomeBody.querySelectorAll('tr:not(.inc-virtual)').forEach(tr=>{
       const id = tr.dataset.id;
       const item = m.incoming.find(x=>x.id===id);
@@ -5384,6 +5427,7 @@ function renderMonth(){
         <td class="cell-del"><button class="del-btn out-del" aria-label="Delete outgoing"><span class="del-x">✕</span><span class="del-label">Delete this outgoing</span></button></td>
       </tr>
     `).join('') || `<tr><td colspan="7" class="empty">No outgoings added yet</td></tr>`;
+    updatePlanBadges();
     outgoingBody.querySelectorAll('tr').forEach(tr=>{
       const id = tr.dataset.id;
       const item = m.outgoings.find(x=>x.id===id);
@@ -5448,6 +5492,7 @@ function renderMonth(){
   refreshCards(); // seeds animateNumberText's baseline so the first live edit animates too, not just the second
 
   function refreshCards(){
+    updatePlanBadges();
     const t2 = monthTotals(m);
     const pt2 = prevTrackedMonthTotals(state.currentMonthKey);
     const lbInput = document.getElementById('liveBalanceInput');
@@ -8489,7 +8534,7 @@ function openSearchResult(e){
   ensureMonth(e.monthKey);
   currentView = 'month';
   if(e.quick) quickAddLogExpanded = true;
-  else if(e.kind==='in') expandedIncRows.add(e.id); else expandedOutRows.add(e.id);
+  else{ planTab = e.kind==='in' ? 'in' : 'out'; if(e.kind==='in') expandedIncRows.add(e.id); else expandedOutRows.add(e.id); }
   save(); render();
   setTimeout(()=>{
     const sel = e.quick ? `#quickAddLogBody tr[data-id="${e.id}"]` : (e.kind==='in' ? `#incomeBody tr[data-id="${e.id}"]` : `#outgoingBody tr[data-id="${e.id}"]`);
