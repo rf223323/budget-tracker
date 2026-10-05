@@ -4229,6 +4229,9 @@ var GLOSS = (function(){
   return run;
 })();
 // Every accessory is drawn in the glossy 3D look: hand-drawn ones are marked `glossy`, the rest are restyled once and cached.
+// Nudges so each accessory sits on the middle of the flame's body (a few were drawn around the middle of the box instead).
+const ACC_DX = {shades:-2, bowtie:-1.6, scarf:-1.6, redscarf:-1.6, harness:-1.6, cloak:-1.6, cape:-1.6, goldring:-1.6, fireeye:-1.6, steam:-1.6, halo:1.2,
+  mushcap:-1.6, antennae:-1.6, ufo:-1.6, spacehelmet:-1.6, gamepad:-1.6, superstar:-1.6, atom:-1.6, pixcrown:-1, pixshades:-3.8};
 const GLOSS_CACHE = {};
 function accArt(id, layer, P){
   const a = ACC_ART[id]; if(!a || !a[layer]) return '';
@@ -4236,7 +4239,8 @@ function accArt(id, layer, P){
   if(typeof a[layer]==='function') art = GLOSS(a[layer](P));
   else if(a.glossy) art = a[layer];
   else { const k = id+'|'+layer; art = GLOSS_CACHE[k] || (GLOSS_CACHE[k] = GLOSS(a[layer])); }
-  return `<g transform="${ACC_MAP}">${art}</g>`;
+  const dx = ACC_DX[id] || 0;
+  return `<g transform="${ACC_MAP}">${dx ? `<g transform="translate(${dx} 0)">${art}</g>` : art}</g>`;
 }
 function wardItem(type, id){ return WARDROBE[type].find(x=>x.id===id) || null; }
 function wardOwned(type){ return state.ember.wardrobe.owned[type]; }
