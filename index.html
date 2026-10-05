@@ -1211,10 +1211,29 @@
   .seg-btn.active{background:var(--accent);color:var(--on-accent);}
   .seg-toggle.wide{width:100%;margin-bottom:16px;}
   /* Month Tracker section tabs (Outgoings / Incoming / Weekly / Savings / Upcoming / Categories) */
-  .plan-tabs{margin:0 0 14px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+  /* Month Tracker section card: the tab strip and the panel under it are one connected card. */
+  .plan-card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:20px;box-shadow:var(--shadow);overflow:hidden;}
+  .plan-tabs{display:flex;gap:2px;padding:8px 8px 0;background:color-mix(in srgb, var(--bg) 42%, var(--panel));border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
   .plan-tabs::-webkit-scrollbar{display:none;}
-  .plan-tabs .seg-btn{flex:1 0 auto;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;gap:6px;}
-  @media (max-width:640px){ .plan-tabs{display:grid;grid-template-columns:repeat(3,1fr);overflow:visible;} .plan-tabs .seg-btn{padding:9px 6px;font-size:12px;} }
+  .plan-tabs .pt{flex:1 1 0;min-width:0;position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 0 11px;border:0;background:none;color:var(--muted);font:inherit;font-size:9.5px;letter-spacing:-.01em;font-weight:700;cursor:pointer;border-radius:12px 12px 0 0;transition:color .15s,background .15s;white-space:nowrap;}
+  .plan-tabs .pt:hover{color:var(--text);}
+  .plan-tabs .pt svg{width:20px;height:20px;}
+  .plan-tabs .pt.active{background:var(--panel);color:var(--text);margin-bottom:-1px;padding-bottom:12px;box-shadow:inset 0 2px 0 var(--accent);}
+  .plan-tabs .pt.active svg{color:var(--accent);}
+  .plan-tabs .pt-ic{position:relative;display:inline-flex;}
+  .plan-tabs .pt-n{position:absolute;top:-6px;right:-10px;min-width:16px;padding:0 4px;border-radius:999px;font-size:10px;font-weight:800;line-height:16px;text-align:center;background:var(--accent);color:var(--on-accent);box-shadow:0 0 0 2px color-mix(in srgb, var(--bg) 42%, var(--panel));}
+  .plan-tabs .pt.active .pt-n{box-shadow:0 0 0 2px var(--panel);}
+  .plan-tabs .pt-n:empty{display:none;}
+  @media (min-width:641px){
+    .plan-tabs{padding:8px 10px 0;}
+    .plan-tabs .pt{flex:1 1 auto;flex-direction:row;justify-content:center;gap:9px;font-size:13px;padding:12px 16px 13px;}
+    .plan-tabs .pt.active{padding-bottom:14px;}
+    .plan-tabs .pt-n{position:static;margin-left:2px;box-shadow:none !important;}
+  }
+  .plan-card .plan-pane > .panel{background:transparent;border:0;border-radius:0;box-shadow:none;margin:0;padding:16px 16px 18px;}
+  @media (min-width:641px){ .plan-card .plan-pane > .panel{padding:20px 22px 22px;} }
+  .plan-pane{display:none;}
+  .plan-pane.active{display:block;}
   .plan-sum{background:var(--panel2);border:1px solid var(--border);border-radius:14px;padding:12px 14px;margin:0 0 12px;}
   .plan-sum .ps-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:13px;flex-wrap:wrap;}
   .plan-sum .ps-top b{font-size:18px;letter-spacing:-.01em;}
@@ -1227,11 +1246,6 @@
   .plan-chips button.active{background:color-mix(in srgb, var(--accent) 20%, transparent);border-color:var(--accent);color:var(--text);}
   tr.grp-row td{padding:14px 4px 6px;border:none;background:none;}
   .grp-h{display:flex;justify-content:space-between;font-size:11px;font-weight:800;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;}
-  .pt-n{min-width:18px;padding:1px 6px;border-radius:999px;font-size:10.5px;font-weight:800;line-height:1.5;background:color-mix(in srgb, var(--text) 12%, transparent);color:var(--text);}
-  .seg-btn.active .pt-n{background:color-mix(in srgb, var(--on-accent) 26%, transparent);color:var(--on-accent);}
-  .pt-n:empty{display:none;}
-  .plan-pane{display:none;}
-  .plan-pane.active{display:block;}
   .seg-toggle.wide .seg-btn{flex:1;padding:10px 8px;font-size:13px;}
   @media (max-width:600px){
     .cat-bar-label{width:100%;}
@@ -3779,13 +3793,25 @@ const expandedIncRows = new Set();
 const expandedWeeks = new Set();
 // Month Tracker is split into tabs so the long lists don't stack into one endless scroll.
 const PLAN_TABS = [['out','Outgoings'],['in','Incoming'],['wk','Weekly'],['sv','Savings'],['up','Upcoming'],['cat','Categories']];
+const PLAN_TAB_ICONS = {
+  out:'M7 17L17 7M8 7h9v9',                       // arrow out
+  in:'M17 7L7 17M16 17H7V8',                      // arrow in
+  wk:'M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v14H4V6zM4 10h16M9 3v4M15 3v4',
+  sv:'M3 8a2 2 0 0 1 2-2h13a1 1 0 0 1 1 1v2M3 8v9a2 2 0 0 0 2 2h14a1 1 0 0 0 1-1v-3M3 8h16a1 1 0 0 1 1 1v2h-4a2 2 0 0 0 0 4h4',
+  up:'M12 7v5l3 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z',
+  cat:'M21 12A9 9 0 1 1 12 3v9zM15 3.6A9 9 0 0 1 20.4 9H15z'
+};
 const PLAN_TAB_KEY = 'budgetTracker.planTab';
 let planTab = (()=>{ try{ const v = localStorage.getItem(PLAN_TAB_KEY); return PLAN_TABS.some(t=>t[0]===v) ? v : 'out'; }catch(e){ return 'out'; } })();
 function setPlanTab(id){
   if(!PLAN_TABS.some(t=>t[0]===id)) id = 'out';
   planTab = id;
   try{ localStorage.setItem(PLAN_TAB_KEY, id); }catch(e){}
-  document.querySelectorAll('#planTabs .seg-btn').forEach(b=>{ const on = b.dataset.pt===id; b.classList.toggle('active', on); b.setAttribute('aria-selected', on?'true':'false'); });
+  const strip = document.getElementById('planTabs');
+  document.querySelectorAll('#planTabs .pt').forEach(b=>{
+    const on = b.dataset.pt===id; b.classList.toggle('active', on); b.setAttribute('aria-selected', on?'true':'false');
+    if(on && strip && strip.scrollWidth>strip.clientWidth) strip.scrollTo({left:b.offsetLeft-(strip.clientWidth-b.offsetWidth)/2, behavior:'smooth'});
+  });
   document.querySelectorAll('.plan-pane').forEach(p=>p.classList.toggle('active', p.dataset.pane===id));
 }
 // Small count on a tab = how many items in it are still to do this month. Also keeps the
@@ -5097,8 +5123,9 @@ function renderMonth(){
       </div>
     </div>
 
-    <div class="seg-toggle plan-tabs" id="planTabs" role="tablist" aria-label="Month sections">
-      ${PLAN_TABS.map(([id,label])=>`<button type="button" class="seg-btn" role="tab" data-pt="${id}">${label}<span class="pt-n" data-ptn="${id}"></span></button>`).join('')}
+    <div class="plan-card">
+    <div class="plan-tabs" id="planTabs" role="tablist" aria-label="Month sections">
+      ${PLAN_TABS.map(([id,label])=>`<button type="button" class="pt" role="tab" data-pt="${id}"><span class="pt-ic">${iconSvg(PLAN_TAB_ICONS[id])}<span class="pt-n" data-ptn="${id}"></span></span><span class="pt-l">${label}</span></button>`).join('')}
     </div>
     <div class="plan-pane" data-pane="out">
     <div class="panel">
@@ -5203,10 +5230,11 @@ function renderMonth(){
       <div id="monthCatDeltas" style="margin-top:8px;"></div>
     </div>
     </div>
+    </div>
 
   `;
 
-  document.querySelectorAll('#planTabs .seg-btn').forEach(b=>b.onclick = ()=>setPlanTab(b.dataset.pt));
+  document.querySelectorAll('#planTabs .pt').forEach(b=>b.onclick = ()=>setPlanTab(b.dataset.pt));
   setPlanTab(planTab);
   const quickAddAmount = document.getElementById('quickAddAmount');
   const quickAddReason = document.getElementById('quickAddReason');
