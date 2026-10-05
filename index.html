@@ -1215,6 +1215,18 @@
   .plan-tabs::-webkit-scrollbar{display:none;}
   .plan-tabs .seg-btn{flex:1 0 auto;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;gap:6px;}
   @media (max-width:640px){ .plan-tabs{display:grid;grid-template-columns:repeat(3,1fr);overflow:visible;} .plan-tabs .seg-btn{padding:9px 6px;font-size:12px;} }
+  .plan-sum{background:var(--panel2);border:1px solid var(--border);border-radius:14px;padding:12px 14px;margin:0 0 12px;}
+  .plan-sum .ps-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:13px;flex-wrap:wrap;}
+  .plan-sum .ps-top b{font-size:18px;letter-spacing:-.01em;}
+  .plan-sum .ps-top .m{color:var(--muted);}
+  .plan-sum .ps-bar{height:7px;border-radius:99px;background:color-mix(in srgb, var(--text) 10%, transparent);margin-top:9px;overflow:hidden;}
+  .plan-sum .ps-bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--green),var(--accent));transition:width .4s ease;}
+  .plan-chips{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 4px;}
+  .plan-chips:empty{display:none;}
+  .plan-chips button{border:1px solid var(--border);background:var(--panel);color:var(--muted);font:inherit;font-weight:700;font-size:12px;padding:6px 12px;border-radius:999px;cursor:pointer;}
+  .plan-chips button.active{background:color-mix(in srgb, var(--accent) 20%, transparent);border-color:var(--accent);color:var(--text);}
+  tr.grp-row td{padding:14px 4px 6px;border:none;background:none;}
+  .grp-h{display:flex;justify-content:space-between;font-size:11px;font-weight:800;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;}
   .pt-n{min-width:18px;padding:1px 6px;border-radius:999px;font-size:10.5px;font-weight:800;line-height:1.5;background:color-mix(in srgb, var(--text) 12%, transparent);color:var(--text);}
   .seg-btn.active .pt-n{background:color-mix(in srgb, var(--on-accent) 26%, transparent);color:var(--on-accent);}
   .pt-n:empty{display:none;}
@@ -1439,6 +1451,8 @@
       padding:10px;margin-bottom:8px;
     }
     .responsive-table tr:hover td{background:transparent;}
+    .responsive-table tr.grp-row{display:block;background:none;border:none;padding:0;margin:0;}
+    .responsive-table tr.grp-row td{width:100%;padding:12px 2px 4px;}
     .responsive-table td{display:block;border:none;padding:0;width:auto;}
     .responsive-table td.cell-name{flex:1 1 100%;}
     .responsive-table td.cell-name input{font-size:15px;font-weight:600;}
@@ -3774,14 +3788,74 @@ function setPlanTab(id){
   document.querySelectorAll('#planTabs .seg-btn').forEach(b=>{ const on = b.dataset.pt===id; b.classList.toggle('active', on); b.setAttribute('aria-selected', on?'true':'false'); });
   document.querySelectorAll('.plan-pane').forEach(p=>p.classList.toggle('active', p.dataset.pane===id));
 }
-// Small count on a tab = how many items in it are still to do this month.
+// Small count on a tab = how many items in it are still to do this month. Also keeps the
+// summary cards, group headings and category chips on each tab in step with the data.
+let outFilter = 'all';
 function updatePlanBadges(){
   const m = state.months[state.currentMonthKey]; if(!m) return;
   const todo = a=>a.filter(x=>x.status!=='done').length;
-  const wk = Object.values(m.weekly||{}).filter(w=>w.amount>0 && w.status!=='done').length;
-  const sv = ((m.savings&&m.savings.amount>0&&m.savings.status!=='done')?1:0) + ((m.stocks&&m.stocks.amount>0&&m.stocks.status!=='done')?1:0);
+  const wkArr = Object.values(m.weekly||{});
+  const wk = wkArr.filter(w=>w.amount>0 && w.status!=='done').length;
+  const svItems = [m.savings, m.stocks].filter(x=>x && x.amount>0);
+  const sv = svItems.filter(x=>x.status!=='done').length;
   const set = (id,n)=>{ const el = document.querySelector(`[data-ptn="${id}"]`); if(el) el.textContent = n>0 ? String(n) : ''; };
   set('out', todo(m.outgoings||[])); set('in', todo(m.incoming||[])); set('wk', wk); set('sv', sv);
+  const sum = a=>round2(a.reduce((t,x)=>t+(Number(x.amount)||0),0));
+  const card = (id, leftLabel, rightLabel, pending, done)=>{
+    const el = document.getElementById(id); if(!el) return;
+    const total = pending + done, pct = total>0 ? Math.round(done/total*100) : 0;
+    el.innerHTML = `<div class="ps-top"><span><b>${escapeHtml(fmt(pending))}</b> <span class="m">${leftLabel}</span></span><span class="m">${escapeHtml(fmt(done))} ${rightLabel}</span></div><div class="ps-bar"><i style="width:${pct}%"></i></div>`;
+  };
+  const outs = m.outgoings||[], ins = m.incoming||[];
+  card('outSum','to pay','paid', sum(outs.filter(x=>x.status!=='done')), sum(outs.filter(x=>x.status==='done')));
+  card('inSum','to come','received', sum(ins.filter(x=>x.status!=='done')), sum(ins.filter(x=>x.status==='done')));
+  card('wkSum','to go','done', sum(wkArr.filter(w=>w.status!=='done')), sum(wkArr.filter(w=>w.status==='done')));
+  card('svSum','to move','moved', sum(svItems.filter(x=>x.status!=='done')), sum(svItems.filter(x=>x.status==='done')));
+  // category chips (Outgoings) and To pay / Paid grouping
+  const chipsEl = document.getElementById('outChips');
+  if(chipsEl){
+    const counts = {}; outs.forEach(o=>{ const c = o.category||'Uncategorized'; counts[c] = (counts[c]||0)+1; });
+    const cats = Object.keys(counts).sort((a,b)=>counts[b]-counts[a]).slice(0,6);
+    if(outFilter!=='all' && !counts[outFilter]) outFilter = 'all';
+    const sig = cats.join('|')+'#'+outFilter;
+    if(chipsEl.dataset.sig!==sig){
+      chipsEl.dataset.sig = sig;
+      chipsEl.innerHTML = Object.keys(counts).length>1 ? ['all',...cats].map(c=>`<button type="button" data-cat="${escapeHtml(c)}" class="${c===outFilter?'active':''}">${c==='all'?'All':escapeHtml(c)}</button>`).join('') : '';
+      chipsEl.querySelectorAll('button').forEach(b=>b.onclick = ()=>{ outFilter = b.dataset.cat; updatePlanBadges(); });
+    }
+  }
+  applyGrouping(document.getElementById('outgoingBody'), outs, ['To pay','Paid'], outFilter==='all' ? null : (o=>(o.category||'Uncategorized')===outFilter));
+  applyGrouping(document.getElementById('incomeBody'), ins, ['Expected','Received'], null);
+}
+// Orders a list's rows by due day and splits them under "To pay / Paid" style headings.
+// Only touches the DOM when the order or grouping actually changes, so typing in a row never loses focus.
+function applyGrouping(tbody, items, labels, filter){
+  if(!tbody) return;
+  const [y,mo] = state.currentMonthKey.split('-').map(Number);
+  const trs = [...tbody.querySelectorAll('tr[data-id]')];
+  tbody.querySelectorAll('tr.grp-row').forEach(r=>{ if(!trs.length) r.remove(); });
+  if(!trs.length) return;
+  const dayOf = it=>{ const d = resolveScheduledDay(it, y, mo); return d==null ? 99 : d; };
+  const info = trs.map(tr=>({tr, it:items.find(x=>x.id===tr.dataset.id)})).filter(x=>x.it);
+  info.sort((a,b)=>dayOf(a.it)-dayOf(b.it));
+  const vis = x=>!filter || filter(x.it);
+  const plan = [];
+  [[labels[0], info.filter(x=>x.it.status!=='done')], [labels[1], info.filter(x=>x.it.status==='done')]].forEach(([lab,arr])=>{
+    const v = arr.filter(vis);
+    if(v.length) plan.push({hdr:true, lab, n:v.length, sum:round2(v.reduce((t,x)=>t+(Number(x.it.amount)||0),0))});
+    arr.forEach(x=>plan.push({tr:x.tr, show:vis(x)}));
+  });
+  const sig = plan.map(p=>p.hdr ? 'h:'+p.lab+':'+p.n : 'r:'+p.tr.dataset.id+':'+p.show).join('|');
+  if(tbody.dataset.sig!==sig || tbody.querySelectorAll('tr.grp-row').length!==plan.filter(p=>p.hdr).length){
+    tbody.dataset.sig = sig;
+    tbody.querySelectorAll('tr.grp-row').forEach(r=>r.remove());
+    plan.forEach(p=>{
+      if(p.hdr){ const h = document.createElement('tr'); h.className = 'grp-row'; h.innerHTML = '<td colspan="8"><div class="grp-h"><span></span><span></span></div></td>'; tbody.appendChild(h); p.el = h; }
+      else { p.tr.style.display = p.show ? '' : 'none'; tbody.appendChild(p.tr); }
+    });
+  }
+  const hdrs = tbody.querySelectorAll('tr.grp-row'); let i = 0;
+  plan.filter(p=>p.hdr).forEach(p=>{ const h = hdrs[i++]; if(!h) return; const sp = h.querySelectorAll('.grp-h span'); sp[0].textContent = `${p.lab} · ${p.n}`; sp[1].textContent = fmt(p.sum); });
 }
 const expandedRecurRows = new Set();
 function weekSummaryHtml(i, w){
@@ -3798,9 +3872,16 @@ function fundsSelectHtml(cls, item){
     <option value="next" ${item.fundsNext?'selected':''}>Pays next month →</option>
   </select>`;
 }
+// "Fri 9 Oct" for an item's due day in the month being viewed ('' if it has no day).
+function dueLabel(it){
+  const [y,mo] = state.currentMonthKey.split('-').map(Number);
+  const d = resolveScheduledDay(it, y, mo);
+  return d ? new Date(y, mo-1, d).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}) : '';
+}
 function incomeSummaryHtml(i){
   const cat = i.category || 'Uncategorized';
   const bits = [escapeHtml(cat)];
+  const due = dueLabel(i); if(due) bits.push(due);
   if(i.recurring) bits.push('↻');
   if(i.fundsNext) bits.push('funds next month');
   return `${catTile(cat,'md')}
@@ -3812,7 +3893,7 @@ function incomeSummaryHtml(i){
 function outgoingSummaryHtml(o){
   const cat = o.category || 'Uncategorized';
   const bits = [escapeHtml(cat)];
-  if(o.day) bits.push(`day ${o.day}`);
+  const due = dueLabel(o); if(due) bits.push(due); else if(o.day) bits.push(`day ${o.day}`);
   if(o.recurring) bits.push('↻');
   return `${catTile(cat,'md')}
     <span class="cs-main"><span class="cs-name">${escapeHtml(o.name||'Unnamed')}</span><span class="cs-sub">${bits.join(' · ')}</span></span>
@@ -5025,6 +5106,8 @@ function renderMonth(){
         <h2>Outgoings</h2>
         <button class="btn small" id="addOutgoingBtn">+ Add outgoing</button>
       </div>
+      <div class="plan-sum" id="outSum"></div>
+      <div class="plan-chips" id="outChips"></div>
       <table class="responsive-table">
         <thead><tr><th>Name</th><th style="width:140px;">Category</th><th style="width:76px;">Day</th><th style="width:110px;">Amount</th><th style="width:124px;">Status</th><th style="width:116px;">Recurring</th><th style="width:36px;"></th></tr></thead>
         <tbody id="outgoingBody"></tbody>
@@ -5041,6 +5124,7 @@ function renderMonth(){
         <h2>Incoming</h2>
         <button class="btn small" id="addIncomeBtn">+ Add incoming</button>
       </div>
+      <div class="plan-sum" id="inSum"></div>
       <table class="responsive-table income-table">
         <thead><tr><th>Source</th><th style="width:136px;">Category</th><th style="width:152px;">Schedule</th><th style="width:94px;">Amount</th><th style="width:124px;">Status</th><th style="width:116px;">Recurring</th><th style="width:36px;"></th></tr></thead>
         <tbody id="incomeBody"></tbody>
@@ -5050,6 +5134,7 @@ function renderMonth(){
     <div class="plan-pane" data-pane="wk">
     <div class="panel">
       <div class="panel-head"><h2>Weekly Budget</h2><span class="hint">amount for each week of the month</span></div>
+      <div class="plan-sum" id="wkSum"></div>
       <div class="weekly-grid">
         ${['week1','week2','week3','week4'].map((wk,i)=>`
           <div class="weekly-item wk-item${expandedWeeks.has(wk)?'':' collapsed'}" data-week="${wk}">
@@ -5069,6 +5154,7 @@ function renderMonth(){
     <div class="plan-pane" data-pane="sv">
     <div class="panel">
       <div class="panel-head"><h2>Savings &amp; Stocks</h2><span class="hint">money you're setting aside this month</span></div>
+      <div class="plan-sum" id="svSum"></div>
       <div class="sv-grid">
         <div class="sv-card">
           <div class="sv-top">${iconTile(CATEGORY_ICON_PATHS['Savings & Debt'],'var(--green)','sm')}<span class="sv-name">Add to Savings</span></div>
