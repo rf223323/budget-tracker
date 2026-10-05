@@ -677,6 +677,76 @@
   @media (prefers-reduced-motion:reduce){.acc-hop,.acc-pixbob,.acc-rainbow,.acc-swordglow,.acc-comet,.acc-beam,.acc-exhaust{animation:none !important;}.acc-comet{opacity:0;}}
   #hideBtn.on{color:var(--accent);border-color:color-mix(in srgb, var(--accent) 55%, var(--border));background:color-mix(in srgb, var(--accent) 14%, var(--panel2));}
   body.hide-money input[type=number]:not(:focus){filter:blur(7px);}
+  .wx-ic{flex-shrink:0;display:block;}
+  .wx-tile{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .wx-card{border-radius:22px;padding:14px 12px 12px;margin:0 0 20px;background:var(--panel);border:1px solid var(--border);}
+  .wx-head{display:flex;align-items:center;gap:12px;padding:0 6px;}
+  .wx-ht{min-width:0;}
+  .wx-ht i{display:block;font-style:normal;font-size:10.5px;font-weight:800;letter-spacing:.1em;color:#4aa3ff;}
+  .wx-ht b{display:block;margin-top:1px;font-size:16px;font-weight:800;}
+  .wx-strip{margin-top:12px;display:flex;gap:2px;}
+  .wx-day{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:5px;padding:8px 0 7px;border-radius:14px;border:1px solid transparent;background:none;font:inherit;color:inherit;cursor:pointer;}
+  .wx-day.today{background:color-mix(in srgb, var(--accent) 14%, transparent);border-color:color-mix(in srgb, var(--accent) 45%, transparent);}
+  .wx-day i{font-style:normal;font-size:10px;font-weight:800;letter-spacing:.05em;color:var(--muted);}
+  .wx-day.today i{color:var(--accent);}
+  .wx-day b{font-size:10px;font-weight:800;white-space:nowrap;}
+  .wx-note{margin:12px 6px 0;padding:10px 12px;border-radius:14px;background:var(--bg);border:1px solid var(--border);font-size:12.5px;line-height:1.45;color:var(--text);}
+  .wx-note .neg,.wx-bal .neg{color:var(--red);}
+  .wx-foot{margin:10px 6px 0;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12px;color:var(--muted);}
+  .wx-open{font:inherit;font-weight:800;color:var(--accent);background:none;border:none;cursor:pointer;padding:4px 0;}
+  .wx-panel{margin-bottom:20px;}
+  .wx-nav{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:700;}
+  .wx-nav button{width:30px;height:30px;border-radius:10px;background:var(--panel2);border:1px solid var(--border);color:var(--text);font:inherit;cursor:pointer;}
+  .wx-nav button:disabled{opacity:.35;cursor:default;}
+  .wx-chips{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:14px;}
+  .wx-chips div{padding:10px 12px;border-radius:16px;background:var(--panel2);border:1px solid var(--border);}
+  .wx-chips div.s{border-color:rgba(177,140,255,.4);} .wx-chips div.r{border-color:rgba(74,163,255,.4);}
+  .wx-chips i{display:block;font-style:normal;font-size:10px;font-weight:800;letter-spacing:.08em;color:var(--muted);}
+  .wx-chips .s i{color:#b18cff;} .wx-chips .r i{color:#4aa3ff;}
+  .wx-chips div{min-width:0;}
+  .wx-chips b{display:block;font-size:17px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .wx-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;}
+  .wx-h{text-align:center;font-size:10.5px;font-weight:800;letter-spacing:.06em;color:var(--muted);padding-bottom:2px;}
+  .wx-cell{box-sizing:border-box;height:76px;border-radius:14px;padding:6px 2px 5px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;background:var(--panel2);border:1px solid var(--border);font:inherit;color:inherit;cursor:pointer;transition:transform .12s ease;}
+  .wx-cell:active{transform:scale(.96);}
+  .wx-cell i{font-style:normal;font-size:10.5px;font-weight:700;color:var(--muted);align-self:flex-start;padding-left:4px;}
+  .wx-cell b{font-size:9.5px;font-weight:800;white-space:nowrap;}
+  .wx-cell.lv-pay{background:linear-gradient(160deg,rgba(255,194,71,.18),var(--panel2) 75%);border-color:rgba(255,194,71,.35);}
+  .wx-cell.lv-rain{background:linear-gradient(160deg,rgba(74,163,255,.16),var(--panel2) 75%);border-color:rgba(74,163,255,.35);}
+  .wx-cell.lv-storm{background:linear-gradient(160deg,rgba(177,140,255,.22),var(--panel2) 75%);border-color:rgba(177,140,255,.45);box-shadow:0 0 18px rgba(177,140,255,.22);}
+  .wx-cell.today{border:1.5px solid var(--accent);}
+  .wx-cell.today i{color:var(--accent);font-weight:800;}
+  .wx-cell.paid{opacity:.6;}
+  .wx-legend{display:flex;flex-wrap:wrap;gap:8px 14px;padding:12px 2px 4px;}
+  .wx-lg{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);}
+  .wx-heavy{margin-top:10px;padding-top:12px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px;}
+  .wx-hh{font-size:11px;font-weight:800;letter-spacing:.08em;color:var(--muted);}
+  .wx-hr{display:flex;align-items:center;gap:12px;font:inherit;color:inherit;background:none;border:none;text-align:left;cursor:pointer;padding:0;}
+  .wx-hr > span:not(.wx-tile){flex:1;min-width:0;}
+  .wx-hr b{display:block;font-size:13.5px;font-weight:700;}
+  .wx-hr em{font-style:normal;font-size:11.5px;color:var(--muted);}
+  .wx-hr strong{font-size:14px;}
+  .wx-modal .wx-m-top{display:flex;flex-direction:column;align-items:center;text-align:center;}
+  .wx-m-ic{margin-top:10px;width:112px;height:112px;border-radius:34px;display:flex;align-items:center;justify-content:center;}
+  .wx-m-t{margin-top:12px;font-size:32px;font-weight:800;letter-spacing:-.03em;}
+  .wx-m-s{margin-top:2px;font-size:13px;color:var(--muted);}
+  .wx-bal{margin-top:16px;padding:14px 16px;border-radius:18px;background:var(--panel2);border:1px solid var(--border);}
+  .wx-bal > div:not(.wx-bar):not(.wx-bal-s){display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:6px;}
+  .wx-bal b{color:var(--text);} .wx-bal b.warn{color:var(--amber);}
+  .wx-bar{height:8px;border-radius:999px;background:color-mix(in srgb, var(--muted) 22%, transparent);overflow:hidden;margin-top:6px;}
+  .wx-bar i{display:block;height:100%;background:linear-gradient(90deg,#b18cff,#ff7ab8);box-shadow:0 0 10px rgba(177,140,255,.6);border-radius:999px;}
+  .wx-bal-s{margin-top:6px;font-size:11.5px;color:var(--muted);}
+  .wx-bills{margin-top:12px;display:flex;flex-direction:column;gap:8px;}
+  .wx-bill{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:16px;background:var(--panel2);border:1px solid var(--border);}
+  .wx-bn{flex:1;min-width:0;}
+  .wx-bn b{display:block;font-size:14px;font-weight:700;}
+  .wx-bn span{font-size:11.5px;color:var(--muted);}
+  .wx-in{width:36px;height:36px;border-radius:12px;background:color-mix(in srgb, var(--green) 14%, transparent);color:var(--green);display:flex;align-items:center;justify-content:center;}
+  .wx-in svg{width:18px;height:18px;}
+  .wx-tip{margin-top:12px;padding:12px 14px;border-radius:16px;background:linear-gradient(135deg,rgba(255,177,90,.12),var(--panel2) 70%);border:1px solid rgba(255,177,90,.3);font-size:12.5px;line-height:1.45;}
+  .wx-tip b{color:#ffb15a;}
+  @media (max-width:700px){.wx-cell{height:68px;}.wx-card{margin-bottom:16px;}.wx-chips b{font-size:15px;}}
+  @media (prefers-reduced-motion:reduce){.wx-cell{transition:none;}}
   .hero-bgfx{position:absolute;inset:0;border-radius:inherit;z-index:-1;opacity:.42;pointer-events:none;}
   [data-theme="paper"] .hero-bgfx,[data-theme="soft"] .hero-bgfx{opacity:.28;}
   .hero-title{display:inline-block;margin-top:3px;padding:2px 9px;border-radius:999px;font-size:10.5px;font-weight:800;letter-spacing:.04em;color:var(--tc,var(--accent));background:color-mix(in srgb, var(--tc,var(--accent)) 16%, transparent);}
@@ -2081,6 +2151,7 @@ function save(){
   state.__updatedAt = Date.now();
   localStorage.setItem(dataKeyFor(profilesMeta.activeId), JSON.stringify(state));
   pushToCloud();
+  clearTimeout(window.__wxT); window.__wxT = setTimeout(()=>{ if(typeof renderWeatherCard==='function' && typeof currentView!=='undefined' && currentView==='month') renderWeatherCard(); }, 200);   // keep the forecast card current
 }
 
 function ensureMonth(key){
@@ -4775,7 +4846,7 @@ function refreshHero(){
     const bgIt = wardEquipped('bg') ? wardItem('bg', wardEquipped('bg')) : null;
     const fx = document.getElementById('heroBgfx');
     if(fx){ fx.style.background = bgIt ? bgIt.css : ''; fx.className = 'hero-bgfx' + (bgIt && bgIt.r!=='c' ? (bgIt.id==='lava'||bgIt.id==='bloodmoon'||bgIt.id==='doom'||bgIt.id==='reactor'||bgIt.id==='solarflare' ? ' bg-pulse' : bgIt.id==='aurora' ? ' bg-anim bg-hue' : ' bg-anim') : ''); }
-    renderSpinStrip(); }
+    renderSpinStrip(); renderWeatherCard(); }
   document.getElementById('heroDate').textContent = isCurrent
     ? now.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'})
     : monthLabelFromKey(state.currentMonthKey);
@@ -5554,6 +5625,213 @@ function payDaysForMonth(monthKey){
   });
   return map;
 }
+// ---------------- Bill weather ----------------
+// Every day gets a weather icon from how much falls due that day compared with a month's pay:
+// clear (nothing), partly cloudy (<2%), cloudy (2-7%), rain (7-17%), storm (17%+ or it would leave you short). Payday is a sun.
+const WX = {
+  clear:['Clear','#7f8aa3','rgba(127,138,163,0)'], pay:['Payday','#ffc247','rgba(255,194,71,.55)'],
+  light:['Partly cloudy','#ffd66e','rgba(255,214,110,.35)'], cloud:['Cloudy','#9fb0c8','rgba(159,176,200,.35)'],
+  rain:['Rain','#4aa3ff','rgba(74,163,255,.5)'], storm:['Storm','#b18cff','rgba(177,140,255,.6)']
+};
+const WX_RANK = {clear:0, pay:0, light:1, cloud:2, rain:3, storm:4};
+function wxIcon(level, size){
+  const [, c, glow] = WX[level];
+  const st = `fill="none" stroke="${c}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"`;
+  let body;
+  if(level==='clear') body = `<circle cx="12" cy="12" r="4" ${st} stroke-dasharray="2.4 2.4" opacity=".7"/>`;
+  else if(level==='pay'){
+    const rays = Array.from({length:8}, (_,i)=>{ const a = i*Math.PI/4; return `<path d="M${(12+Math.cos(a)*7.2).toFixed(1)},${(12+Math.sin(a)*7.2).toFixed(1)} L${(12+Math.cos(a)*9.2).toFixed(1)},${(12+Math.sin(a)*9.2).toFixed(1)}"/>`; }).join('');
+    body = `<circle cx="12" cy="12" r="5" fill="${c}" fill-opacity=".28" stroke="${c}" stroke-width="1.8"/><g ${st}>${rays}</g>`;
+  }
+  else if(level==='light') body = `<g ${st}><circle cx="9" cy="8.5" r="3.2" fill="${c}" fill-opacity=".3"/><path d="M9 2.6V3.6M3.1 8.5H4.1M4.8 4.3l.7.7M13.2 4.3l-.7.7"/></g><path d="M9.6 19.2a3.6 3.6 0 0 1-.2-7.2 5 5 0 0 1 9.4 1.4 3.3 3.3 0 0 1-.4 5.8Z" fill="#9fb0c8" fill-opacity=".22" stroke="#9fb0c8" stroke-width="1.8" stroke-linejoin="round"/>`;
+  else if(level==='cloud') body = `<path d="M7.5 18.5a4.2 4.2 0 0 1-.4-8.4A5.8 5.8 0 0 1 18.4 11a3.8 3.8 0 0 1-.4 7.5Z" fill="${c}" fill-opacity=".22" ${st}/>`;
+  else if(level==='rain') body = `<path d="M7.5 15.5a4.2 4.2 0 0 1-.4-8.4A5.8 5.8 0 0 1 18.4 8a3.8 3.8 0 0 1-.4 7.5Z" fill="${c}" fill-opacity=".2" ${st}/><g ${st}><path d="M8.5 18.5l-1 2.6M12.5 18.5l-1 2.6M16.5 18.5l-1 2.6"/></g>`;
+  else body = `<path d="M7.5 15.5a4.2 4.2 0 0 1-.4-8.4A5.8 5.8 0 0 1 18.4 8a3.8 3.8 0 0 1-.4 7.5Z" fill="${c}" fill-opacity=".22" ${st}/><path d="M12.8 13l-3 4.6h2.7l-1.2 4.4 4.2-5.6h-2.7l1.3-3.4Z" fill="#ffd23a" stroke="#a8730a" stroke-width=".8" stroke-linejoin="round"/>`;
+  return `<svg class="wx-ic" width="${size}" height="${size}" viewBox="0 0 24 24" style="filter:drop-shadow(0 0 5px ${glow});" aria-hidden="true">${body}</svg>`;
+}
+function wxTile(level, size){
+  const c = WX[level][1];
+  return `<span class="wx-tile" style="width:${size}px;height:${size}px;border-radius:${Math.round(size*.32)}px;background:${c}1f;">${wxIcon(level, Math.round(size*.68))}</span>`;
+}
+// One month's schedule: what falls due and what lands, by day.
+function wxBuildMonth(key){
+  const m = state.months[key]; if(!m) return null;
+  const [y, mo] = key.split('-').map(Number), dim = new Date(y, mo, 0).getDate();
+  const days = [null];
+  for(let d=1; d<=dim; d++) days.push({bills:[], income:[], due:0, pay:0});
+  m.outgoings.forEach(o=>{
+    if(o.quickAdd || o.transfer) return;
+    const amt = Number(o.amount)||0, d = resolveScheduledDay(o, y, mo);
+    if(!(amt>0) || !d) return;
+    days[d].bills.push({name:o.name, amt, done:o.status==='done', cat:o.category||'Uncategorized', pay3:!!o.pay3Id});
+    days[d].due += amt;
+  });
+  m.incoming.forEach(i=>{
+    if(i.transfer) return;
+    const amt = Number(i.amount)||0, d = resolveScheduledDay(i, y, mo);
+    if(!(amt>0) || !d) return;
+    days[d].income.push({name:i.name, amt, done:i.status==='done'});
+    days[d].pay += amt;
+  });
+  const t = monthTotals(m);
+  const base = t.allIncoming>0 ? t.allIncoming : Math.max(1, t.allOutgoing/0.7);
+  return {key, y, mo, dim, days, base};
+}
+function wxLevel(o, base){
+  if(o.pay>0) return 'pay';
+  if(!(o.due>0)) return 'clear';
+  const pct = o.due/base;
+  if(o.short || pct>=0.17) return 'storm';
+  if(pct>=0.07) return 'rain';
+  if(pct>=0.02) return 'cloud';
+  return 'light';
+}
+// Walks n days from `start`. From today onwards it also tracks your balance (pending bills out, pending pay in).
+function wxWalk(start, n, withBal){
+  const out = [], cache = {};
+  const today = new Date(); today.setHours(0,0,0,0);
+  const cm = state.months[monthKey(today)];
+  let bal = (withBal && cm && start>=today) ? monthTotals(cm).liveBalance : null;
+  for(let i=0; i<n; i++){
+    const dt = new Date(start.getFullYear(), start.getMonth(), start.getDate()+i);
+    const key = monthKey(dt);
+    const md = key in cache ? cache[key] : (cache[key] = wxBuildMonth(key));
+    const d = md ? md.days[dt.getDate()] : null;
+    const o = {date:dt, key, day:dt.getDate(), bills:d?d.bills:[], income:d?d.income:[], due:d?d.due:0, pay:d?d.pay:0};
+    const pendDue = o.bills.filter(b=>!b.done).reduce((a,b)=>a+b.amt,0), pendIn = o.income.filter(b=>!b.done).reduce((a,b)=>a+b.amt,0);
+    o.pendDue = pendDue;
+    if(bal!==null){ o.balBefore = bal; bal = round2(bal + pendIn - pendDue); o.balAfter = bal; o.short = pendDue>0 && bal<0; }
+    o.level = wxLevel(o, md ? md.base : 1);
+    out.push(o);
+  }
+  return out;
+}
+function wxMonthDays(key){
+  const md = wxBuildMonth(key); if(!md) return null;
+  const all = wxWalk(new Date(md.y, md.mo-1, 1), md.dim, false);
+  const today = new Date(); today.setHours(0,0,0,0);
+  if(monthKey(today)===key){
+    const tail = wxWalk(today, md.dim - today.getDate() + 1, true);
+    tail.forEach((o,i)=>{ all[today.getDate()-1+i] = o; });
+  }
+  return {md, days:all};
+}
+const wxWeekday = (dt, style)=>dt.toLocaleDateString('en-GB',{weekday:style||'short'});
+const wxList = arr=>arr.length<=1 ? (arr[0]||'') : arr.slice(0,-1).join(', ')+' and '+arr[arr.length-1];
+let wxMonthKey = null;
+
+// ---- the forecast card on the Month Tracker ----
+function renderWeatherCard(){
+  const old = document.getElementById('wxCard'); if(old) old.remove();
+  const hero = document.getElementById('heroCard');
+  const today = new Date(); today.setHours(0,0,0,0);
+  if(!hero || state.currentMonthKey!==monthKey(today)) return;
+  const week = wxWalk(today, 7, true);
+  const worst = week.reduce((w,o)=>WX_RANK[o.level]>WX_RANK[w] ? o.level : w, 'clear');
+  const storms = week.filter(o=>o.level==='storm'), rains = week.filter(o=>o.level==='rain'), clouds = week.filter(o=>o.level==='cloud');
+  const dn = o=>wxWeekday(o.date,'long');
+  let head;
+  if(storms.length) head = `Storm on ${wxList(storms.map(dn))}` + (rains.length ? `, rain on ${wxList(rains.map(dn))}` : '');
+  else if(rains.length) head = `Rain on ${wxList(rains.map(dn))}`;
+  else if(clouds.length) head = `Cloudy on ${wxList(clouds.map(dn))}`;
+  else if(week.some(o=>o.due>0)) head = 'Just a few light clouds';
+  else head = 'Clear skies this week';
+  const heavy = week.filter(o=>o.due>0).sort((a,b)=>b.due-a.due)[0];
+  const pendTotal = round2(week.reduce((a,o)=>a+o.pendDue,0));
+  const strip = week.map((o,i)=>{
+    const [, c] = WX[o.level];
+    const amt = o.pay>0 ? '+'+fmtCompact(o.pay) : o.due>0 ? fmtCompact(o.due) : '—';
+    return `<button type="button" class="wx-day${i===0?' today':''}" data-d="${o.key}|${o.day}"><i>${i===0?'TODAY':wxWeekday(o.date).toUpperCase()}</i>${wxIcon(o.level,28)}<b style="color:${o.due>0||o.pay>0?c:'var(--muted)'};">${escapeHtml(amt)}</b></button>`;
+  }).join('');
+  let note = '';
+  if(heavy && WX_RANK[heavy.level]>=3){
+    const big = heavy.bills.slice().sort((a,b)=>b.amt-a.amt)[0];
+    note = `<div class="wx-note">${escapeHtml(wxWeekday(heavy.date,'long'))} is the heavy one: <b>${escapeHtml(fmt(heavy.due))}</b>${big && heavy.bills.length>1 ? ` including ${escapeHtml(big.name)}` : big ? ` · ${escapeHtml(big.name)}` : ''}.${heavy.balAfter!==undefined ? (heavy.balAfter<0 ? ` That would leave you <b class="neg">${escapeHtml(fmt(-heavy.balAfter))}</b> short.` : ` That leaves <b>${escapeHtml(fmt(heavy.balAfter))}</b> after bills.`) : ''}</div>`;
+  }
+  const card = document.createElement('div');
+  card.id = 'wxCard'; card.className = 'wx-card';
+  card.innerHTML = `<div class="wx-head">${wxTile(worst==='clear'&&week.some(o=>o.level==='pay')?'pay':worst, 42)}<div class="wx-ht"><i>BILL FORECAST · NEXT 7 DAYS</i><b>${escapeHtml(head)}</b></div></div>
+    <div class="wx-strip">${strip}</div>${note}
+    <div class="wx-foot"><span>${pendTotal>0 ? escapeHtml(fmt(pendTotal))+' due in the next 7 days' : 'Nothing left to pay this week'}</span><button type="button" class="wx-open" id="wxOpen">Open calendar ›</button></div>`;
+  hero.insertAdjacentElement('afterend', card);
+  card.querySelectorAll('.wx-day').forEach(b=>b.onclick = ()=>{ const [k,d] = b.dataset.d.split('|'); openWxDay(k, Number(d)); });
+  document.getElementById('wxOpen').onclick = ()=>{ wxMonthKey = state.currentMonthKey; currentView = 'calendar'; render(); };
+}
+
+// ---- a single day ----
+function openWxDay(key, day){
+  const data = wxMonthDays(key); if(!data) return;
+  const o = data.days[day-1]; if(!o) return;
+  const bg = document.getElementById('modalBg'), box = document.getElementById('modalBox');
+  const [lab, c] = WX[o.level];
+  const dateLabel = o.date.toLocaleDateString('en-GB',{weekday:'short', day:'numeric', month:'short'}).toUpperCase();
+  const heaviest = data.days.reduce((m,x)=>x.due>m.due ? x : m, {due:0});
+  const bills = o.bills.slice().sort((a,b)=>b.amt-a.amt);
+  const title = o.pay>0 && !(o.due>0) ? `+${fmt(o.pay)} lands` : o.due>0 ? `${fmt(o.due)} due` : 'Nothing due';
+  const sub = o.due>0 ? (heaviest===o && o.due>0 ? 'The heaviest day of the month' : ({light:'A light day',cloud:'A medium day',rain:'A heavy day',storm:'A very heavy day',pay:'Payday'}[o.level]||'')) : 'A clear day';
+  let balBlock = '';
+  if(o.balBefore!==undefined && o.pendDue>0){
+    const pct = o.balBefore>0 ? Math.min(100, Math.round(o.pendDue/o.balBefore*100)) : 100;
+    balBlock = `<div class="wx-bal"><div><span>Balance going in</span><b>${escapeHtml(fmt(o.balBefore))}</b></div><div><span>After bills</span><b class="${o.balAfter<0?'neg':'warn'}">${escapeHtml(fmt(o.balAfter))}</b></div><div class="wx-bar"><i style="width:${pct}%;"></i></div><div class="wx-bal-s">${pct}% of your balance goes out that day</div></div>`;
+  }
+  let tip = '';
+  if(WX_RANK[o.level]>=3 && bills.length){
+    const nextPay = data.days.slice(day).find(x=>x && x.income.some(i=>!i.done));
+    const big = bills[0];
+    if(nextPay && big.amt >= o.due*0.3 && !big.done) tip = `<div class="wx-tip"><b>Tip:</b> Your pay lands on ${escapeHtml(nextPay.date.toLocaleDateString('en-GB',{day:'numeric', month:'short'}))}. If ${escapeHtml(big.name)} can wait until then, this ${o.level==='storm'?'storm':'rain'} eases.</div>`;
+  }
+  const rows = bills.map(b=>`<div class="wx-bill">${catTile(b.cat,'sm')}<div class="wx-bn"><b>${escapeHtml(b.name)}</b><span>${escapeHtml(b.pay3?'Pay in 3':b.cat)}${b.done?' · paid':''}</span></div><strong>${escapeHtml(fmt(b.amt))}</strong></div>`).join('')
+    + o.income.map(i=>`<div class="wx-bill inc"><span class="wx-in">${iconSvg('M12 5v14M6 13l6 6 6-6')}</span><div class="wx-bn"><b>${escapeHtml(i.name)}</b><span>Money in${i.done?' · received':''}</span></div><strong style="color:var(--green);">+${escapeHtml(fmt(i.amt))}</strong></div>`).join('');
+  box.className = 'modal recap-modal wx-modal';
+  box.innerHTML = `<div class="wx-m-top"><div class="recap-eyebrow" style="color:${c};">${escapeHtml(lab.toUpperCase())} · ${escapeHtml(dateLabel)}</div>
+    <div class="wx-m-ic" style="background:${c}1f;box-shadow:0 0 40px ${c}55;">${wxIcon(o.level,76)}</div>
+    <div class="wx-m-t">${escapeHtml(title)}</div><div class="wx-m-s">${escapeHtml(sub)}</div></div>
+    ${balBlock}<div class="wx-bills">${rows || '<div class="empty">No bills or pay on this day.</div>'}</div>${tip}
+    <div class="actions"><button class="btn secondary small" id="wxToMonth">Open ${escapeHtml(monthLabelFromKey(key).split(' ')[0])}</button><button class="btn small" id="wxClose">Close</button></div>`;
+  bg.classList.add('open');
+  bg.onclick = ev=>{ if(ev.target===bg) closeRecapModal(); };
+  document.getElementById('wxClose').onclick = closeRecapModal;
+  document.getElementById('wxToMonth').onclick = ()=>{ closeRecapModal(); state.currentMonthKey = key; currentView = 'month'; save(); render(); };
+}
+
+// ---- the month calendar (top of the Calendar page) ----
+function wxCalendarHtml(){
+  const keys = Object.keys(state.months).sort();
+  if(!keys.length) return '';
+  if(!wxMonthKey || !state.months[wxMonthKey]) wxMonthKey = state.currentMonthKey in state.months ? state.currentMonthKey : keys[keys.length-1];
+  const data = wxMonthDays(wxMonthKey); if(!data) return '';
+  const {md, days} = data;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const i = keys.indexOf(wxMonthKey);
+  const offset = (new Date(md.y, md.mo-1, 1).getDay()+6)%7;
+  const heads = ['M','T','W','T','F','S','S'].map(h=>`<div class="wx-h">${h}</div>`).join('');
+  const cells = Array.from({length:offset}, ()=>'<div></div>').join('') + days.map(o=>{
+    const [, c] = WX[o.level];
+    const isToday = o.date.getTime()===today.getTime();
+    const amt = o.pay>0 ? '+'+fmtCompact(o.pay) : o.due>0 ? fmtCompact(o.due) : '';
+    const past = o.date<today && !o.bills.some(b=>!b.done) && o.due>0;
+    return `<button type="button" class="wx-cell lv-${o.level}${isToday?' today':''}${past?' paid':''}" data-day="${o.day}"><i>${o.day}</i>${wxIcon(o.level,26)}<b style="color:${amt?c:'transparent'};">${escapeHtml(amt||'·')}</b></button>`;
+  }).join('');
+  const total = round2(days.reduce((a,o)=>a+o.due,0));
+  const storms = days.filter(o=>o.level==='storm').length, rains = days.filter(o=>o.level==='rain').length;
+  const heavy = days.filter(o=>o.due>0).sort((a,b)=>b.due-a.due).slice(0,3);
+  const legend = ['pay','clear','light','cloud','rain','storm'].map(k=>`<span class="wx-lg">${wxIcon(k,18)}${WX[k][0]}</span>`).join('');
+  return `<div class="panel wx-panel">
+    <div class="panel-head"><h2>Bill weather</h2><div class="wx-nav"><button type="button" id="wxPrev" aria-label="Previous month" ${i<=0?'disabled':''}>‹</button><span>${escapeHtml(monthLabelFromKey(wxMonthKey))}</span><button type="button" id="wxNext" aria-label="Next month" ${i>=keys.length-1?'disabled':''}>›</button></div></div>
+    <div class="wx-chips"><div><i>TOTAL DUE</i><b>${escapeHtml(fmt(total))}</b></div><div class="s"><i>STORMS</i><b>${storms} day${storms!==1?'s':''}</b></div><div class="r"><i>RAINY</i><b>${rains} day${rains!==1?'s':''}</b></div></div>
+    <div class="wx-grid">${heads}${cells}</div>
+    <div class="wx-legend">${legend}</div>
+    ${heavy.length ? `<div class="wx-heavy"><div class="wx-hh">HEAVIEST DAYS</div>${heavy.map(o=>`<button type="button" class="wx-hr" data-day="${o.day}">${wxTile(o.level,34)}<span><b>${escapeHtml(o.date.toLocaleDateString('en-GB',{weekday:'short', day:'numeric', month:'short'}))}</b><em>${WX[o.level][0]} · ${o.bills.length} bill${o.bills.length!==1?'s':''}</em></span><strong>${escapeHtml(fmt(o.due))}</strong></button>`).join('')}</div>` : ''}
+  </div>`;
+}
+function bindWxCalendar(el){
+  const keys = Object.keys(state.months).sort();
+  const go = d=>{ const i = keys.indexOf(wxMonthKey)+d; if(i>=0 && i<keys.length){ wxMonthKey = keys[i]; renderCalendar(); } };
+  const p = el.querySelector('#wxPrev'), n = el.querySelector('#wxNext');
+  if(p) p.onclick = ()=>go(-1); if(n) n.onclick = ()=>go(1);
+  el.querySelectorAll('.wx-cell, .wx-hr').forEach(b=>b.onclick = ()=>openWxDay(wxMonthKey, Number(b.dataset.day)));
+}
+
 function renderCalendar(){
   const el = document.getElementById('view-calendar');
   const keys = Object.keys(state.months).sort();
@@ -5567,7 +5845,7 @@ function renderCalendar(){
     (byYear[year] = byYear[year]||[]).push(k);
   });
   const years = Object.keys(byYear).sort();
-  el.innerHTML = years.map(year=>`
+  el.innerHTML = wxCalendarHtml() + years.map(year=>`
     <div class="panel">
       <div class="panel-head"><h2>${year}</h2><span class="hint">${byYear[year].length} month${byYear[year].length!==1?'s':''} tracked · amber = bill due, green = payday</span></div>
       <div class="month-grid">
@@ -5605,6 +5883,7 @@ function renderCalendar(){
       </div>
     </div>
   `).join('');
+  bindWxCalendar(el);
   el.querySelectorAll('.month-tile').forEach(tile=>{
     tile.onclick = ()=>{
       state.currentMonthKey = tile.dataset.key;
