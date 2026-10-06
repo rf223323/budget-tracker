@@ -3856,7 +3856,7 @@ function updatePlanBadges(){
   const outs = m.outgoings||[], ins = m.incoming||[];
   card('outSum','to pay','paid', sum(outs.filter(x=>x.status!=='done')), sum(outs.filter(x=>x.status==='done')));
   card('inSum','to come','received', sum(ins.filter(x=>x.status!=='done')), sum(ins.filter(x=>x.status==='done')));
-  card('wkSum','to go','done', sum(wkArr.filter(w=>w.status!=='done')), sum(wkArr.filter(w=>w.status==='done')));
+  card('wkSum','to go','paid', sum(wkArr.filter(w=>w.status!=='done')), sum(wkArr.filter(w=>w.status==='done')));
   card('svSum','to move','moved', sum(svItems.filter(x=>x.status!=='done')), sum(svItems.filter(x=>x.status==='done')));
   // category chips (Outgoings) and To pay / Paid grouping
   const chipsEl = document.getElementById('outChips');
@@ -3910,7 +3910,7 @@ function weekSummaryHtml(i, w){
   return `${iconTile(CALENDAR_ICON_PATH, 'var(--accent)', 'md')}
     <span class="cs-main"><span class="cs-name">Week ${i+1}</span><span class="cs-sub">${w.recurring ? 'Recurring ↻' : 'One-off'}</span></span>
     <span class="cs-amt">${escapeHtml(fmt(amt))}</span>
-    <span class="cs-status ${w.status==='done'?'done':'none'}" title="${w.status==='done'?'Done':'Not done yet'}">${w.status==='done'?'✓':''}</span>
+    <span class="cs-status ${w.status==='done'?'done':'none'}" title="${w.status==='done'?'Paid':'Not paid yet'}">${w.status==='done'?'✓':''}</span>
     <span class="cs-caret">▾</span>`;
 }
 function fundsSelectHtml(cls, item){
@@ -3945,7 +3945,7 @@ function outgoingSummaryHtml(o){
   return `${catTile(cat,'md')}
     <span class="cs-main"><span class="cs-name">${escapeHtml(o.name||'Unnamed')}</span><span class="cs-sub">${bits.join(' · ')}</span></span>
     <span class="cs-amt">${escapeHtml(fmt(Number(o.amount)||0))}</span>
-    <span class="cs-status ${o.status==='done'?'done':'none'}" title="${o.status==='done'?'Done':'Not done yet'}">${o.status==='done'?'✓':''}</span>
+    <span class="cs-status ${o.status==='done'?'done':'none'}" title="${o.status==='done'?'Paid':'Not paid yet'}">${o.status==='done'?'✓':''}</span>
     <span class="cs-caret">▾</span>`;
 }
 function refreshSafeSpend(){
@@ -5056,7 +5056,7 @@ function renderMonth(){
           </div>
           <div class="hero-label">Current balance</div>
           <div class="hero-bal"><span class="hero-cur">${escapeHtml(state.currency)}</span><input type="number" step="0.01" id="liveBalanceInput" class="hero-bal-input" value="${t.liveBalance}" aria-label="Current balance" style="${t.liveBalance>=0?'':'color:var(--red);'}"></div>
-          <div class="hero-sub" id="liveBalanceSub">${t.adjustment ? `${fmt(t.adjustment)} manual adjustment · <a href="#" id="clearAdjustment" style="color:var(--red);text-decoration:underline;">clear</a>` : 'edit directly for deviations — updates as items are marked Done'}</div>
+          <div class="hero-sub" id="liveBalanceSub">${t.adjustment ? `${fmt(t.adjustment)} manual adjustment · <a href="#" id="clearAdjustment" style="color:var(--red);text-decoration:underline;">clear</a>` : 'edit directly for deviations — updates as items are marked Paid or Received'}</div>
           <div id="liveBalanceTrend">${trendArrowHtml(t.liveBalance, pt&&pt.liveBalance, 'up')}</div>
           <div class="hero-payday" id="heroPayday"></div>
         </div>
@@ -5084,7 +5084,7 @@ function renderMonth(){
         <div class="hs">
           <div class="hs-k">Weekly budget</div>
           <div class="hs-v neg" id="weeklyVal">${fmt(t.weeklyTotal)}</div>
-          <div class="hs-s"><span id="weeklySub">${fmt(t.doneWeekly)} done</span><span id="weeklyTrend">${trendArrowHtml(t.weeklyTotal, pt&&pt.weeklyTotal, 'down')}</span></div>
+          <div class="hs-s"><span id="weeklySub">${fmt(t.doneWeekly)} paid</span><span id="weeklyTrend">${trendArrowHtml(t.weeklyTotal, pt&&pt.weeklyTotal, 'down')}</span></div>
         </div>
         <div class="hs">
           <div class="hs-k">Left over</div>
@@ -5161,7 +5161,7 @@ function renderMonth(){
         <tbody id="outgoingBody"></tbody>
       </table>
       <div class="formula-note">
-        <b>Current Balance</b> = Starting Balance + Incoming marked Done − Weekly Budget marked Done − Outgoings marked Done − Savings (if Done) − Stocks &amp; Shares (if Done).<br>
+        <b>Current Balance</b> = Starting Balance + Incoming marked Received − Weekly Budget marked Paid − Outgoings marked Paid − Savings (if Paid) − Stocks &amp; Shares (if Paid).<br>
         <b>Total Left Over</b> = Starting Balance + all Incoming − Weekly Budget − all Outgoings − Savings − Stocks &amp; Shares (regardless of status) — this becomes next month's Starting Balance.
       </div>
     </div>
@@ -5240,7 +5240,7 @@ function renderMonth(){
       <div class="field-inline" style="margin-bottom:16px;flex-wrap:wrap;">
         <div class="seg-toggle" id="monthCatModeToggle">
           <button class="seg-btn" data-mode="all">Budgeted</button>
-          <button class="seg-btn" data-mode="done">Actual (Done)</button>
+          <button class="seg-btn" data-mode="done">Actual (Paid)</button>
         </div>
         <a href="#" id="monthCatSeeTrend" style="font-size:12px;color:var(--muted);text-decoration:underline;margin-left:auto;">See full Trend breakdown →</a>
       </div>
@@ -5639,7 +5639,7 @@ function renderMonth(){
     if(document.activeElement !== lbInput) lbInput.value = t2.liveBalance;
     lbInput.style.color = t2.liveBalance>=0 ? '' : 'var(--red)';
     const lbSub = document.getElementById('liveBalanceSub');
-    lbSub.innerHTML = t2.adjustment ? `${fmt(t2.adjustment)} manual adjustment · <a href="#" id="clearAdjustment" style="color:var(--red);text-decoration:underline;">clear</a>` : 'edit directly for deviations — updates as items are marked Done';
+    lbSub.innerHTML = t2.adjustment ? `${fmt(t2.adjustment)} manual adjustment · <a href="#" id="clearAdjustment" style="color:var(--red);text-decoration:underline;">clear</a>` : 'edit directly for deviations — updates as items are marked Paid or Received';
     const clearLink = document.getElementById('clearAdjustment');
     if(clearLink){
       clearLink.onclick = e=>{ e.preventDefault(); m.adjustment = 0; save(); renderMonth(); };
@@ -5655,7 +5655,7 @@ function renderMonth(){
     document.getElementById('incBar').style.width = (t2.allIncoming>0 ? Math.min(100,Math.round(t2.doneIncoming/t2.allIncoming*100)) : 0) + '%';
     document.getElementById('incomingTrend').innerHTML = trendArrowHtml(t2.allIncoming, pt2&&pt2.allIncoming, 'up', true);
     document.getElementById('weeklyVal').textContent = fmt(t2.weeklyTotal);
-    document.getElementById('weeklySub').textContent = `${fmt(t2.doneWeekly)} done`;
+    document.getElementById('weeklySub').textContent = `${fmt(t2.doneWeekly)} paid`;
     document.getElementById('weeklyTrend').innerHTML = trendArrowHtml(t2.weeklyTotal, pt2&&pt2.weeklyTotal, 'down');
     document.getElementById('outgoingVal').textContent = fmt(t2.allOutgoing);
     document.getElementById('outgoingSub').textContent = `${fmt(t2.doneOutgoing)} paid · ${fmt(Math.max(0,round2(t2.allOutgoing-t2.doneOutgoing)))} to pay`;
@@ -6180,7 +6180,7 @@ function renderTrend(){
   const noTrend = '<div class="empty">Track at least two months to see a trend line.</div>';
   const legendHtml = `
       <div class="legend">
-        <div class="legend-item"><span class="dot" style="background:var(--accent);"></span>Actual — only what's marked Done</div>
+        <div class="legend-item"><span class="dot" style="background:var(--accent);"></span>Actual — only what's marked Paid or Received</div>
         <div class="legend-item"><span class="dash" style="border-color:var(--green);"></span>Projected — assumes every month happens exactly as budgeted</div>
       </div>`;
 
@@ -6213,7 +6213,7 @@ function renderTrend(){
     const potsNow = round2(savingsSeries[curIdx] + stocksSeries[curIdx]);
     pane = `
       <div class="trend-kpis">
-        ${kpi('Net worth now', fmt(netNow), (curIdx>0 ? trendArrowHtml(netNow, actualNetWorth[curIdx-1], 'up').replace('vs last month','vs last month') : '') || '<div class="sub">actual · marked Done</div>', netNow>=0?'pos':'neg')}
+        ${kpi('Net worth now', fmt(netNow), (curIdx>0 ? trendArrowHtml(netNow, actualNetWorth[curIdx-1], 'up').replace('vs last month','vs last month') : '') || '<div class="sub">actual · marked Paid or Received</div>', netNow>=0?'pos':'neg')}
         ${kpi(enough ? `Projected · ${shortLabels[lastWin]}` : 'Projected', fmt(projectedNetWorth[lastWin]||0), '<div class="sub">if every month goes to plan</div>', (projectedNetWorth[lastWin]||0)>=0?'pos':'neg')}
         ${kpi('Avg monthly net', fmt(avgNet), `<div class="sub">across ${idxs.length} month${idxs.length!==1?'s':''} shown</div>`, avgNet>=0?'pos':'neg')}
         ${kpi('In savings & stocks', fmt(potsNow), `<div class="sub">${fmt(savingsSeries[curIdx])} savings · ${fmt(stocksSeries[curIdx])} stocks</div>`)}
@@ -6239,7 +6239,7 @@ function renderTrend(){
           <select id="catBreakdownMonth" style="max-width:220px;"></select>
           <div class="seg-toggle" id="catBreakdownModeToggle">
             <button class="seg-btn" data-mode="all">Budgeted</button>
-            <button class="seg-btn" data-mode="done">Actual (Done)</button>
+            <button class="seg-btn" data-mode="done">Actual (Paid)</button>
           </div>
         </div>
         <div class="cat-breakdown-layout">
@@ -6351,7 +6351,7 @@ function renderCategoryBreakdown(){
   });
   document.getElementById('catBreakdownTitle').textContent = isIncome ? 'Income by Source' : 'Spending by Category';
   const modeBtns = document.querySelectorAll('#catBreakdownModeToggle .seg-btn');
-  if(modeBtns[1]) modeBtns[1].textContent = isIncome ? 'Received (Done)' : 'Actual (Done)';
+  if(modeBtns[1]) modeBtns[1].textContent = isIncome ? 'Actual (Received)' : 'Actual (Paid)';
   const bars = document.getElementById('catBreakdownBars');
   const donutEl = document.getElementById('catBreakdownDonut');
   const totalEl = document.getElementById('catBreakdownTotal');
@@ -6546,7 +6546,7 @@ function renderSpendingHeatmap(){
       </div>
       <div class="seg-toggle" id="hmModeToggle">
         <button class="seg-btn${heatmapMode==='all'?' active':''}" data-m="all">Budgeted</button>
-        <button class="seg-btn${heatmapMode==='done'?' active':''}" data-m="done">Actual (Done)</button>
+        <button class="seg-btn${heatmapMode==='done'?' active':''}" data-m="done">Actual (Paid)</button>
       </div>
     </div>`;
 
@@ -6795,7 +6795,7 @@ function openDayModal(mk, day){
   const canAdd = c.isPast || (c.isCurrent && day<=c.today);
   const row = (tile, name, sub, amt) => `<div class="dm-row">${tile}<div class="dm-main"><div class="dm-name">${escapeHtml(name)}</div><div class="dm-sub">${sub}</div></div><div class="dm-amt">${escapeHtml(fmt(amt))}</div></div>`;
   const spendRows = spends.map(o=>`<div class="dm-row">${catTile(o.category||'Uncategorized','sm')}<div class="dm-main"><div class="dm-name">${escapeHtml(o.name)}</div><div class="dm-sub">${escapeHtml(o.category||'Uncategorized')} · ${new Date(o.ts).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</div></div><div class="dm-amt">${escapeHtml(fmt(o.amount))}</div><button class="del-btn dm-del" data-id="${o.id}" aria-label="Delete">✕</button></div>`).join('');
-  const billRows = dayBills.map(b=>row(catTile(b.category,'sm'), b.name, b.done?'Bill · done':'Bill · due', b.amount)).join('');
+  const billRows = dayBills.map(b=>row(catTile(b.category,'sm'), b.name, b.done?'Bill · paid':'Bill · due', b.amount)).join('');
   const payRows = dayPays.map(p=>row(catTile('Salary','sm'), p.name, p.done?'Payday · received':'Payday · expected', p.amount)).join('');
   const section = (title, html) => html ? `<div class="dm-sec"><div class="dm-sec-title">${title}</div><div class="dm-list">${html}</div></div>` : '';
   box.innerHTML = `
@@ -6900,7 +6900,7 @@ function renderQuarterly(){
       ${reviewYears.length ? `<div class="yr-btns">${reviewYears.map(y=>`<button class="btn small yr-open" data-year="${y}">${y} →</button>`).join('')}</div>` : `<div class="yr-btns"><button class="btn secondary small" id="yrSample">See a sample</button></div>`}
     </div>
     <div class="panel">
-      <div class="panel-head"><h2>Income vs Spending by Quarter</h2><span class="hint">based on what's marked Done</span></div>
+      <div class="panel-head"><h2>Income vs Spending by Quarter</h2><span class="hint">based on what's marked Paid or Received</span></div>
       <div id="quarterlyChart"></div>
     </div>
     <div class="panel">
@@ -6936,9 +6936,9 @@ function renderQuarterly(){
         <span class="hint">${qs.monthKeys.length} month${qs.monthKeys.length!==1?'s':''} tracked</span>
       </div>
       <div class="grid">
-        <div class="card"><div class="k">Income</div><div class="v pos">${fmt(qs.income)}</div><div class="sub">marked Done</div></div>
-        <div class="card"><div class="k">Spending</div><div class="v neg">${fmt(qs.spending)}</div><div class="sub">outgoings + weekly, Done</div></div>
-        <div class="card"><div class="k">Saved</div><div class="v pos">${fmt(qs.saved)}</div><div class="sub">savings + stocks, Done</div></div>
+        <div class="card"><div class="k">Income</div><div class="v pos">${fmt(qs.income)}</div><div class="sub">marked Received</div></div>
+        <div class="card"><div class="k">Spending</div><div class="v neg">${fmt(qs.spending)}</div><div class="sub">outgoings + weekly, Paid</div></div>
+        <div class="card"><div class="k">Saved</div><div class="v pos">${fmt(qs.saved)}</div><div class="sub">savings + stocks, Paid</div></div>
         <div class="card highlight"><div class="k">Net Change</div><div class="v ${qs.net>=0?'pos':'neg'}">${fmt(qs.net)}</div><div class="sub">${qs.savingsRate}% savings rate</div></div>
         <div class="card"><div class="k">Starting Balance</div><div class="v">${fmt(qs.startBalance)}</div><div class="sub">start of quarter</div></div>
         <div class="card"><div class="k">Ending Balance</div><div class="v" style="color:${qs.endBalance>=0?'var(--green)':'var(--red)'};">${fmt(qs.endBalance)}</div><div class="sub">end of quarter (live)</div></div>
