@@ -194,8 +194,6 @@
   .rw-sub{font-size:11.5px;color:var(--muted);margin-top:2px;}
   .rw-row .sv-amt{width:130px;flex-shrink:0;}
   @media (max-width:700px){.rw-row{flex-wrap:wrap;}.rw-main{flex:1 1 40%;}.rw-row .sv-amt{flex:1 1 90px;}}
-  .weekly-item .stog{margin-bottom:8px;}
-  .weekly-item .status-toggle{padding:5px 10px;font-size:12px;}
   .cs-status{position:relative;cursor:pointer;}
   .cs-status::before{content:'';position:absolute;inset:-12px;}
   select.status-done{color:var(--green);border-color:color-mix(in srgb, var(--green) 50%, transparent);background:color-mix(in srgb, var(--green) 8%, transparent);}
@@ -307,11 +305,52 @@
   .del-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;padding:2px 6px;border-radius:6px;}
   .del-btn:hover{color:var(--red);background:color-mix(in srgb, var(--red) 10%, transparent);}
 
-  .weekly-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
-  @media (max-width:700px){.weekly-grid{grid-template-columns:repeat(2,1fr);}}
-  .weekly-item label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px;}
-  .weekly-item select{width:100%;}
-  .wk-summary{display:none;}
+  /* Weekly budget: progress ring beside four tidy rows (stepper, repeat switch, paid button) */
+  .wk-layout{display:grid;grid-template-columns:210px minmax(0,1fr);gap:22px;align-items:center;}
+  .wk-ringwrap{display:flex;justify-content:center;}
+  .wk-ring{position:relative;width:190px;height:190px;}
+  .wk-ring svg{width:100%;height:100%;}
+  .wk-ring svg{display:block;}
+  .wk-ring .wk-ring-c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;}
+  .wk-ring .k{font-size:11px;font-weight:800;letter-spacing:.1em;color:var(--muted);}
+  .wk-ring b{font-size:32px;letter-spacing:-.03em;line-height:1.1;}
+  .wk-ring .m{font-size:12px;color:var(--muted);margin-top:2px;}
+  .wk-side #wkSum{display:none;}
+  .wk-all{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 14px;margin-bottom:4px;border:1px dashed var(--border);border-radius:14px;font-size:13px;}
+  .wk-all b{font-weight:700;}
+  .wk-all .wk-amt{width:110px;flex:none;}
+  .wk-all .hint{font-size:12px;color:var(--muted);}
+  .wk-row{display:grid;grid-template-columns:minmax(96px,1fr) auto auto 112px;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);}
+  .wk-row:last-child{border-bottom:0;}
+  .wk-who b{display:block;font-size:15px;}
+  .wk-who span{font-size:12px;color:var(--muted);white-space:nowrap;}
+  .wk-who b{white-space:nowrap;}
+  .wk-who .now{color:var(--accent);font-weight:700;}
+  .wk-step{display:inline-flex;align-items:center;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--bg);}
+  .wk-step button{width:36px;height:40px;border:0;background:none;color:var(--muted);font:inherit;font-size:18px;font-weight:800;cursor:pointer;}
+  .wk-step button:hover{color:var(--text);background:color-mix(in srgb, var(--text) 6%, transparent);}
+  .wk-step label{display:flex;align-items:center;gap:1px;font-weight:800;font-size:15px;}
+  .wk-step label span{color:var(--muted);}
+  .wk-step input.week-input{width:62px;border:0;background:none;padding:0;font-size:15px;font-weight:800;text-align:center;-moz-appearance:textfield;}
+  .wk-step input.week-input::-webkit-outer-spin-button,.wk-step input.week-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+  .wk-step input.week-input:focus{outline:none;}
+  .wk-rep{display:inline-flex;align-items:center;gap:8px;background:none;border:0;padding:0;color:var(--text);font:inherit;font-size:12.5px;font-weight:700;cursor:pointer;min-width:84px;}
+  .wk-sw{position:relative;width:40px;height:23px;border-radius:99px;background:color-mix(in srgb, var(--text) 18%, transparent);flex:none;transition:background .15s ease;}
+  .wk-sw::after{content:"";position:absolute;left:3px;top:3px;width:17px;height:17px;border-radius:50%;background:#fff;transition:left .15s ease;}
+  .wk-rep.on .wk-sw{background:var(--accent);}
+  .wk-rep.on .wk-sw::after{left:20px;}
+  .wk-row .status-toggle{height:40px;padding-top:0;padding-bottom:0;}
+  @media (max-width:860px){
+    .wk-layout{grid-template-columns:1fr;gap:0;}
+    .wk-ringwrap{display:none;}
+    .wk-side #wkSum{display:block;}
+    .wk-row{grid-template-columns:minmax(0,1fr) 112px;grid-template-areas:"who st" "step rep";gap:10px 12px;padding:12px 0;}
+    .wk-row .wk-who{grid-area:who;}
+    .wk-row .stog{grid-area:st;}
+    .wk-row .wk-step{grid-area:step;justify-self:start;}
+    .wk-row .wk-rep{grid-area:rep;justify-self:end;min-width:0;}
+    .wk-step input.week-input{width:54px;}
+  }
 
   .field-inline{display:flex;gap:10px;align-items:center;}
   .empty{color:var(--muted);font-size:13px;text-align:center;padding:22px 10px;}
@@ -1510,7 +1549,6 @@
     .panel-head{flex-wrap:wrap;row-gap:6px;}
     .panel-head .hint{width:100%;font-size:11px;}
     table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;}
-    .weekly-grid{grid-template-columns:repeat(2,1fr);}
     .month-grid{grid-template-columns:repeat(2,1fr);}
     .field-inline{flex-direction:column;align-items:stretch;}
     .field-inline label{min-width:0 !important;}
@@ -1585,19 +1623,6 @@
     .safe-spend.open .ss-caret{transform:rotate(180deg);}
     .safe-spend:not(.open) .ss-break{display:none;}
     .safe-spend{padding:14px 15px;}
-    /* Weekly budget: one-line summary per week, tap to edit (same pattern as outgoings/incoming) */
-    .weekly-grid{grid-template-columns:1fr;gap:8px;}
-    .wk-item{display:flex;flex-wrap:wrap;gap:8px 6px;align-items:stretch;background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:10px;}
-    .wk-item .wk-summary{display:flex;align-items:center;gap:10px;flex:1 1 100%;min-width:0;cursor:pointer;}
-    .wk-item > label{display:none;}
-    .wk-item .week-input{flex:1 1 90px;min-width:0;margin:0 !important;width:auto;}
-    .wk-item select{flex:1 1 84px;min-width:0;width:auto;margin:0 !important;padding:7px 4px;font-size:12px;}
-    .wk-item .stog{flex:1 1 84px;min-width:0;margin:0;}
-    .wk-item .status-toggle{padding:7px 4px;}
-    .wk-item.collapsed{padding:9px 10px;}
-    .wk-item.collapsed .week-input,.wk-item.collapsed select,.wk-item.collapsed .stog{display:none;}
-    .wk-item:not(.collapsed) .cs-caret{transform:rotate(180deg);}
-    #monthCatDeltas{display:none;}
     .responsive-table tr.inc-virtual{padding:0;background:none;border:none;margin-bottom:8px;}
     .responsive-table tr.inc-virtual td{flex:1 1 100%;width:100%;padding:0;}
     .iv-row{flex-wrap:wrap;row-gap:6px;}
@@ -3779,7 +3804,6 @@ let quickAddLogExpanded = false;
 let categoryBreakdownMonth = null;
 let categoryBreakdownMode = 'all';
 let categoryBreakdownKind = 'out'; // 'out' = spending, 'in' = income
-let monthCatMode = 'all';
 let upcomingBillsWindow = 14;
 
 function render(){
@@ -3853,7 +3877,6 @@ function renderSyncIndicator(){
 let safeSpendOpen = false;
 const expandedOutRows = new Set();
 const expandedIncRows = new Set();
-const expandedWeeks = new Set();
 // Incoming (wide screens): the selected income's fields are moved into the side panel, and moved back when it is deselected.
 let selIncId = null, incMoved = [];
 const incWide = ()=>window.matchMedia('(min-width:861px)').matches;
@@ -3902,14 +3925,13 @@ if(window.matchMedia) window.matchMedia('(min-width:861px)').addEventListener('c
   showIncPanel(tr);
 });
 // Month Tracker is split into tabs so the long lists don't stack into one endless scroll.
-const PLAN_TABS = [['out','Outgoings'],['in','Incoming'],['wk','Weekly'],['sv','Savings'],['up','Upcoming'],['cat','Categories']];
+const PLAN_TABS = [['out','Outgoings'],['in','Incoming'],['wk','Weekly'],['sv','Savings'],['up','Upcoming']];
 const PLAN_TAB_ICONS = {
   out:'M7 17L17 7M8 7h9v9',                       // arrow out
   in:'M17 7L7 17M16 17H7V8',                      // arrow in
   wk:'M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v14H4V6zM4 10h16M9 3v4M15 3v4',
   sv:'M3 8a2 2 0 0 1 2-2h13a1 1 0 0 1 1 1v2M3 8v9a2 2 0 0 0 2 2h14a1 1 0 0 0 1-1v-3M3 8h16a1 1 0 0 1 1 1v2h-4a2 2 0 0 0 0 4h4',
-  up:'M12 7v5l3 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z',
-  cat:'M21 12A9 9 0 1 1 12 3v9zM15 3.6A9 9 0 0 1 20.4 9H15z'
+  up:'M12 7v5l3 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z'
 };
 const PLAN_TAB_KEY = 'budgetTracker.planTab';
 let planTab = (()=>{ try{ const v = localStorage.getItem(PLAN_TAB_KEY); return PLAN_TABS.some(t=>t[0]===v) ? v : 'out'; }catch(e){ return 'out'; } })();
@@ -3945,6 +3967,12 @@ function updatePlanBadges(){
   const outs = m.outgoings||[], ins = m.incoming||[];
   card('outSum','to pay','paid', sum(outs.filter(x=>x.status!=='done')), sum(outs.filter(x=>x.status==='done')));
   card('inSum','to come','received', sum(ins.filter(x=>x.status!=='done')), sum(ins.filter(x=>x.status==='done')));
+  const wkDone = sum(wkArr.filter(w=>w.status==='done')), wkLeft = sum(wkArr.filter(w=>w.status!=='done'));
+  const ringEl = document.getElementById('wkRing');
+  if(ringEl){
+    const S = 200, W = 16, R = (S-W)/2, C = 2*Math.PI*R, tot = wkDone+wkLeft, pct = tot>0 ? wkDone/tot : 0;
+    ringEl.innerHTML = `<svg viewBox="0 0 ${S} ${S}" width="${S}" height="${S}" aria-hidden="true"><circle cx="${S/2}" cy="${S/2}" r="${R}" fill="none" stroke="color-mix(in srgb, var(--text) 12%, transparent)" stroke-width="${W}"/><circle cx="${S/2}" cy="${S/2}" r="${R}" fill="none" stroke="var(--green)" stroke-width="${W}" stroke-linecap="round" stroke-dasharray="${(C*pct).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 ${S/2} ${S/2})" style="filter:drop-shadow(0 0 6px var(--green))"/></svg><div class="wk-ring-c"><span class="k">TO GO</span><b>${escapeHtml(fmt(wkLeft))}</b><span class="m">${escapeHtml(fmt(wkDone))} of ${escapeHtml(fmt(tot))} paid</span></div>`;
+  }
   card('wkSum','to go','paid', sum(wkArr.filter(w=>w.status!=='done')), sum(wkArr.filter(w=>w.status==='done')));
   card('svSum','to move','moved', sum(svItems.filter(x=>x.status!=='done')), sum(svItems.filter(x=>x.status==='done')));
   // category chips (Outgoings) and To pay / Paid grouping
@@ -3994,13 +4022,25 @@ function applyGrouping(tbody, items, labels, filter){
   plan.filter(p=>p.hdr).forEach(p=>{ const h = hdrs[i++]; if(!h) return; const sp = h.querySelectorAll('.grp-h span'); sp[0].textContent = `${p.lab} · ${p.n}`; sp[1].textContent = fmt(p.sum); });
 }
 const expandedRecurRows = new Set();
-function weekSummaryHtml(i, w){
-  const amt = Number(w.amount)||0;
-  return `${iconTile(CALENDAR_ICON_PATH, 'var(--accent)', 'md')}
-    <span class="cs-main"><span class="cs-name">Week ${i+1}</span><span class="cs-sub">${w.recurring ? 'Recurring ↻' : 'One-off'}</span></span>
-    <span class="cs-amt">${escapeHtml(fmt(amt))}</span>
-    <span class="cs-status ${w.status==='done'?'done':'none'}" title="${w.status==='done'?'Paid':'Not paid yet'}">${w.status==='done'?'✓':''}</span>
-    <span class="cs-caret">▾</span>`;
+// "1–7 Oct" style label for each of a month's four budget weeks (week 4 runs to month end).
+function weekRange(i){
+  const [y,mo] = state.currentMonthKey.split('-').map(Number);
+  const last = new Date(y, mo, 0).getDate();
+  const from = i*7+1, to = i===3 ? last : i*7+7;
+  const mon = new Date(y, mo-1, 1).toLocaleDateString('en-GB',{month:'short'});
+  const now = new Date();
+  const isNow = now.getFullYear()===y && now.getMonth()===mo-1 && now.getDate()>=from && now.getDate()<=to;
+  return {text:`${from}\u2013${to} ${mon}`, isNow};
+}
+function weekRowHtml(i, wk, w){
+  const r = weekRange(i);
+  return `<div class="wk-row" data-week="${wk}">
+    <div class="wk-who"><b>Week ${i+1}</b><span>${r.text}${r.isNow?' \u00b7 <span class="now">this week</span>':''}</span></div>
+    <div class="wk-step"><button type="button" class="wk-minus" aria-label="Decrease Week ${i+1} amount">\u2212</button><label><span>${escapeHtml(state.currency)}</span><input type="number" step="0.01" min="0" class="week-input" data-week="${wk}" value="${w.amount}" aria-label="Week ${i+1} amount"></label><button type="button" class="wk-plus" aria-label="Increase Week ${i+1} amount">+</button></div>
+    <button type="button" class="wk-rep${w.recurring?' on':''}" role="switch" aria-checked="${!!w.recurring}" title="Repeat this amount every month"><span class="wk-sw"></span>Repeats</button>
+    ${statusSelectHtml('week-status', w.status, {attrs:`data-week="${wk}"`})}
+    <select class="week-recur" data-week="${wk}" style="display:none;" tabindex="-1" aria-hidden="true"><option value="no" ${!w.recurring?'selected':''}>One-off</option><option value="yes" ${w.recurring?'selected':''}>Recurring</option></select>
+  </div>`;
 }
 function fundsSelectHtml(cls, item){
   return `<select class="${cls} funds-select${item.fundsNext?' next':''}" aria-label="Which month this income funds" title="Which month's budget this income pays for. Choose next month if, for example, the pay you receive at the end of this month is what you spend next month.">
@@ -5275,20 +5315,13 @@ function renderMonth(){
     <div class="plan-pane" data-pane="wk">
     <div class="panel">
       <div class="panel-head"><h2>Weekly Budget</h2><span class="hint">amount for each week of the month</span></div>
-      <div class="plan-sum" id="wkSum"></div>
-      <div class="weekly-grid">
-        ${['week1','week2','week3','week4'].map((wk,i)=>`
-          <div class="weekly-item wk-item${expandedWeeks.has(wk)?'':' collapsed'}" data-week="${wk}">
-            <div class="wk-summary" role="button" tabindex="0" aria-label="Show or hide details">${weekSummaryHtml(i, m.weekly[wk])}</div>
-            <label>Week ${i+1}</label>
-            <input type="number" step="0.01" class="week-input" data-week="${wk}" value="${m.weekly[wk].amount}" style="margin-bottom:8px;">
-            ${statusSelectHtml('week-status', m.weekly[wk].status, {attrs:`data-week="${wk}"`})}
-            <select class="week-recur recur-select ${m.weekly[wk].recurring?'recur-yes':'recur-no'}" data-week="${wk}">
-              <option value="no" ${!m.weekly[wk].recurring?'selected':''}>One-off</option>
-              <option value="yes" ${m.weekly[wk].recurring?'selected':''}>Recurring</option>
-            </select>
-          </div>
-        `).join('')}
+      <div class="wk-layout">
+        <div class="wk-ringwrap"><div class="wk-ring" id="wkRing"></div></div>
+        <div class="wk-side">
+          <div class="plan-sum" id="wkSum"></div>
+          <div class="wk-all"><b>Set all weeks to</b><label class="sv-amt wk-amt"><span class="sv-cur">${escapeHtml(state.currency)}</span><input type="number" step="0.01" min="0" id="wkAllAmt" placeholder="0" aria-label="Amount to set for every unpaid week"></label><button type="button" class="btn" id="wkAllBtn">Apply</button><span class="hint">weeks already paid stay as they are</span></div>
+          ${['week1','week2','week3','week4'].map((wk,i)=>weekRowHtml(i, wk, m.weekly[wk])).join('')}
+        </div>
       </div>
     </div>
     </div>
@@ -5325,23 +5358,6 @@ function renderMonth(){
         </div>
       </div>
       <div id="upcomingBillsList"></div>
-    </div>
-    </div>
-    <div class="plan-pane" data-pane="cat">
-    <div class="panel">
-      <div class="panel-head"><h2>Spending by Category</h2><span class="hint" id="monthCatTotal"></span></div>
-      <div class="field-inline" style="margin-bottom:16px;flex-wrap:wrap;">
-        <div class="seg-toggle" id="monthCatModeToggle">
-          <button class="seg-btn" data-mode="all">Budgeted</button>
-          <button class="seg-btn" data-mode="done">Actual (Paid)</button>
-        </div>
-        <a href="#" id="monthCatSeeTrend" style="font-size:12px;color:var(--muted);text-decoration:underline;margin-left:auto;">See full Trend breakdown →</a>
-      </div>
-      <div class="cat-breakdown-layout">
-        <div id="monthCatDonut" class="cat-breakdown-donut"></div>
-        <div id="monthCatBars" class="cat-breakdown-bars"></div>
-      </div>
-      <div id="monthCatDeltas" style="margin-top:8px;"></div>
     </div>
     </div>
     </div>
@@ -5505,23 +5521,32 @@ function renderMonth(){
       m.adjustment = 0; save(); renderMonth();
     };
   }
-  const refreshWeekSummary = wk=>{
-    const item = el.querySelector(`.wk-item[data-week="${wk}"]`);
-    if(item) item.querySelector('.wk-summary').innerHTML = weekSummaryHtml(['week1','week2','week3','week4'].indexOf(wk), m.weekly[wk]);
-  };
-  el.querySelectorAll('.wk-item').forEach(item=>{
-    const wk = item.dataset.week;
-    const summary = item.querySelector('.wk-summary');
-    const toggle = ()=>{
-      const open = item.classList.contains('collapsed');
-      item.classList.toggle('collapsed', !open);
-      if(open) expandedWeeks.add(wk); else expandedWeeks.delete(wk);
+  el.querySelectorAll('.wk-row').forEach(row=>{
+    const inp = row.querySelector('.week-input');
+    const nudge = d=>{ inp.value = Math.max(0, round2((Number(inp.value)||0)+d)); inp.dispatchEvent(new Event('input',{bubbles:true})); };
+    row.querySelector('.wk-minus').onclick = ()=>nudge(-5);
+    row.querySelector('.wk-plus').onclick = ()=>nudge(5);
+    const sw = row.querySelector('.wk-rep'), rec = row.querySelector('.week-recur');
+    sw.onclick = ()=>{
+      rec.value = rec.value==='yes' ? 'no' : 'yes';
+      rec.dispatchEvent(new Event('change',{bubbles:true}));
+      sw.classList.toggle('on', rec.value==='yes'); sw.setAttribute('aria-checked', rec.value==='yes');
     };
-    summary.onclick = e=>{ if(e.target.closest('.cs-status')){ toggleStatusSelect(item.querySelector('.stog select')); return; } toggle(); };
-    summary.onkeydown = e=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); toggle(); } };
   });
+  const wkAllAmt = document.getElementById('wkAllAmt');
+  const applyAllWeeks = ()=>{
+    const v = Number(wkAllAmt.value);
+    if(!(v>=0) || wkAllAmt.value==='') return;
+    el.querySelectorAll('.wk-row').forEach(row=>{
+      if(m.weekly[row.dataset.week].status==='done') return;
+      const inp = row.querySelector('.week-input'); inp.value = v; inp.dispatchEvent(new Event('input',{bubbles:true}));
+    });
+    wkAllAmt.value = '';
+  };
+  document.getElementById('wkAllBtn').onclick = applyAllWeeks;
+  wkAllAmt.addEventListener('keydown', e=>{ if(e.key==='Enter') applyAllWeeks(); });
   el.querySelectorAll('.week-input').forEach(inp=>{
-    inp.oninput = e=>{ const wk = e.target.dataset.week; m.weekly[wk].amount = Number(e.target.value); save(); refreshCards(); refreshWeekSummary(wk); };
+    inp.oninput = e=>{ const wk = e.target.dataset.week; m.weekly[wk].amount = Number(e.target.value); save(); refreshCards(); };
   });
   el.querySelectorAll('.week-status').forEach(sel=>{
     sel.onchange = e=>{
@@ -5529,7 +5554,6 @@ function renderMonth(){
       m.weekly[wk].status = e.target.value; save();
       e.target.className = `week-status status-select status-${e.target.value}`;
       refreshCards();
-      refreshWeekSummary(wk);
     };
   });
   el.querySelectorAll('.week-recur').forEach(sel=>{
@@ -5539,8 +5563,6 @@ function renderMonth(){
       if(m.weekly[wk].recurring) syncNewRecurringWeeklyForward(state.currentMonthKey, wk, m.weekly[wk].amount);
       else stopRecurringWeekInLaterMonths(m, wk);
       save();
-      e.target.className = `week-recur recur-select ${m.weekly[wk].recurring?'recur-yes':'recur-no'}`;
-      refreshWeekSummary(wk);
     };
   });
   document.getElementById('savingsInput').oninput = e=>{ m.savings.amount = Number(e.target.value); save(); refreshCards(); };
@@ -5708,14 +5730,6 @@ function renderMonth(){
     save(); drawOutgoings(); refreshCards();
   };
 
-  renderMonthCategoryBreakdown(m);
-  document.getElementById('monthCatSeeTrend').onclick = e=>{
-    e.preventDefault();
-    categoryBreakdownMonth = state.currentMonthKey;
-    trendTab = 'spending';
-    currentView = 'trend';
-    render();
-  };
   const safePanel = document.getElementById('safeSpend');
   const ssToggle = document.getElementById('ssToggle');
   safePanel.classList.toggle('open', safeSpendOpen);
@@ -5770,35 +5784,7 @@ function renderMonth(){
       el.dataset.sig = sig;
       if(!firstPass) el.innerHTML = cardSparkHtml(state.currentMonthKey, name, false);
     });
-    renderMonthCategoryBreakdown(m);
   }
-}
-function renderMonthCategoryBreakdown(m){
-  const donutEl = document.getElementById('monthCatDonut');
-  const barsEl = document.getElementById('monthCatBars');
-  const totalEl = document.getElementById('monthCatTotal');
-  if(!donutEl || !barsEl || !totalEl) return;
-  document.querySelectorAll('#monthCatModeToggle .seg-btn').forEach(b=>{
-    b.classList.toggle('active', b.dataset.mode===monthCatMode);
-    b.onclick = ()=>{ monthCatMode = b.dataset.mode; renderMonthCategoryBreakdown(m); };
-  });
-  const rows = categoryBreakdown(m, monthCatMode);
-  const total = rows.reduce((s,r)=>s+r.amount,0);
-  totalEl.textContent = rows.length ? `${fmt(total)} ${monthCatMode==='done'?'spent so far':'budgeted'}` : '';
-  donutChart(donutEl, rows, {size: window.innerWidth<=700 ? 170 : 210});
-  renderCategoryDeltas(state.currentMonthKey, monthCatMode, 'monthCatDeltas');
-  if(!rows.length){
-    barsEl.innerHTML = '<div class="empty">No outgoings for this month yet.</div>';
-    return;
-  }
-  const max = Math.max(...rows.map(r=>r.amount));
-  barsEl.innerHTML = rows.map(r=>`
-    <div class="cat-bar-row">
-      <div class="cat-bar-label">${catTile(r.category,'inl')}${escapeHtml(r.category)}</div>
-      <div class="cat-bar-track"><div class="cat-bar-fill" style="width:${max?(r.amount/max*100).toFixed(1):0}%;--c:${categoryColor(r.category)};"></div></div>
-      <div class="cat-bar-amt">${fmt(r.amount)} <span class="cat-bar-pct">(${total?Math.round(r.amount/total*100):0}%)</span></div>
-    </div>
-  `).join('');
 }
 // Walks forward day by day from today (real calendar date, independent of
 // whichever month is being viewed) looking for pending outgoings with a Day
