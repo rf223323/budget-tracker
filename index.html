@@ -232,19 +232,31 @@
   .iv-amt{font-size:14px;font-weight:700;white-space:nowrap;}
   .iv-status{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;background:color-mix(in srgb, var(--amber) 18%, transparent);color:var(--amber);white-space:nowrap;}
   .iv-status.done{background:color-mix(in srgb, var(--green) 18%, transparent);color:var(--green);}
-  .sv-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
-  .sv-card{background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;}
-  .sv-top{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
-  .sv-ico{width:28px;height:28px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;background:color-mix(in srgb, var(--accent) 18%, transparent);flex-shrink:0;}
-  .sv-name{font-size:13.5px;font-weight:700;}
-  .sv-controls{display:flex;gap:8px;align-items:stretch;}
   .sv-amt{flex:1;min-width:0;display:flex;align-items:center;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:0 10px;transition:border-color .12s ease;}
   .sv-amt:focus-within{border-color:var(--accent);}
   .sv-cur{color:var(--muted);font-size:13px;font-weight:600;}
   .sv-amt input{border:none;background:transparent;padding:8px 0 8px 5px;width:100%;min-width:0;font-weight:600;}
   .sv-amt input:focus{outline:none;}
-  .sv-controls select{flex:0 0 96px;}
-  @media (max-width:700px){.sv-grid{grid-template-columns:1fr;gap:8px;}.sv-card{padding:10px 12px;}.sv-top{margin-bottom:8px;}}
+  /* Savings & Stocks: same ring + rows layout as the Weekend budget */
+  .sv-quick{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 14px;margin-bottom:4px;border:1px dashed var(--border);border-radius:14px;font-size:13px;}
+  .sv-quick b{font-weight:700;margin-right:4px;}
+  .sv-quick .hint{font-size:12px;color:var(--muted);}
+  .sv-chip{padding:6px 13px;border-radius:999px;border:1px solid var(--border);background:color-mix(in srgb, var(--text) 6%, transparent);color:var(--text);font:inherit;font-size:12.5px;font-weight:700;cursor:pointer;}
+  .sv-chip:hover{border-color:var(--accent);}
+  .sv-row{display:grid;grid-template-columns:minmax(0,1fr) auto 120px;gap:16px;align-items:center;padding:14px 10px;margin:0 -10px;border-bottom:1px solid var(--border);border-radius:14px;transition:background .12s ease,box-shadow .12s ease;}
+  .sv-row:last-child{border-bottom:0;}
+  .sv-row.sel{background:color-mix(in srgb, var(--accent) 7%, transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--accent) 55%, transparent);}
+  .sv-who{display:flex;align-items:center;gap:12px;min-width:0;}
+  .sv-who b{display:block;font-size:15px;}
+  .sv-who span.sv-pot{display:block;font-size:12px;color:var(--muted);}
+  .sv-who span.sv-pot em{font-style:normal;color:var(--green);font-weight:700;}
+  .sv-row .status-toggle{height:40px;padding-top:0;padding-bottom:0;}
+  @media (max-width:860px){
+    .sv-row{grid-template-columns:minmax(0,1fr) 112px;grid-template-areas:"who st" "step step";gap:10px 12px;}
+    .sv-row .sv-who{grid-area:who;}
+    .sv-row .stog{grid-area:st;}
+    .sv-row .wk-step{grid-area:step;justify-self:start;}
+  }
   .del-label{display:none;}
   td.cell-category .cat-dd{display:block;width:140px;}
   td.cell-incat .cat-dd{display:block;width:100%;}
@@ -314,7 +326,7 @@
   .wk-ring .wk-ring-c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;}
   .wk-ring .k{font-size:11px;font-weight:800;letter-spacing:.1em;color:var(--muted);}
   .wk-ring b{font-size:32px;letter-spacing:-.03em;line-height:1.1;}
-  .wk-ring .m{font-size:12px;color:var(--muted);margin-top:2px;}
+  .wk-ring .m{font-size:11.5px;color:var(--muted);margin-top:2px;max-width:136px;line-height:1.3;}
   .wk-side #wkSum{display:none;}
   .wk-all{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 14px;margin-bottom:4px;border:1px dashed var(--border);border-radius:14px;font-size:13px;}
   .wk-all b{font-weight:700;}
@@ -325,15 +337,15 @@
   .wk-who b{display:block;font-size:15px;}
   .wk-who span{font-size:12px;color:var(--muted);white-space:nowrap;}
   .wk-who b{white-space:nowrap;}
-  .wk-who .now{color:var(--accent);font-weight:700;}
+  .wk-who .now{display:block;color:var(--accent);font-weight:700;}
   .wk-step{display:inline-flex;align-items:center;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--bg);}
   .wk-step button{width:36px;height:40px;border:0;background:none;color:var(--muted);font:inherit;font-size:18px;font-weight:800;cursor:pointer;}
   .wk-step button:hover{color:var(--text);background:color-mix(in srgb, var(--text) 6%, transparent);}
   .wk-step label{display:flex;align-items:center;gap:1px;font-weight:800;font-size:15px;}
   .wk-step label span{color:var(--muted);}
-  .wk-step input.week-input{width:62px;border:0;background:none;padding:0;font-size:15px;font-weight:800;text-align:center;-moz-appearance:textfield;}
-  .wk-step input.week-input::-webkit-outer-spin-button,.wk-step input.week-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
-  .wk-step input.week-input:focus{outline:none;}
+  .wk-step input{width:62px;border:0;background:none;padding:0;font-size:15px;font-weight:800;text-align:center;-moz-appearance:textfield;}
+  .wk-step input::-webkit-outer-spin-button,.wk-step input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+  .wk-step input:focus{outline:none;}
   .wk-rep{display:inline-flex;align-items:center;gap:8px;background:none;border:0;padding:0;color:var(--text);font:inherit;font-size:12.5px;font-weight:700;cursor:pointer;min-width:84px;}
   .wk-sw{position:relative;width:40px;height:23px;border-radius:99px;background:color-mix(in srgb, var(--text) 18%, transparent);flex:none;transition:background .15s ease;}
   .wk-sw::after{content:"";position:absolute;left:3px;top:3px;width:17px;height:17px;border-radius:50%;background:#fff;transition:left .15s ease;}
@@ -349,7 +361,7 @@
     .wk-row .stog{grid-area:st;}
     .wk-row .wk-step{grid-area:step;justify-self:start;}
     .wk-row .wk-rep{grid-area:rep;justify-self:end;min-width:0;}
-    .wk-step input.week-input{width:54px;}
+    .wk-step input{width:54px;}
   }
 
   .field-inline{display:flex;gap:10px;align-items:center;}
@@ -3967,12 +3979,18 @@ function updatePlanBadges(){
   const outs = m.outgoings||[], ins = m.incoming||[];
   card('outSum','to pay','paid', sum(outs.filter(x=>x.status!=='done')), sum(outs.filter(x=>x.status==='done')));
   card('inSum','to come','received', sum(ins.filter(x=>x.status!=='done')), sum(ins.filter(x=>x.status==='done')));
-  const wkDone = sum(wkArr.filter(w=>w.status==='done')), wkLeft = sum(wkArr.filter(w=>w.status!=='done'));
-  const ringEl = document.getElementById('wkRing');
-  if(ringEl){
-    const S = 200, W = 16, R = (S-W)/2, C = 2*Math.PI*R, tot = wkDone+wkLeft, pct = tot>0 ? wkDone/tot : 0;
-    ringEl.innerHTML = `<svg viewBox="0 0 ${S} ${S}" width="${S}" height="${S}" aria-hidden="true"><circle cx="${S/2}" cy="${S/2}" r="${R}" fill="none" stroke="color-mix(in srgb, var(--text) 12%, transparent)" stroke-width="${W}"/><circle cx="${S/2}" cy="${S/2}" r="${R}" fill="none" stroke="var(--green)" stroke-width="${W}" stroke-linecap="round" stroke-dasharray="${(C*pct).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 ${S/2} ${S/2})" style="filter:drop-shadow(0 0 6px var(--green))"/></svg><div class="wk-ring-c"><span class="k">TO GO</span><b>${escapeHtml(fmt(wkLeft))}</b><span class="m">${escapeHtml(fmt(wkDone))} of ${escapeHtml(fmt(tot))} paid</span></div>`;
-  }
+  const paintRing = (id, left, done)=>{
+    const ringEl = document.getElementById(id); if(!ringEl) return;
+    const S = 200, W = 16, R = (S-W)/2, C = 2*Math.PI*R, tot = done+left, pct = tot>0 ? done/tot : 0;
+    ringEl.innerHTML = `<svg viewBox="0 0 ${S} ${S}" width="${S}" height="${S}" aria-hidden="true"><circle cx="${S/2}" cy="${S/2}" r="${R}" fill="none" stroke="color-mix(in srgb, var(--text) 12%, transparent)" stroke-width="${W}"/><circle cx="${S/2}" cy="${S/2}" r="${R}" fill="none" stroke="var(--green)" stroke-width="${W}" stroke-linecap="round" stroke-dasharray="${(C*pct).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 ${S/2} ${S/2})" style="filter:drop-shadow(0 0 6px var(--green))"/></svg><div class="wk-ring-c"><span class="k">${id==='svRing'?'TO MOVE':'TO GO'}</span><b>${escapeHtml(fmt(left))}</b><span class="m">${escapeHtml(fmt(done))} of ${escapeHtml(fmt(tot))} ${id==='svRing'?'moved':'paid'}</span></div>`;
+  };
+  paintRing('wkRing', sum(wkArr.filter(w=>w.status!=='done')), sum(wkArr.filter(w=>w.status==='done')));
+  paintRing('svRing', sum(svItems.filter(x=>x.status!=='done')), sum(svItems.filter(x=>x.status==='done')));
+  [['savings',m.savings],['stocks',m.stocks]].forEach(([k,it])=>{
+    const el2 = document.getElementById('svPot-'+k); if(!el2) return;
+    const pot = potBalance(k), amt = Number(it.amount)||0;
+    el2.innerHTML = it.status==='done' || amt<=0 ? `Pot ${escapeHtml(fmt(pot))}` : `Pot ${escapeHtml(fmt(pot))} \u2192 <em>${escapeHtml(fmt(pot+amt))}</em> once paid`;
+  });
   card('wkSum','to go','paid', sum(wkArr.filter(w=>w.status!=='done')), sum(wkArr.filter(w=>w.status==='done')));
   card('svSum','to move','moved', sum(svItems.filter(x=>x.status!=='done')), sum(svItems.filter(x=>x.status==='done')));
   // category chips (Outgoings) and To pay / Paid grouping
@@ -4022,20 +4040,22 @@ function applyGrouping(tbody, items, labels, filter){
   plan.filter(p=>p.hdr).forEach(p=>{ const h = hdrs[i++]; if(!h) return; const sp = h.querySelectorAll('.grp-h span'); sp[0].textContent = `${p.lab} · ${p.n}`; sp[1].textContent = fmt(p.sum); });
 }
 const expandedRecurRows = new Set();
-// "1–7 Oct" style label for each of a month's four budget weeks (week 4 runs to month end).
+// Dates for budget week i: the i-th Saturday of the month and the Sunday after it ("Sat 3 \u2013 Sun 4 Oct").
 function weekRange(i){
   const [y,mo] = state.currentMonthKey.split('-').map(Number);
-  const last = new Date(y, mo, 0).getDate();
-  const from = i*7+1, to = i===3 ? last : i*7+7;
-  const mon = new Date(y, mo-1, 1).toLocaleDateString('en-GB',{month:'short'});
-  const now = new Date();
-  const isNow = now.getFullYear()===y && now.getMonth()===mo-1 && now.getDate()>=from && now.getDate()<=to;
-  return {text:`${from}\u2013${to} ${mon}`, isNow};
+  const firstSat = 1 + ((6 - new Date(y, mo-1, 1).getDay() + 7) % 7);
+  const sat = new Date(y, mo-1, firstSat + i*7), sun = new Date(y, mo-1, firstSat + i*7 + 1);
+  const d = dt=>dt.toLocaleDateString('en-GB', {weekday:'short', day:'numeric'});
+  const mon = dt=>dt.toLocaleDateString('en-GB',{month:'short'});
+  const text = sat.getMonth()===sun.getMonth() ? `${d(sat)} \u2013 ${d(sun)} ${mon(sun)}` : `${d(sat)} ${mon(sat)} \u2013 ${d(sun)} ${mon(sun)}`;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const diff = Math.round((sat - today)/86400000);
+  return {text, isNow: diff<=6 && diff>=-1};
 }
 function weekRowHtml(i, wk, w){
   const r = weekRange(i);
   return `<div class="wk-row" data-week="${wk}">
-    <div class="wk-who"><b>Week ${i+1}</b><span>${r.text}${r.isNow?' \u00b7 <span class="now">this week</span>':''}</span></div>
+    <div class="wk-who"><b>Week ${i+1}</b><span>${r.text}${r.isNow?'<span class="now">this weekend</span>':''}</span></div>
     <div class="wk-step"><button type="button" class="wk-minus" aria-label="Decrease Week ${i+1} amount">\u2212</button><label><span>${escapeHtml(state.currency)}</span><input type="number" step="0.01" min="0" class="week-input" data-week="${wk}" value="${w.amount}" aria-label="Week ${i+1} amount"></label><button type="button" class="wk-plus" aria-label="Increase Week ${i+1} amount">+</button></div>
     <button type="button" class="wk-rep${w.recurring?' on':''}" role="switch" aria-checked="${!!w.recurring}" title="Repeat this amount every month"><span class="wk-sw"></span>Repeats</button>
     ${statusSelectHtml('week-status', w.status, {attrs:`data-week="${wk}"`})}
@@ -5314,7 +5334,7 @@ function renderMonth(){
     </div>
     <div class="plan-pane" data-pane="wk">
     <div class="panel">
-      <div class="panel-head"><h2>Weekend Budget</h2><span class="hint">amount for each week of the month</span></div>
+      <div class="panel-head"><h2>Weekend Budget</h2><span class="hint">amount for each weekend of the month</span></div>
       <div class="wk-layout">
         <div class="wk-ringwrap"><div class="wk-ring" id="wkRing"></div></div>
         <div class="wk-side">
@@ -5328,19 +5348,19 @@ function renderMonth(){
     <div class="plan-pane" data-pane="sv">
     <div class="panel">
       <div class="panel-head"><h2>Savings &amp; Stocks</h2><span class="hint">money you're setting aside this month</span></div>
-      <div class="plan-sum" id="svSum"></div>
-      <div class="sv-grid">
-        <div class="sv-card">
-          <div class="sv-top">${iconTile(CATEGORY_ICON_PATHS['Savings & Debt'],'var(--green)','sm')}<span class="sv-name">Add to Savings</span></div>
-          <div class="sv-controls">
-            <label class="sv-amt"><span class="sv-cur">${escapeHtml(state.currency)}</span><input type="number" step="0.01" id="savingsInput" value="${m.savings.amount}" aria-label="Amount moving into savings"></label>
+      <div class="wk-layout">
+        <div class="wk-ringwrap"><div class="wk-ring" id="svRing"></div></div>
+        <div class="wk-side">
+          <div class="plan-sum" id="svSum"></div>
+          <div class="sv-quick"><b>Quick amounts</b>${[50,100,250,500].map(v=>`<button type="button" class="sv-chip" data-v="${v}">${escapeHtml(state.currency)}${v}</button>`).join('')}<span class="hint">fills the row you last touched</span></div>
+          <div class="sv-row" data-sv="savings">
+            <div class="sv-who">${iconTile(CATEGORY_ICON_PATHS['Savings & Debt'],'var(--green)','md')}<div><b>Add to Savings</b><span class="sv-pot" id="svPot-savings"></span></div></div>
+            <div class="wk-step"><button type="button" class="wk-minus" aria-label="Decrease amount">\u2212</button><label><span>${escapeHtml(state.currency)}</span><input type="number" step="0.01" min="0" id="savingsInput" value="${m.savings.amount}" aria-label="Add to Savings amount"></label><button type="button" class="wk-plus" aria-label="Increase amount">+</button></div>
             ${statusSelectHtml('savings-status', m.savings.status)}
           </div>
-        </div>
-        <div class="sv-card">
-          <div class="sv-top">${iconTile('M3 17l6-6 4 4 8-8M15 7h6v6','var(--accent)','sm')}<span class="sv-name">Move to Stocks &amp; Shares</span></div>
-          <div class="sv-controls">
-            <label class="sv-amt"><span class="sv-cur">${escapeHtml(state.currency)}</span><input type="number" step="0.01" id="stocksInput" value="${m.stocks.amount}" aria-label="Amount moving into stocks and shares"></label>
+          <div class="sv-row" data-sv="stocks">
+            <div class="sv-who">${iconTile('M3 17l6-6 4 4 8-8M15 7h6v6','var(--accent)','md')}<div><b>Move to Stocks &amp; Shares</b><span class="sv-pot" id="svPot-stocks"></span></div></div>
+            <div class="wk-step"><button type="button" class="wk-minus" aria-label="Decrease amount">\u2212</button><label><span>${escapeHtml(state.currency)}</span><input type="number" step="0.01" min="0" id="stocksInput" value="${m.stocks.amount}" aria-label="Move to Stocks &amp; Shares amount"></label><button type="button" class="wk-plus" aria-label="Increase amount">+</button></div>
             ${statusSelectHtml('stocks-status', m.stocks.status)}
           </div>
         </div>
@@ -5564,6 +5584,21 @@ function renderMonth(){
       else stopRecurringWeekInLaterMonths(m, wk);
       save();
     };
+  });
+  let svSel = 'savings';
+  const svRows = [...el.querySelectorAll('.sv-row')];
+  const markSel = k=>{ svSel = k; svRows.forEach(r=>r.classList.toggle('sel', r.dataset.sv===k)); };
+  svRows.forEach(row=>{
+    const inp = row.querySelector('input[type=number]');
+    const nudge = d=>{ inp.value = Math.max(0, round2((Number(inp.value)||0)+d)); inp.dispatchEvent(new Event('input',{bubbles:true})); };
+    row.querySelector('.wk-minus').onclick = ()=>{ markSel(row.dataset.sv); nudge(-5); };
+    row.querySelector('.wk-plus').onclick = ()=>{ markSel(row.dataset.sv); nudge(5); };
+    row.addEventListener('focusin', ()=>markSel(row.dataset.sv));
+  });
+  el.querySelectorAll('.sv-chip').forEach(c=>c.onclick = ()=>{
+    const inp = el.querySelector(`.sv-row[data-sv="${svSel}"] input[type=number]`);
+    inp.value = c.dataset.v; inp.dispatchEvent(new Event('input',{bubbles:true}));
+    markSel(svSel);
   });
   document.getElementById('savingsInput').oninput = e=>{ m.savings.amount = Number(e.target.value); save(); refreshCards(); };
   const savingsStatusSel = el.querySelector('.savings-status');
