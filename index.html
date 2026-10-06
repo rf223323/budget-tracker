@@ -690,6 +690,14 @@
   .wx-day i{font-style:normal;font-size:10px;font-weight:800;letter-spacing:.05em;color:var(--muted);}
   .wx-day.today i{color:var(--accent);}
   .wx-day b{font-size:10px;font-weight:800;white-space:nowrap;}
+  /* Slim forecast pinned under the top bar */
+  .wx-card.wx-slim{position:sticky;top:var(--topbar-h,64px);z-index:30;margin:0 0 12px;padding:10px 10px 8px;border-radius:16px;box-shadow:0 10px 24px rgba(0,0,0,.28);}
+  .wx-line{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:0 4px 6px;}
+  .wx-line i{font-style:normal;font-size:10.5px;font-weight:800;letter-spacing:.09em;color:var(--muted);}
+  .wx-line i b{color:var(--text);letter-spacing:0;}
+  .wx-slim .wx-open{background:none;border:0;padding:0;font:inherit;font-size:11.5px;font-weight:700;color:var(--accent);cursor:pointer;white-space:nowrap;}
+  .wx-slim .wx-strip{margin-top:0;}
+  .wx-slim .wx-day{gap:3px;padding:6px 0 5px;border-radius:12px;}
   .wx-note{margin:12px 6px 0;padding:10px 12px;border-radius:14px;background:var(--bg);border:1px solid var(--border);font-size:12.5px;line-height:1.45;color:var(--text);}
   .wx-note .neg,.wx-bal .neg{color:var(--red);}
   .wx-foot{margin:10px 6px 0;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12px;color:var(--muted);}
@@ -1369,6 +1377,25 @@
   .formula-note b{color:var(--text);}
   .quick-add-panel{border-color:color-mix(in srgb, var(--accent) 40%, transparent);background:linear-gradient(180deg,color-mix(in srgb, var(--accent) 6%, transparent),var(--panel));}
   .quick-add-panel select{max-width:130px;}
+  /* Quick Add is a slim bar until you tap it, then it opens in place. */
+  .qa-bar{display:flex;align-items:center;gap:12px;width:100%;padding:0;border:0;background:none;color:var(--muted);font:inherit;font-size:14.5px;text-align:left;cursor:pointer;}
+  .qa-bar .qa-plus{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;flex:none;background:color-mix(in srgb, var(--accent) 18%, transparent);color:var(--accent);box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--accent) 38%, transparent);}
+  .qa-bar .qa-plus svg{width:20px;height:20px;}
+  .qa-bar .qa-hint{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .qa-bar .qa-hint b{color:var(--text);font-weight:700;}
+  .qa-bar .qa-hint i{font-style:normal;opacity:.65;}
+  .qa-bar kbd{display:none;font:inherit;font-size:11px;font-weight:800;padding:3px 8px;border-radius:7px;border:1px solid var(--border);color:var(--muted);}
+  @media (hover:hover) and (min-width:861px){ .qa-bar kbd{display:inline-block;} }
+  .qa-bar:hover .qa-plus{background:color-mix(in srgb, var(--accent) 28%, transparent);}
+  .quick-add-panel.qa-collapsed{padding:10px 12px;}
+  .quick-add-panel.qa-collapsed .qa-body{display:none;}
+  .quick-add-panel:not(.qa-collapsed) .qa-bar{display:none;}
+  .quick-add-panel.qa-collapsed .qa-meta{margin-top:8px;}
+  .quick-add-panel .panel-head{gap:10px;}
+  .quick-add-panel .panel-head .hint{margin-left:auto;}
+  .qa-close{width:34px;height:34px;border-radius:50%;border:1px solid var(--border);background:var(--panel);color:var(--muted);display:grid;place-items:center;cursor:pointer;flex:none;}
+  .qa-close:hover{color:var(--text);}
+  .qa-close svg{width:15px;height:15px;}
   .quick-add-panel .cat-dd{max-width:190px;}
   .month-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;}
   .month-tile{position:relative;background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;transition:border-color .15s,transform .1s;}
@@ -3752,11 +3779,26 @@ function openQuickAdd(){
   if(currentView!=='month'){ currentView = 'month'; render(); }
   const panel = document.querySelector('.quick-add-panel');
   if(!panel) return;
+  panel.classList.remove('qa-collapsed');
   panel.scrollIntoView({behavior:'smooth', block:'center'});
   panel.classList.remove('qa-flash'); void panel.offsetWidth; panel.classList.add('qa-flash');
   const amt = document.getElementById('quickAddAmount');
   if(amt) setTimeout(()=>amt.focus({preventScroll:true}), 350);
 }
+function closeQuickAdd(){
+  const panel = document.querySelector('.quick-add-panel');
+  if(panel) panel.classList.add('qa-collapsed');
+  if(document.activeElement && document.activeElement.blur && panel && panel.contains(document.activeElement)) document.activeElement.blur();
+}
+// Press N anywhere (when not typing) to open Quick Add.
+document.addEventListener('keydown', e=>{
+  if(e.key!=='n' && e.key!=='N') return;
+  if(e.metaKey || e.ctrlKey || e.altKey) return;
+  const t = e.target;
+  if(t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+  if(document.querySelector('.modal-bg.open, .search-overlay.open, .boss-overlay.open, .payday-overlay.open')) return;
+  e.preventDefault(); openQuickAdd();
+});
 function renderSyncIndicator(){
   const p = activeProfileMeta();
   const el = document.getElementById('syncStatusLine');
@@ -5083,8 +5125,13 @@ function renderMonth(){
       </div>
     </div>
 
-    <div class="panel quick-add-panel">
-      <div class="panel-head"><h2>Quick Add</h2><span class="hint">added as Done right away</span></div>
+    <div class="panel quick-add-panel qa-collapsed" id="quickAddPanel">
+      <button type="button" class="qa-bar" id="qaBar" aria-label="Add a spend or income">
+        <span class="qa-plus">${iconSvg('M12 5v14M5 12h14')}</span>
+        <span class="qa-hint">Add a spend or income… <i>e.g. coffee 3.50</i></span><kbd>N</kbd>
+      </button>
+      <div class="qa-body">
+      <div class="panel-head"><h2>Quick Add</h2><span class="hint">added as Done right away</span><button type="button" class="qa-close" id="qaClose" aria-label="Close Quick Add">${iconSvg('M6 6l12 12M18 6L6 18')}</button></div>
       <select id="quickAddType" style="display:none;" aria-hidden="true" tabindex="-1">
         <option value="out">I spent</option>
         <option value="in">I received</option>
@@ -5110,6 +5157,7 @@ function renderMonth(){
           </label>
           <button class="btn" id="quickAddBtn">+ Add</button>
         </div>
+      </div>
       </div>
       <div class="qa-meta">
         <button class="btn secondary small" id="quickAddLogToggle">Show log</button>
@@ -5253,6 +5301,10 @@ function renderMonth(){
     document.querySelectorAll('#quickAddSeg .seg-btn').forEach(b=>b.classList.toggle('active', b.dataset.v===quickAddType.value));
   };
   syncQuickAddCategoryVisibility();
+  const qaPanel = document.getElementById('quickAddPanel');
+  document.getElementById('qaBar').onclick = ()=>{ qaPanel.classList.remove('qa-collapsed'); setTimeout(()=>quickAddAmount.focus({preventScroll:true}), 30); };
+  document.getElementById('qaClose').onclick = closeQuickAdd;
+  qaPanel.addEventListener('keydown', e=>{ if(e.key==='Escape' && !qaPanel.classList.contains('qa-collapsed')){ e.stopPropagation(); closeQuickAdd(); } });
   quickAddType.onchange = syncQuickAddCategoryVisibility;
   document.querySelectorAll('#quickAddSeg .seg-btn').forEach(b=>{
     b.onclick = ()=>{ quickAddType.value = b.dataset.v; syncQuickAddCategoryVisibility(); };
@@ -5890,6 +5942,15 @@ function wxMonthDays(key){
 const wxWeekday = (dt, style)=>dt.toLocaleDateString('en-GB',{weekday:style||'short'});
 const wxList = arr=>arr.length<=1 ? (arr[0]||'') : arr.slice(0,-1).join(', ')+' and '+arr[arr.length-1];
 let wxMonthKey = null;
+// Keeps --topbar-h equal to the sticky top bar's height so the pinned forecast sits right under it.
+function syncTopbarH(){
+  const t = document.querySelector('.topbar'); if(!t) return;
+  document.documentElement.style.setProperty('--topbar-h', Math.round(t.getBoundingClientRect().height)+'px');
+}
+(function watchTopbar(){
+  const go = ()=>{ const t = document.querySelector('.topbar'); if(!t) return; syncTopbarH(); if(window.ResizeObserver) new ResizeObserver(syncTopbarH).observe(t); window.addEventListener('resize', syncTopbarH); };
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', go); else go();
+})();
 
 // ---- the forecast card on the Month Tracker ----
 function renderWeatherCard(){
@@ -5912,7 +5973,7 @@ function renderWeatherCard(){
   const strip = week.map((o,i)=>{
     const [, c] = WX[o.level];
     const amt = o.pay>0 ? '+'+fmtCompact(o.pay) : o.due>0 ? fmtCompact(o.due) : '—';
-    return `<button type="button" class="wx-day${i===0?' today':''}" data-d="${o.key}|${o.day}"><i>${i===0?'TODAY':wxWeekday(o.date).toUpperCase()}</i>${wxIcon(o.level,28)}<b style="color:${o.due>0||o.pay>0?c:'var(--muted)'};">${escapeHtml(amt)}</b></button>`;
+    return `<button type="button" class="wx-day${i===0?' today':''}" data-d="${o.key}|${o.day}"><i>${i===0?'TODAY':wxWeekday(o.date).toUpperCase()}</i>${wxIcon(o.level,22)}<b style="color:${o.due>0||o.pay>0?c:'var(--muted)'};">${escapeHtml(amt)}</b></button>`;
   }).join('');
   let note = '';
   if(heavy && WX_RANK[heavy.level]>=3){
@@ -5920,11 +5981,13 @@ function renderWeatherCard(){
     note = `<div class="wx-note">${escapeHtml(wxWeekday(heavy.date,'long'))} is the heavy one: <b>${escapeHtml(fmt(heavy.due))}</b>${big && heavy.bills.length>1 ? ` including ${escapeHtml(big.name)}` : big ? ` · ${escapeHtml(big.name)}` : ''}.${heavy.balAfter!==undefined ? (heavy.balAfter<0 ? ` That would leave you <b class="neg">${escapeHtml(fmt(-heavy.balAfter))}</b> short.` : ` That leaves <b>${escapeHtml(fmt(heavy.balAfter))}</b> after bills.`) : ''}</div>`;
   }
   const card = document.createElement('div');
-  card.id = 'wxCard'; card.className = 'wx-card';
-  card.innerHTML = `<div class="wx-head">${wxTile(worst==='clear'&&week.some(o=>o.level==='pay')?'pay':worst, 42)}<div class="wx-ht"><i>BILL FORECAST · NEXT 7 DAYS</i><b>${escapeHtml(head)}</b></div></div>
-    <div class="wx-strip">${strip}</div>${note}
-    <div class="wx-foot"><span>${pendTotal>0 ? escapeHtml(fmt(pendTotal))+' due in the next 7 days' : 'Nothing left to pay this week'}</span><button type="button" class="wx-open" id="wxOpen">Open calendar ›</button></div>`;
-  hero.insertAdjacentElement('afterend', card);
+  card.id = 'wxCard'; card.className = 'wx-card wx-slim';
+  card.title = head;
+  card.innerHTML = `<div class="wx-line"><i>BILL FORECAST · <b>${pendTotal>0 ? escapeHtml(fmt(pendTotal))+' due' : 'nothing due'}</b></i><button type="button" class="wx-open" id="wxOpen">Calendar ›</button></div>
+    <div class="wx-strip">${strip}</div>`;
+  // pinned at the very top of the Month Tracker, above everything else
+  const mv = document.getElementById('view-month');
+  mv.insertBefore(card, mv.firstChild);
   card.querySelectorAll('.wx-day').forEach(b=>b.onclick = ()=>{ const [k,d] = b.dataset.d.split('|'); openWxDay(k, Number(d)); });
   document.getElementById('wxOpen').onclick = ()=>{ wxMonthKey = state.currentMonthKey; currentView = 'calendar'; render(); };
 }
