@@ -3925,7 +3925,7 @@ if(window.matchMedia) window.matchMedia('(min-width:861px)').addEventListener('c
   showIncPanel(tr);
 });
 // Month Tracker is split into tabs so the long lists don't stack into one endless scroll.
-const PLAN_TABS = [['out','Outgoings'],['in','Incoming'],['wk','Weekly'],['sv','Savings'],['up','Upcoming']];
+const PLAN_TABS = [['out','Outgoings'],['in','Incoming'],['wk','Weekend'],['sv','Savings'],['up','Upcoming']];
 const PLAN_TAB_ICONS = {
   out:'M7 17L17 7M8 7h9v9',                       // arrow out
   in:'M17 7L7 17M16 17H7V8',                      // arrow in
@@ -4096,7 +4096,7 @@ function refreshSafeSpend(){
   document.getElementById('ssBreak').innerHTML =
     `<span class="ss-chip"><b>${escapeHtml(fmt(d.balance))}</b>Current balance</span>` +
     part('Bills &amp; outgoings to pay', d.pendingOut, '−') +
-    part('Weekly budget left', d.pendingWeekly, '−') +
+    part('Weekend budget left', d.pendingWeekly, '−') +
     part('Savings / stocks to move', d.pendingSaved, '−') +
     `<span class="ss-pair"><span class="ss-op">=</span><span class="ss-chip ss-free"><b>${escapeHtml(fmt(d.free))}</b>Free</span></span>` +
     (d.pendingIncoming>=0.005 ? `<div class="ss-note">${escapeHtml(fmt(d.pendingIncoming))} of income still to arrive isn't counted.</div>` : '');
@@ -4133,7 +4133,7 @@ function paydayPlan(key){
   const days = Math.max(1, daysUntilPayday() || d.daysLeft);
   const rows = [
     {name:'Bills to pay', sub: billsN ? `${billsN} bill${billsN!==1?'s':''} still to pay` : 'Nothing left to pay', amt:d.pendingOut, color:'#f0453a', icon:'M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6'},
-    {name:'Weekly budget', sub:'Left for the weeks ahead', amt:d.pendingWeekly, color:'#5b8cff', icon:CALENDAR_ICON_PATH},
+    {name:'Weekend budget', sub:'Left for the weeks ahead', amt:d.pendingWeekly, color:'#5b8cff', icon:CALENDAR_ICON_PATH},
     {name:'Savings & stocks', sub:'Moves you planned', amt:d.pendingSaved, color:'#3dd68c', icon:CATEGORY_ICON_PATHS['Savings & Debt']},
     {name:d.free<0 ? 'Short by' : 'Free to spend', sub: d.free<0 ? 'More is planned than you have' : 'Yours to enjoy', amt:Math.abs(d.free), color: d.free<0 ? '#ff5c5c' : '#ffb15a', icon:'M13 2L4 14h7l-1 8 9-12h-7l1-8z'}
   ].filter(r=>r.amt>=0.005);
@@ -5212,7 +5212,7 @@ function renderMonth(){
           <div class="hs-s">carried from last month</div>
         </div>
         <div class="hs">
-          <div class="hs-k">Weekly budget</div>
+          <div class="hs-k">Weekend budget</div>
           <div class="hs-v neg" id="weeklyVal">${fmt(t.weeklyTotal)}</div>
           <div class="hs-s"><span id="weeklySub">${fmt(t.doneWeekly)} paid</span><span id="weeklyTrend">${trendArrowHtml(t.weeklyTotal, pt&&pt.weeklyTotal, 'down')}</span></div>
         </div>
@@ -5291,8 +5291,8 @@ function renderMonth(){
         <tbody id="outgoingBody"></tbody>
       </table>
       <div class="formula-note">
-        <b>Current Balance</b> = Starting Balance + Incoming marked Received − Weekly Budget marked Paid − Outgoings marked Paid − Savings (if Paid) − Stocks &amp; Shares (if Paid).<br>
-        <b>Total Left Over</b> = Starting Balance + all Incoming − Weekly Budget − all Outgoings − Savings − Stocks &amp; Shares (regardless of status) — this becomes next month's Starting Balance.
+        <b>Current Balance</b> = Starting Balance + Incoming marked Received − Weekend Budget marked Paid − Outgoings marked Paid − Savings (if Paid) − Stocks &amp; Shares (if Paid).<br>
+        <b>Total Left Over</b> = Starting Balance + all Incoming − Weekend Budget − all Outgoings − Savings − Stocks &amp; Shares (regardless of status) — this becomes next month's Starting Balance.
       </div>
     </div>
     </div>
@@ -5314,7 +5314,7 @@ function renderMonth(){
     </div>
     <div class="plan-pane" data-pane="wk">
     <div class="panel">
-      <div class="panel-head"><h2>Weekly Budget</h2><span class="hint">amount for each week of the month</span></div>
+      <div class="panel-head"><h2>Weekend Budget</h2><span class="hint">amount for each week of the month</span></div>
       <div class="wk-layout">
         <div class="wk-ringwrap"><div class="wk-ring" id="wkRing"></div></div>
         <div class="wk-side">
@@ -6185,7 +6185,7 @@ function renderCalendar(){
       const key = btn.dataset.key;
       openConfirmModal(
         `Delete ${monthLabelFromKey(key)}?`,
-        `This removes all outgoings, incoming, weekly budget, and balance data tracked for ${monthLabelFromKey(key)}. Later months' starting balances will be recalculated automatically. You'll have a few seconds to undo it.`,
+        `This removes all outgoings, incoming, weekend budget, and balance data tracked for ${monthLabelFromKey(key)}. Later months' starting balances will be recalculated automatically. You'll have a few seconds to undo it.`,
         ()=>{
           const snapshot = state.months[key];
           const previousCurrent = state.currentMonthKey;
@@ -6359,7 +6359,7 @@ function renderTrend(){
         <table class="mt-table">
           <thead>
             <tr class="mt-group"><th class="mt-sticky"></th><th colspan="7"><span class="mt-g mt-g-a">Each month</span></th><th colspan="4"><span class="mt-g mt-g-b">Net worth</span></th></tr>
-            <tr><th class="mt-sticky">Month</th><th class="amt-cell">Starting</th><th class="amt-cell">Current (live)</th><th class="amt-cell">Incoming</th><th class="amt-cell">Weekly</th><th class="amt-cell">Outgoings</th><th class="amt-cell">Savings</th><th class="amt-cell">Left over</th><th class="amt-cell">Savings pot</th><th class="amt-cell">Stocks pot</th><th class="amt-cell">Actual</th><th class="amt-cell">Projected</th></tr>
+            <tr><th class="mt-sticky">Month</th><th class="amt-cell">Starting</th><th class="amt-cell">Current (live)</th><th class="amt-cell">Incoming</th><th class="amt-cell">Weekend</th><th class="amt-cell">Outgoings</th><th class="amt-cell">Savings</th><th class="amt-cell">Left over</th><th class="amt-cell">Savings pot</th><th class="amt-cell">Stocks pot</th><th class="amt-cell">Actual</th><th class="amt-cell">Projected</th></tr>
           </thead>
           <tbody>
             ${keys.map((k,i)=>{
@@ -7106,7 +7106,7 @@ function drawRecurringElsewhere(m, kind){
     b.onclick = ()=>{ state.currentMonthKey = b.dataset.month; ensureMonth(state.currentMonthKey); save(); render(); };
   });
 }
-// Weeks of the Weekly Budget that are set to Recurring.
+// Weeks of the Weekend Budget that are set to Recurring.
 function drawRecurringWeekly(m){
   const box = document.getElementById('recurWeeklyList');
   if(!box) return;
@@ -7117,7 +7117,7 @@ function drawRecurringWeekly(m){
       <div class="rw-main"><div class="rw-name">Week ${k.slice(4)}</div><div class="rw-sub">Recurring ↻ · carries into each new month</div></div>
       <label class="sv-amt"><span class="sv-cur">${escapeHtml(state.currency)}</span><input type="number" step="0.01" class="rw-amount" value="${m.weekly[k].amount}" aria-label="Week ${k.slice(4)} amount"></label>
       <button type="button" class="btn secondary small rw-stop">Stop</button>
-    </div>`).join('') : `<div class="empty">No recurring weeks yet — set a week to Recurring in the Month Tracker's Weekly Budget and it will appear here.</div>`;
+    </div>`).join('') : `<div class="empty">No recurring weeks yet — set a week to Recurring in the Month Tracker's Weekend Budget and it will appear here.</div>`;
   box.querySelectorAll('.rw-row').forEach(row=>{
     const k = row.dataset.week;
     row.querySelector('.rw-amount').oninput = e=>{ m.weekly[k].amount = Number(e.target.value); save(); };
@@ -8145,7 +8145,7 @@ function renderRecurring(){
     <div class="seg-toggle wide" id="recurTabs" role="tablist">
       <button class="seg-btn${recurTab==='outgoing'?' active':''}" role="tab" data-tab="outgoing">Outgoings · ${m.outgoings.filter(o=>o.recurring).length}</button>
       <button class="seg-btn${recurTab==='incoming'?' active':''}" role="tab" data-tab="incoming">Incoming · ${m.incoming.filter(i=>i.recurring && !i.transfer).length}</button>
-      <button class="seg-btn${recurTab==='weekly'?' active':''}" role="tab" data-tab="weekly">Weekly · ${['week1','week2','week3','week4'].filter(k=>m.weekly[k].recurring).length}</button>
+      <button class="seg-btn${recurTab==='weekly'?' active':''}" role="tab" data-tab="weekly">Weekend · ${['week1','week2','week3','week4'].filter(k=>m.weekly[k].recurring).length}</button>
     </div>
     <div class="panel${recurTab==='incoming'?'':' hidden'}" id="recurPanelIncoming">
       <div class="panel-head">
@@ -8163,7 +8163,7 @@ function renderRecurring(){
     </div>
     <div class="panel${recurTab==='weekly'?'':' hidden'}" id="recurPanelWeekly">
       <div class="panel-head">
-        <h2>Recurring Weekly Budget</h2>
+        <h2>Recurring Weekend Budget</h2>
         <span class="hint">weeks set to Recurring carry into every new month</span>
       </div>
       <div class="rw-list" id="recurWeeklyList"></div>
