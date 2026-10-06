@@ -5105,7 +5105,7 @@ function renderMonth(){
     </div>
 
     <div class="panel quick-add-panel">
-      <div class="panel-head"><span class="qa-tile" id="qaTile"></span><div class="qa-ht"><h2 id="qaTitle">Quick Add · Spent</h2><span class="hint">added as Done right away</span></div></div>
+      <div class="panel-head"><span class="qa-tile" id="qaTile"></span><div class="qa-ht"><h2 id="qaTitle">Quick Add · Spent</h2><span class="hint" id="qaHint">added as Paid right away</span></div></div>
       <select id="quickAddType" style="display:none;" aria-hidden="true" tabindex="-1">
         <option value="out">I spent</option>
         <option value="in">I received</option>
@@ -5275,6 +5275,7 @@ function renderMonth(){
     const qaPanel = document.querySelector('.quick-add-panel');
     qaPanel.classList.toggle('qa-in', !isOut);
     document.getElementById('qaTitle').textContent = isOut ? 'Quick Add · Spent' : 'Quick Add · Received';
+    document.getElementById('qaHint').textContent = isOut ? 'added as Paid right away' : 'added as Received right away';
     document.getElementById('qaTile').innerHTML = iconSvg(isOut ? 'M7 17L17 7M8 7h9v9' : 'M17 7L7 17M16 17H7V8');
   };
   syncQuickAddCategoryVisibility();
