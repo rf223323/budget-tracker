@@ -1377,6 +1377,18 @@
   .formula-note b{color:var(--text);}
   .quick-add-panel{border-color:color-mix(in srgb, var(--accent) 40%, transparent);background:linear-gradient(180deg,color-mix(in srgb, var(--accent) 6%, transparent),var(--panel));}
   .quick-add-panel select{max-width:130px;}
+  /* Quick Add: a coloured header band that follows the mode (red = money out, green = money in). */
+  .quick-add-panel{--qa:var(--red);--qa-px:20px;--qa-py:18px;overflow:hidden;border-color:color-mix(in srgb, var(--qa) 45%, var(--border));background:var(--panel);}
+  .quick-add-panel.qa-in{--qa:var(--green);}
+  .quick-add-panel .panel-head{justify-content:flex-start;gap:12px;flex-wrap:nowrap;margin:calc(var(--qa-py) * -1) calc(var(--qa-px) * -1) 16px;padding:14px var(--qa-px);background:linear-gradient(135deg,color-mix(in srgb, var(--qa) 38%, var(--panel)),color-mix(in srgb, var(--qa) 10%, var(--panel)));transition:background .25s;}
+  .quick-add-panel .qa-tile{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;flex:none;background:color-mix(in srgb, var(--qa) 30%, transparent);color:var(--qa);box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--qa) 45%, transparent);}
+  .quick-add-panel .qa-tile svg{width:20px;height:20px;}
+  .quick-add-panel .qa-ht{min-width:0;}
+  .quick-add-panel .panel-head h2{font-size:17px;font-weight:800;}
+  .quick-add-panel .qa-ht .hint{display:block !important;width:auto;margin-top:2px;font-size:12px;color:color-mix(in srgb, var(--text) 70%, transparent);}
+  .quick-add-panel #quickAddSeg .seg-btn.active{background:var(--qa);color:var(--bg);}
+  .quick-add-panel .qa-amount:focus-within,.quick-add-panel .qa-fields > input:focus{border-color:var(--qa);}
+  .quick-add-panel #quickAddBtn{background:linear-gradient(135deg,color-mix(in srgb, var(--qa) 82%, #fff),var(--qa));color:var(--bg);box-shadow:0 8px 22px color-mix(in srgb, var(--qa) 40%, transparent);}
   .quick-add-panel .cat-dd{max-width:190px;}
   .month-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;}
   .month-tile{position:relative;background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;transition:border-color .15s,transform .1s;}
@@ -1452,6 +1464,7 @@
     .card .v{font-size:17px;}
     .card .v input{font-size:16px !important;}
     .panel{padding:14px 15px;}
+    .quick-add-panel{--qa-px:15px;--qa-py:14px;}
     .panel-head{flex-wrap:wrap;row-gap:6px;}
     .panel-head .hint{width:100%;font-size:11px;}
     table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;}
@@ -5092,7 +5105,7 @@ function renderMonth(){
     </div>
 
     <div class="panel quick-add-panel">
-      <div class="panel-head"><h2>Quick Add</h2><span class="hint">added as Done right away</span></div>
+      <div class="panel-head"><span class="qa-tile" id="qaTile"></span><div class="qa-ht"><h2 id="qaTitle">Quick Add · Spent</h2><span class="hint">added as Done right away</span></div></div>
       <select id="quickAddType" style="display:none;" aria-hidden="true" tabindex="-1">
         <option value="out">I spent</option>
         <option value="in">I received</option>
@@ -5259,6 +5272,10 @@ function renderMonth(){
     quickAddCategory.style.display = isOut ? '' : 'none';
     quickAddIncomeCategory.style.display = isOut ? 'none' : '';
     document.querySelectorAll('#quickAddSeg .seg-btn').forEach(b=>b.classList.toggle('active', b.dataset.v===quickAddType.value));
+    const qaPanel = document.querySelector('.quick-add-panel');
+    qaPanel.classList.toggle('qa-in', !isOut);
+    document.getElementById('qaTitle').textContent = isOut ? 'Quick Add · Spent' : 'Quick Add · Received';
+    document.getElementById('qaTile').innerHTML = iconSvg(isOut ? 'M7 17L17 7M8 7h9v9' : 'M17 7L7 17M16 17H7V8');
   };
   syncQuickAddCategoryVisibility();
   quickAddType.onchange = syncQuickAddCategoryVisibility;
