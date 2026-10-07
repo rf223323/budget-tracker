@@ -2351,6 +2351,7 @@ function normalizeState(){
   if(!state.ember.lucky || typeof state.ember.lucky!=='object') state.ember.lucky = {since:0, caught:0, rare:0, gold:0};
   if(typeof state.ember.bonusXp!=='number') state.ember.bonusXp = 0;
   if(typeof state.ember.chests!=='number' || state.ember.chests<0) state.ember.chests = 0;
+  if(!state.ember.chestFix){ state.ember.chestFix = 1; state.ember.chests = 0; state.ember.init = false; }   // chests given by the profile-switch bug are cleared once, and the level is re-read
   if(typeof state.celebrate!=='boolean') state.celebrate = true;
   if(!state.pots) state.pots = {};
   if(!state.pots.savings) state.pots.savings = {manualLedger:[]};
@@ -2415,6 +2416,7 @@ function addProfile(name){
   profilesMeta.activeId = id;
   saveProfilesMeta();
   state = defaultState();
+  normalizeState();
   save();
   currentView = 'month';
   render();
@@ -5333,9 +5335,9 @@ const EMBER_BADGES = [
   {id:'b3',  name:'3 months on budget', hint:'Score 80+ three months running',        icon:'M3 17l6-6 4 4 8-8M15 7h6v6', color:'#a78bfa'},
   {id:'p3',  name:'Pay in 3 cleared',   hint:'Finish paying off a Pay in 3 plan',     icon:'M3 6h18v12H3zM3 10h18', color:'#2ec4b6'}
 ];
-let emberMemo = {rev:-1, data:null};
+let emberMemo = {rev:-1, data:null, st:null};
 function emberStats(){
-  if(emberMemo.rev===dataRev && emberMemo.data) return emberMemo.data;
+  if(emberMemo.rev===dataRev && emberMemo.st===state && emberMemo.data) return emberMemo.data;
   const now = new Date(); now.setHours(0,0,0,0);
   const curKey = monthKey(now);
   const dayIdx = (y,m0,d)=>Math.round(Date.UTC(y,m0,d)/86400000);
@@ -5405,7 +5407,7 @@ function emberStats(){
     flame = 'bl'; why = cur>=30 ? 'A big logging streak!' : 'Score 85+ — brilliant.';
   }
   const data = {logDays:days.length, cur, best, last7, bestB, curB, xp, level, levelPct, xpToNext, earned, flame, why, curScore};
-  emberMemo = {rev:dataRev, data};
+  emberMemo = {rev:dataRev, data, st:state};
   return data;
 }
 const EMBER_FLAME_TEXT = {lo:'Smouldering', st:'Steady burn', bl:'Blazing'};
