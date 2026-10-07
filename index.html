@@ -1920,6 +1920,21 @@
     .pt-total{font-size:38px;}
     .pt-feed{padding:6px 16px 8px;border-radius:22px;}
   }
+  .chest-strip{border-color:color-mix(in srgb, #ffcf4a 50%, var(--border));background:linear-gradient(150deg,color-mix(in srgb, #ffcf4a 18%, var(--panel)),var(--panel) 70%);box-shadow:0 0 24px rgba(255,207,74,.2);}
+  .chest-strip .ss-wheel svg{animation:chBob 2.6s ease-in-out infinite;}
+  .chest-strip .ss-t i{color:#ffcf4a;}
+  .chest-strip .ch-glow{opacity:.55;}
+  @keyframes chBob{0%,100%{transform:translateY(0) rotate(-3deg);}50%{transform:translateY(-3px) rotate(3deg);}}
+  .ch-chest{display:block;width:210px;height:180px;margin:18px auto 0;background:none;border:0;padding:0;cursor:pointer;}
+  .ch-svg{width:100%;height:100%;overflow:visible;}
+  .ch-glow{opacity:0;transition:opacity .4s;}
+  .ch-lid{transform-box:fill-box;transform-origin:50% 100%;transition:transform .5s cubic-bezier(.3,1.4,.5,1);}
+  .ch-chest.shake{animation:chShake 1.1s ease-in-out 1;}
+  .ch-chest.opened .ch-lid{transform:translateY(-14px) rotate(-38deg);}
+  .ch-chest.opened .ch-glow{opacity:1;}
+  .ch-chest.opened{filter:drop-shadow(0 0 28px rgba(255,207,74,.8));}
+  @keyframes chShake{0%,100%{transform:translateX(0) rotate(0);}10%{transform:translateX(-6px) rotate(-3deg);}20%{transform:translateX(6px) rotate(3deg);}30%{transform:translateX(-8px) rotate(-4deg);}40%{transform:translateX(8px) rotate(4deg);}50%{transform:translateX(-8px) rotate(-4deg);}60%{transform:translateX(8px) rotate(4deg);}70%{transform:translateX(-5px) rotate(-2deg);}80%{transform:translateX(5px) rotate(2deg);}90%{transform:translateX(-3px);}}
+  @media (prefers-reduced-motion: reduce){.ch-chest.shake,.chest-strip .ss-wheel svg{animation:none !important;}}
 </style>
 </head>
 <body data-theme="midnight">
@@ -2333,6 +2348,7 @@ function normalizeState(){
   if(typeof state.ember.loot.since!=='number') state.ember.loot.since = 0;
   if(!state.ember.lucky || typeof state.ember.lucky!=='object') state.ember.lucky = {since:0, caught:0, rare:0, gold:0};
   if(typeof state.ember.bonusXp!=='number') state.ember.bonusXp = 0;
+  if(typeof state.ember.chests!=='number' || state.ember.chests<0) state.ember.chests = 0;
   if(typeof state.celebrate!=='boolean') state.celebrate = true;
   if(!state.pots) state.pots = {};
   if(!state.pots.savings) state.pots.savings = {manualLedger:[]};
@@ -5122,6 +5138,81 @@ function showSpin(){
     setTimeout(done, 5000);
   };
 }
+// ---- mystery chests: one for every Ember level gained, each holds a cosmetic you don't own yet ----
+const CHEST_ODDS = [['c','55%'],['r','35%'],['s','10%']];
+function chestRoll(){
+  const r = Math.random(), tier = r < .10 ? 's' : r < .45 ? 'r' : 'c';
+  const W = state.ember.wardrobe;
+  const order = tier==='s' ? ['s','r','c'] : tier==='r' ? ['r','s','c'] : ['c','r','s'];   // if that tier is complete, fall back so a chest always holds a cosmetic when one is left
+  for(const t of order){
+    const pool = [];
+    ['acc','bg','title'].forEach(type=>WARDROBE[type].forEach(it=>{ if(it.r===t && !W.owned[type].includes(it.id)) pool.push({type, it}); }));
+    if(pool.length){
+      const pick = pool[Math.floor(Math.random()*pool.length)];
+      W.owned[pick.type].push(pick.it.id);
+      return {tier:t, type:pick.type, item:pick.it, dupe:false, xp:0, src:'chest'};
+    }
+  }
+  const xp = WARD_RARITY[tier].xp;
+  state.ember.bonusXp = (state.ember.bonusXp||0) + xp;
+  return {tier, type:null, item:null, dupe:true, xp, src:'chest'};
+}
+const CHEST_SVG = (id)=>`<svg class="ch-svg" viewBox="0 0 200 170" aria-hidden="true"><defs><linearGradient id="${id}w" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9a5a2a"/><stop offset="1" stop-color="#5e3216"/></linearGradient><linearGradient id="${id}g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe9a3"/><stop offset="1" stop-color="#d79a1f"/></linearGradient><radialGradient id="${id}l" cx="50%" cy="60%" r="60%"><stop offset="0" stop-color="#fff6c8" stop-opacity=".95"/><stop offset="1" stop-color="#ffcf4a" stop-opacity="0"/></radialGradient></defs>
+  <ellipse class="ch-glow" cx="100" cy="70" rx="90" ry="70" fill="url(#${id}l)"/>
+  <rect x="26" y="78" width="148" height="76" rx="10" fill="url(#${id}w)" stroke="#2b1608" stroke-width="3"/>
+  <rect x="26" y="96" width="148" height="10" fill="url(#${id}g)" opacity=".9"/><rect x="48" y="78" width="12" height="76" fill="url(#${id}g)"/><rect x="140" y="78" width="12" height="76" fill="url(#${id}g)"/>
+  <g class="ch-lid"><path d="M26 80 Q26 36 100 36 Q174 36 174 80 Z" fill="url(#${id}w)" stroke="#2b1608" stroke-width="3"/><path d="M26 80 Q26 36 100 36 Q174 36 174 80" fill="none" stroke="url(#${id}g)" stroke-width="6"/><rect x="48" y="44" width="12" height="36" fill="url(#${id}g)" opacity=".9"/><rect x="140" y="44" width="12" height="36" fill="url(#${id}g)" opacity=".9"/></g>
+  <rect x="88" y="72" width="24" height="30" rx="5" fill="url(#${id}g)" stroke="#7a4d0a" stroke-width="2.5"/><circle cx="100" cy="85" r="4" fill="#5e3216"/><rect x="98" y="86" width="4" height="9" rx="2" fill="#5e3216"/></svg>`;
+function showChest(){
+  const st = state.ember;
+  if(!(st.chests>0)) return;
+  let ov = document.getElementById('chestOverlay');
+  if(!ov){ ov = document.createElement('div'); ov.id = 'chestOverlay'; ov.className = 'boss-overlay lucky'; ov.setAttribute('aria-hidden','true'); document.body.appendChild(ov); }
+  ov.style.setProperty('--lc', '#ffcf4a');
+  const legend = CHEST_ODDS.map(([t,pc])=>`<div class="sp-odd" style="border-color:${WARD_RARITY[t].col}55;"><i style="color:${WARD_RARITY[t].col};">${WARD_RARITY[t].tag}</i><b>${pc}</b></div>`).join('');
+  ov.innerHTML = `<div class="bo-card sp-card">
+    <div class="bo-k" style="color:#ffcf4a;">LEVEL UP REWARD</div>
+    <div class="sp-title">Mystery chest</div>
+    <div class="bo-sub">${st.chests} chest${st.chests!==1?'s':''} ready · each one holds a cosmetic</div>
+    <button type="button" class="ch-chest" id="chBox" aria-label="Open the chest">${CHEST_SVG('chx')}</button>
+    <button class="btn bo-ok sp-go" id="chGo" style="box-shadow:0 0 26px rgba(255,207,74,.45);">OPEN</button>
+    <div class="sp-odds">${legend}</div>
+    <div class="lk-count">Own everything? A chest gives bonus XP instead.</div>
+    <button class="btn secondary bo-ok lt-later" id="chClose">Not now</button>
+  </div>`;
+  ov.classList.add('open'); ov.setAttribute('aria-hidden','false');
+  const close = ()=>{ ov.classList.remove('open'); ov.setAttribute('aria-hidden','true'); ov.innerHTML = ''; refreshHero(); };
+  document.getElementById('chClose').onclick = close;
+  ov.onmousedown = ev=>{ if(ev.target===ov && !ov.dataset.busy) close(); };
+  const open = ()=>{
+    if(ov.dataset.busy) return;
+    ov.dataset.busy = '1';
+    st.chests = Math.max(0, st.chests-1);
+    const res = chestRoll();
+    save();
+    document.getElementById('chGo').disabled = true; document.getElementById('chClose').style.visibility = 'hidden';
+    const box = document.getElementById('chBox');
+    const finish = ()=>{ delete ov.dataset.busy; ov.classList.remove('open'); ov.setAttribute('aria-hidden','true'); ov.innerHTML = ''; showSpinPrize(res); };
+    const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(reduce){ setTimeout(finish, 300); return; }
+    box.classList.add('shake');
+    setTimeout(()=>{ box.classList.remove('shake'); box.classList.add('opened'); }, 1100);
+    setTimeout(finish, 2000);
+  };
+  document.getElementById('chGo').onclick = open;
+  document.getElementById('chBox').onclick = open;
+}
+// Card on the Month Tracker while a chest is waiting.
+function renderChestStrip(){
+  const old = document.getElementById('chestStrip'); if(old) old.remove();
+  const n = state.ember.chests||0, card = document.getElementById('heroCard');
+  if(!card || n<1) return;
+  const strip = document.createElement('div');
+  strip.id = 'chestStrip'; strip.className = 'spin-strip chest-strip';
+  strip.innerHTML = `<div class="ss-wheel">${CHEST_SVG('chs')}</div><div class="ss-t"><i>MYSTERY CHEST</i><b>${n>1 ? n+' chests waiting' : 'A chest is waiting'}</b><span>Your reward for levelling up</span></div><button type="button" class="btn small ss-go">Open</button>`;
+  card.insertAdjacentElement('beforebegin', strip);
+  strip.onclick = showChest;
+}
 function showSpinPrize(res){
   const W = state.ember.wardrobe, R = WARD_RARITY[res.tier];
   let ov = document.getElementById('prizeOverlay');
@@ -5133,7 +5224,7 @@ function showSpinPrize(res){
     : res.type==='bg' ? `<div class="pz-bg" style="background:${res.item.css};"><div class="pz-bg-f">${emberFlameSvg('st', null, EMBER_SKINS[0], null)}</div></div>`
     : `<div class="pz-title"><span class="wd-title" style="--tc:${R.col};">${escapeHtml(res.item.name)}</span></div>`;
   const name = res.dupe ? 'Bonus XP' : res.item.name;
-  const sub = res.dupe ? `You already own every ${R.name.toLowerCase()} cosmetic` : `${WARD_KIND_NAME[res.type]} · new in your wardrobe`;
+  const sub = res.dupe ? (res.src==='chest' ? 'You already own every cosmetic' : `You already own every ${R.name.toLowerCase()} cosmetic`) : `${WARD_KIND_NAME[res.type]} · new in your wardrobe`;
   ov.innerHTML = `<div class="bo-card pz-card" style="--bc:${R.col};">
     <div class="bo-k" style="color:${R.col};">YOU WON</div>
     <div class="lt-badge" style="margin-top:8px;color:${R.col};border-color:${R.col}77;background:${R.col}22;">${R.tag}</div>
@@ -5142,10 +5233,10 @@ function showSpinPrize(res){
     <div class="bo-sub">${escapeHtml(sub)}</div>
     ${res.dupe ? '' : `<button class="btn bo-ok" id="pzWear">${res.type==='title' ? 'Use it now' : res.type==='bg' ? 'Use it now' : 'Wear it now'}</button>`}
     <button class="btn ${res.dupe?'':'secondary'} bo-ok lt-later" id="pzKeep">${res.dupe ? 'Nice' : 'Keep it for later'}</button>
-    <div class="lk-count">Wardrobe: <b>${wardCount()} of ${wardTotal()}</b> collected · ${W.spin.banked>0 ? W.spin.banked+' spin'+(W.spin.banked!==1?'s':'')+' left' : 'next spin Sunday'}</div>
+    <div class="lk-count">Wardrobe: <b>${wardCount()} of ${wardTotal()}</b> collected · ${res.src==='chest' ? ((state.ember.chests||0)>0 ? state.ember.chests+' chest'+(state.ember.chests!==1?'s':'')+' left' : 'level up for another chest') : (W.spin.banked>0 ? W.spin.banked+' spin'+(W.spin.banked!==1?'s':'')+' left' : 'next spin Sunday')}</div>
   </div>`;
   ov.classList.add('open'); ov.setAttribute('aria-hidden','false');
-  const close = ()=>{ ov.classList.remove('open'); ov.setAttribute('aria-hidden','true'); ov.innerHTML = ''; refreshHero(); setTimeout(checkEmberMilestones, 250); };
+  const close = ()=>{ ov.classList.remove('open'); ov.setAttribute('aria-hidden','true'); ov.innerHTML = ''; refreshHero(); setTimeout(checkEmberMilestones, 250); if(res.src==='chest' && (state.ember.chests||0)>0) setTimeout(showChest, 400); };
   const wear = document.getElementById('pzWear');
   if(wear) wear.onclick = ()=>{ wardEquip(res.type, res.item.id); close(); };
   document.getElementById('pzKeep').onclick = close;
@@ -5420,13 +5511,15 @@ function checkEmberMilestones(){
   const oldLevel = st.level || 1;
   const leveled = e.level > oldLevel;
   if(!fresh.length && !leveled) return;
+  if(leveled) st.chests = (st.chests||0) + (e.level-oldLevel);   // a mystery chest for every level gained
   st.seen = nowEarned; st.level = e.level; save();
+  if(leveled) setTimeout(()=>{ if(typeof renderChestStrip==='function') renderChestStrip(); }, 600);
   if(state.celebrate){
     const names = fresh.map(id=>EMBER_BADGES.find(b=>b.id===id).name);
     const newSkins = leveled ? EMBER_SKINS.filter(k=>!k.season && k.lvl>(oldLevel||1) && k.lvl<=e.level).map(k=>k.name) : [];
     const msg = leveled ? `Ember reached Level ${e.level}` : 'New milestone';
     setTimeout(()=>{
-      showToast(msg, [...names, ...newSkins.map(n=>'New skin: '+n)].join(' · ') || 'Keep it burning');
+      showToast(msg, [...(leveled?['Mystery chest earned']:[]), ...names, ...newSkins.map(n=>'New skin: '+n)].join(' · ') || 'Keep it burning');
       const btn = document.getElementById('emberBtn');
       if(btn){ btn.classList.remove('ember-burst'); void btn.offsetWidth; btn.classList.add('ember-burst'); }
     }, 500);
@@ -5447,7 +5540,7 @@ function refreshHero(){
     const bgIt = wardEquipped('bg') ? wardItem('bg', wardEquipped('bg')) : null;
     const fx = document.getElementById('heroBgfx');
     if(fx){ fx.style.background = bgIt ? bgIt.css : ''; fx.className = 'hero-bgfx' + (bgIt && bgIt.r!=='c' ? (bgIt.id==='lava'||bgIt.id==='bloodmoon'||bgIt.id==='doom'||bgIt.id==='reactor'||bgIt.id==='solarflare' ? ' bg-pulse' : bgIt.id==='aurora' ? ' bg-anim bg-hue' : ' bg-anim') : ''); }
-    renderSpinStrip(); renderWeatherCard(); }
+    renderSpinStrip(); renderChestStrip(); renderWeatherCard(); }
   document.getElementById('heroDate').textContent = isCurrent
     ? now.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'})
     : monthLabelFromKey(state.currentMonthKey);
