@@ -1670,7 +1670,8 @@
   .af-strip p b{color:var(--text);}
   .af-num{text-align:right;padding-left:24px;border-left:1px solid color-mix(in srgb,var(--hc) 30%,transparent);}
   .af-num b{display:block;font-size:34px;letter-spacing:-.04em;line-height:1.05;color:var(--hc);}
-  .af-num span{font-size:12px;color:var(--muted);}
+  .af-num span{font-size:12px;color:var(--muted);display:block;}
+  .af-num .af-nk{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px;}
   .af-cols{display:grid;grid-template-columns:350px 1fr;}
   .af-cols>div{padding:24px 28px;min-width:0;}
   .af-cols>div+div{border-left:1px solid var(--border);}
@@ -1744,6 +1745,7 @@
     .af-strip h3{font-size:23px;} .af-strip p{font-size:13px;}
     .af-num{grid-column:1 / 3;text-align:left;border-left:0;padding:10px 0 0;border-top:1px solid color-mix(in srgb,var(--hc) 30%,transparent);display:flex;align-items:baseline;gap:10px;}
     .af-num b{font-size:26px;}
+    .af-num{display:block;}
     .af-cols{grid-template-columns:1fr;}
     .af-cols>div{padding:18px;}
     .af-cols>div+div{border-left:0;border-top:1px solid var(--border);}
@@ -8223,12 +8225,14 @@ function afModel(){
   if(!cur) return null;
   const dp = daysUntilPayday();
   const payDate = dp ? new Date(today.getFullYear(), today.getMonth(), today.getDate()+dp) : null;
-  const endDate = payDate || new Date(today.getFullYear(), today.getMonth()+1, 0);
+  const monthEnd = new Date(today.getFullYear(), today.getMonth()+1, 0);
+  const endDate = (payDate && payDate > monthEnd) ? payDate : monthEnd;
   const simEnd = Math.round((endDate-today)/AF_DAY);
   const idxOf = date => Math.round((afDay(date)-today)/AF_DAY);
+  const payIdx = payDate ? idxOf(payDate) : null;
   const dateOf = i => new Date(today.getFullYear(), today.getMonth(), today.getDate()+i);
   const ev = [];
-  const add = (date, name, a, kind)=>{ let i = idxOf(date); if(i<0) i = 0; if(i>simEnd) return; ev.push({i, name, a, kind}); };
+  const add = (date, name, a, kind, und)=>{ let i = idxOf(date); if(i<0) i = 0; if(i>simEnd) return; ev.push({i, name, a, kind, und:!!und}); };
   const keys = [curKey]; if(monthKey(endDate)!==curKey) keys.push(monthKey(endDate));
   keys.forEach(k=>{
     const mm = state.months[k]; if(!mm) return;
@@ -8251,14 +8255,20 @@ function afModel(){
     });
     mm.incoming.forEach(inc=>{
       const amt = Number(inc.amount)||0; if(inc.status==='done' || amt<=0) return;
-      const day = resolveScheduledDay(inc, y, mo); if(!day) return;
-      const date = new Date(y, mo-1, day); if(idxOf(date)<0) return;
-      add(date, inc.name||'Income', amt, 'income');
+      // Pay that is set to fund NEXT month is not October money, so it never counts as cash for this month
+      if(inc.fundsNext && !inc.transfer) return;
+      const day = resolveScheduledDay(inc, y, mo);
+      const date = new Date(y, mo-1, day||dim);   // no day set: counted at month end, the same way your left over counts it
+      if(day && idxOf(date)<0) return;
+      add(date, inc.name||'Income', amt, 'income', !day);
     });
   });
   const byDay = Array.from({length:simEnd+1}, ()=>[]);
   ev.forEach(e=>byDay[e.i].push(e));
-  return {today, curKey, payDate, simEnd, idxOf, dateOf, ev, byDay, bal0: monthTotals(cur).liveBalance, pot: Math.max(0, potBalance('savings')), cushion: afCushion()};
+  // what each tracked month has left over, in the Month Tracker's own terms
+  const leftBy = {};
+  [curKey, monthKey(new Date(today.getFullYear(), today.getMonth()+1, 1))].forEach(k=>{ if(state.months[k]) leftBy[k] = monthTotals(state.months[k]).totalLeftOver; });
+  return {today, curKey, payDate, payIdx, simEnd, idxOf, dateOf, ev, byDay, bal0: monthTotals(cur).liveBalance, leftBy, horizon: (payDate && payDate>monthEnd) ? 'until payday' : 'until the end of the month', pot: Math.max(0, potBalance('savings')), cushion: afCushion()};
 }
 function afRun(M, buys, tr){
   let b = M.bal0; const s = [];
@@ -8270,9 +8280,21 @@ function afRun(M, buys, tr){
   }
   let mi = 0; s.forEach((v,i)=>{ if(v<s[mi]) mi = i; });
   const mn = round2(s[mi]);
-  const v = mn>=M.cushion ? 'yes' : mn>=0 ? 'tight' : 'no';
+  const rank = {yes:0, tight:1, no:2};
+  const grade = x => x>=M.cushion ? 'yes' : x>=0 ? 'tight' : 'no';
+  const pv = grade(mn);
+  // what is left over for each month the purchase touches, once its share is taken out
+  const spent = {};
+  buys.forEach(p=>{ if(p.date){ const k = monthKey(p.date); spent[k] = (spent[k]||0) + p.a; } });
+  if(tr && tr.x) spent[M.curKey] = (spent[M.curKey]||0) - tr.x;
+  let lv = 'yes';
+  Object.keys(spent).forEach(k=>{ if(M.leftBy[k]===undefined) return; const g = grade(M.leftBy[k]-spent[k]); if(rank[g]>rank[lv]) lv = g; });
+  const tm = buys[0] && buys[0].date ? monthKey(buys[0].date) : M.curKey;
+  const left0 = M.leftBy[tm] === undefined ? null : M.leftBy[tm];
+  const left = left0===null ? null : round2(left0 - (spent[tm]||0));
+  const v = rank[lv]>rank[pv] ? lv : pv;
   const worst = M.byDay[mi].filter(e=>e.a<0).sort((a,b)=>a.a-b.a)[0];
-  return {s, mn:{i:mi, b:mn}, v, evn: worst ? worst.name : null};
+  return {s, mn:{i:mi, b:mn}, v, pv, lv, left, left0, tm, evn: worst ? worst.name : null};
 }
 function afBuys(M, S){
   if(S.m==='pay3') return buildPay3Schedule(S.a, 3, 'month', S.date, false).map(x=>({i:M.idxOf(parseYmd(x.date)), a:x.amount, date:parseYmd(x.date)}));
@@ -8294,18 +8316,28 @@ function afEval(M, S){
 }
 function afEarliest(M, S){
   for(let i=0;i<=M.simEnd;i++){ if(afEval(M, {...S, date:M.dateOf(i)}).r.v==='yes') return i; }
+  const nxt = new Date(M.today.getFullYear(), M.today.getMonth()+1, 1);
+  if(M.leftBy[monthKey(nxt)]!==undefined){ const i = M.idxOf(nxt); if(afEval(M, {...S, date:nxt}).r.v==='yes') return i; }
   return null;
 }
 const afWd = (M,i)=>M.dateOf(i).toLocaleDateString('en-GB',{weekday:'short', day:'numeric'});
 const afWdM = (M,i)=>M.dateOf(i).toLocaleDateString('en-GB',{weekday:'short', day:'numeric', month:'short'});
 const afCls = v=>v==='yes'?'good':v==='tight'?'warn':'bad';
 const afWord = v=>v==='yes'?'Yes':v==='tight'?'Tight':'No';
+function afMonthName(k){ const [y,mo] = k.split('-').map(Number); return new Date(y, mo-1, 1).toLocaleDateString('en-GB',{month:'long'}); }
 function afWhy(M, S, e){
-  const until = M.payDate ? 'until payday' : 'until the end of the month';
+  const until = M.horizon;
   const r = e.r;
-  if(e.beyond) return `That is after your next payday, so nothing planned in the meantime gets in its way.`;
-  if(e.tr && r.v==='yes') return `Moving <b>${escapeHtml(fmt(e.tr.x))}</b> from Savings keeps you at <b>${escapeHtml(fmt(r.mn.b))}</b> or more ${until}.`;
-  if(r.v==='yes') return `Your lowest balance ${until} stays at <b>${escapeHtml(fmt(r.mn.b))}</b>${r.evn?', after '+escapeHtml(r.evn):''}.`;
+  const mon = afMonthName(r.tm);
+  if(r.left!==null && r.lv!=='yes' && (r.lv!==r.pv || e.beyond)){
+    return `This takes what you have left over for ${mon} from <b>${escapeHtml(fmt(r.left0))}</b> to <b>${escapeHtml(fmt(r.left))}</b>${r.lv==='no'?', so you would end the month short':', under your '+escapeHtml(fmt(M.cushion))+' cushion'}.`;
+  }
+  if(e.beyond) return `That is ${mon}, so it comes out of ${mon}'s budget${r.left!==null?': you would still have <b>'+escapeHtml(fmt(r.left))+'</b> left over':''}.`;
+  const same = r.left!==null && Math.abs(r.left-r.mn.b)<0.005;
+  if(e.tr && r.v==='yes' && same) return `Moving <b>${escapeHtml(fmt(e.tr.x))}</b> from Savings leaves you <b>${escapeHtml(fmt(r.left))}</b> left over for ${mon}, and your balance never drops below that.`;
+  if(r.v==='yes' && same) return `You would still have <b>${escapeHtml(fmt(r.left))}</b> left over for ${mon}, and your balance never drops below that.`;
+  if(e.tr && r.v==='yes') return `Moving <b>${escapeHtml(fmt(e.tr.x))}</b> from Savings keeps you at <b>${escapeHtml(fmt(r.mn.b))}</b> or more ${until}${r.left!==null?', with <b>'+escapeHtml(fmt(r.left))+'</b> left over for '+mon:''}.`;
+  if(r.v==='yes') return `Your lowest balance ${until} stays at <b>${escapeHtml(fmt(r.mn.b))}</b>${r.evn?', after '+escapeHtml(r.evn):''}${r.left!==null?', and you would still have <b>'+escapeHtml(fmt(r.left))+'</b> left over for '+mon:''}.`;
   if(r.v==='tight') return `You dip to <b>${escapeHtml(fmt(r.mn.b))}</b> on <b>${afWd(M,r.mn.i)}</b>${r.evn?' (after '+escapeHtml(r.evn)+')':''}, under your ${escapeHtml(fmt(M.cushion))} cushion.`;
   return `You would be <b>${escapeHtml(fmt(-r.mn.b))} overdrawn</b> on <b>${afWd(M,r.mn.i)}</b>${r.evn?' when '+escapeHtml(r.evn)+' goes out':''}.`;
 }
@@ -8313,9 +8345,11 @@ function afDateChips(M){
   const list = [{i:0, label:'Today'}];
   const delta = (6 - M.today.getDay() + 7) % 7;
   if(delta>0 && delta<=M.simEnd) list.push({i:delta, label:afWd(M, delta)});
-  const inc = M.ev.filter(e=>e.kind==='income' && e.i>0 && e.i<M.simEnd).sort((a,b)=>a.i-b.i)[0];
+  const inc = M.ev.filter(e=>e.kind==='income' && !e.und && e.i>0 && e.i!==M.payIdx).sort((a,b)=>a.i-b.i)[0];
   if(inc) list.push({i:inc.i, label:`${String(inc.name).length>13?String(inc.name).slice(0,12)+'…':inc.name} · ${afWd(M, inc.i)}`});
-  if(M.payDate) list.push({i:M.simEnd, label:`Payday · ${afWd(M, M.simEnd)}`});
+  if(M.payDate && M.payIdx<=M.simEnd) list.push({i:M.payIdx, label:`Payday · ${afWd(M, M.payIdx)}`});
+  const nk = monthKey(new Date(M.today.getFullYear(), M.today.getMonth()+1, 1));
+  if(M.leftBy[nk]!==undefined) list.push({i:M.idxOf(new Date(M.today.getFullYear(), M.today.getMonth()+1, 1)), label:'Next month'});
   const seen = new Set();
   return list.filter(c=>!seen.has(c.i) && seen.add(c.i)).sort((a,b)=>a.i-b.i);
 }
@@ -8378,12 +8412,13 @@ function renderAfford(){
   const e = has ? afEval(M, S) : null;
   const v = has ? e.r.v : null;
   const hc = v==='yes' ? 'var(--green)' : v==='tight' ? 'var(--amber)' : v==='no' ? 'var(--red)' : 'var(--accent)';
-  const until = M.payDate ? `your next payday (${afWdM(M, M.simEnd)})` : 'the end of the month';
+  const until = M.horizon==='until payday' ? `your next payday (${afWdM(M, M.simEnd)})` : `the end of the month (${afWdM(M, M.simEnd)})`;
+  const mon = M.today.toLocaleDateString('en-GB',{month:'long'});
 
   // ----- verdict strip
   const strip = has
-    ? `<div class="af-strip"><div class="af-ico">${ic(v==='yes'?'check':v==='tight'?'warn':'x', 28)}</div><div><h3>${e.tr && v==='yes' ? 'Yes, with savings' : v==='yes' ? 'Yes, go for it' : v==='tight' ? 'You can, but it is tight' : 'Not right now'}</h3><p>${afWhy(M, S, e)}</p></div><div class="af-num"><b>${escapeHtml(fmt(e.r.mn.b))}</b><span>lowest balance · ${afWd(M, e.r.mn.i)}</span></div></div>`
-    : `<div class="af-strip"><div class="af-ico">${ic('q', 28)}</div><div><h3>How much is it?</h3><p>Enter a price and a day. I will check it against your bills, income and savings up to ${until}.</p></div><div class="af-num"><b>${escapeHtml(fmt(base.mn.b))}</b><span>your lowest balance ahead · ${afWd(M, base.mn.i)}</span></div></div>`;
+    ? `<div class="af-strip"><div class="af-ico">${ic(v==='yes'?'check':v==='tight'?'warn':'x', 28)}</div><div><h3>${e.tr && v==='yes' ? 'Yes, with savings' : v==='yes' ? 'Yes, go for it' : v==='tight' ? 'You can, but it is tight' : 'Not right now'}</h3><p>${afWhy(M, S, e)}</p></div>${e.r.left!==null ? `<div class="af-num"><span class="af-nk">Left over for ${afMonthName(e.r.tm)}</span><b style="color:var(--hc)">${escapeHtml(fmt(e.r.left))}</b><span>was ${escapeHtml(fmt(e.r.left0))} · lowest balance ${escapeHtml(fmt(e.r.mn.b))}</span></div>` : `<div class="af-num"><span class="af-nk">Lowest balance</span><b style="color:var(--hc)">${escapeHtml(fmt(e.r.mn.b))}</b><span>${afWd(M, e.r.mn.i)}</span></div>`}</div>`
+    : `<div class="af-strip"><div class="af-ico">${ic('q', 28)}</div><div><h3>How much is it?</h3><p>Enter a price and a day. I will check it against your bills, income and savings up to ${until}.</p></div><div class="af-num"><span class="af-nk">Left over for ${mon}</span><b>${escapeHtml(fmt(M.leftBy[M.curKey]))}</b><span>lowest balance ahead ${escapeHtml(fmt(base.mn.b))}</span></div></div>`;
 
   // ----- left column: what you want to buy
   const chips = afDateChips(M);
@@ -8413,13 +8448,13 @@ function renderAfford(){
     ways = `<div class="af-lab" style="margin-bottom:4px;">Ways to make it work</div>
     <div class="af-way"><div class="af-tl" style="--c:var(--accent)">${ic('cal')}</div><div><b>Pay in 3</b><span class="af-provs">${['klarna','paypal'].map(p=>`<button type="button" class="${aff.prov===p?'on':''}" data-af="prov" data-v="${p}">${p==='klarna'?'Klarna':'PayPal'}</button>`).join('')}</span></div><div class="af-ctl"><button type="button" class="af-tg ${p3on?'on':''}" data-af="p3" role="switch" aria-checked="${p3on}" aria-label="Pay in 3"></button></div>
       <span class="af-d">${p3on ? '' : `Only ${escapeHtml(fmt(firstAmt))} comes out ${curI===0?'today':'on the day'}. <span class="af-rc ${afCls(p3.r.v)}">→ ${afWord(p3.r.v)} · lowest ${escapeHtml(fmt(p3.r.mn.b))}</span>`}</span>
-      ${p3on ? `<div class="af-ex"><div class="af-p3">${sc.map((x,i)=>{ const di = M.idxOf(parseYmd(x.date)); return `<div class="st ${di>M.simEnd?'later':''}"><div class="dot"></div><b>${escapeHtml(fmt(x.amount))}</b><span>${i===0&&di===0?'today':parseYmd(x.date).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}${di>M.simEnd?' · after payday':''}</span></div>`; }).join('')}</div><div class="af-fine">Subject to approval by Klarna or PayPal. Late fees can apply if you miss a payment.</div></div>` : ''}
+      ${p3on ? `<div class="af-ex"><div class="af-p3">${sc.map((x,i)=>{ const di = M.idxOf(parseYmd(x.date)); return `<div class="st ${di>M.simEnd?'later':''}"><div class="dot"></div><b>${escapeHtml(fmt(x.amount))}</b><span>${i===0&&di===0?'today':parseYmd(x.date).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}${di>M.simEnd?' · later':''}</span></div>`; }).join('')}</div><div class="af-fine">Subject to approval by Klarna or PayPal. Late fees can apply if you miss a payment.</div></div>` : ''}
     </div>
     <div class="af-way"><div class="af-tl" style="--c:var(--green)">${ic('wallet')}</div><div><b>Use some savings</b></div><div class="af-ctl"><button type="button" class="af-tg ${S.sv?'on':''}" data-af="sv" role="switch" aria-checked="${S.sv}" aria-label="Use some savings" ${M.pot<=0?'disabled':''}></button></div>
       <span class="af-d">${M.pot<=0 ? 'Your Savings pot is empty.' : n===0 ? 'Not needed right now.' : n===null ? 'Savings cannot cover it.' : `Moves ${escapeHtml(fmt(n))} over. `}${(S.sv||M.pot<=0||!n)?'':`<span class="af-rc ${afCls(svr.r.v)}">→ ${afWord(svr.r.v)} · lowest ${escapeHtml(fmt(svr.r.mn.b))}</span>`}</span>
       ${S.sv && e.tr ? `<div class="af-ex">${afPotBar(M.pot, e.tr.x)}</div>` : ''}
     </div>
-    <div class="af-way"><div class="af-tl" style="--c:var(--amber)">${ic('clock')}</div><div><b>${best===0 ? 'No need to wait' : best===null ? 'No comfortable day before payday' : 'Wait until '+afWdM(M, best)}</b></div><div class="af-ctl">${best!==null && best>0 ? `<button type="button" class="af-btn6" data-af="when" data-v="${best}">${curI===best?'✓ Chosen':'Use '+afWd(M, best)}</button>` : ''}</div>
+    <div class="af-way"><div class="af-tl" style="--c:var(--amber)">${ic('clock')}</div><div><b>${best===0 ? 'No need to wait' : best===null ? 'No comfortable day this month' : 'Wait until '+afWdM(M, best)}</b></div><div class="af-ctl">${best!==null && best>0 ? `<button type="button" class="af-btn6" data-af="when" data-v="${best}">${curI===best?'✓ Chosen':'Use '+afWd(M, best)}</button>` : ''}</div>
       <span class="af-d">${best>0 ? 'Pay in full, from your own money, once you are above your cushion.' : best===0 ? 'You are fine to buy it today.' : 'Try a smaller amount, or pay in 3.'}</span></div>`;
   }
 
