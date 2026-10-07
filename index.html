@@ -1742,6 +1742,14 @@
   .af-foot .btn{height:50px;padding:0 28px;border-radius:99px;font-size:15px;}
   .af-foot .btn.green{background:linear-gradient(135deg,#3ecf8e,#2ab57b);color:#06231a;box-shadow:0 6px 20px color-mix(in srgb,var(--green) 38%,transparent);}
   .af-foot .btn[disabled]{opacity:.4;cursor:not-allowed;}
+  .af-ahead{padding:20px 28px 22px;border-top:1px solid var(--border);}
+  .af-ahead-g{display:grid;grid-template-columns:repeat(3,1fr);gap:0;}
+  .af-am{padding:0 20px;border-left:1px solid var(--border);display:flex;flex-direction:column;gap:2px;min-width:0;}
+  .af-am:first-child{padding-left:0;border-left:0;}
+  .af-an{font-size:12px;font-weight:700;color:var(--muted);}
+  .af-ab{font-size:24px;font-weight:800;letter-spacing:-.03em;line-height:1.15;}
+  .af-ab.bad{color:var(--red);} .af-ab.warn{color:var(--amber);}
+  .af-ad{font-size:12px;color:var(--muted);}
   .af-bills{padding:6px 28px 12px;border-top:1px solid var(--border);}
   .af-brow{display:grid;grid-template-columns:84px 1fr auto 90px;gap:10px;padding:9px 0;border-top:1px solid color-mix(in srgb,var(--border) 70%,transparent);font-size:14px;}
   .af-brow:first-of-type{border-top:0;}
@@ -1763,6 +1771,11 @@
     .af-amt input{font-size:38px;}
     .af-foot{padding:16px 18px;gap:14px;}
     .af-bills{padding:6px 18px 12px;}
+    .af-ahead{padding:18px;}
+    .af-ahead-g{grid-template-columns:1fr;gap:12px;}
+    .af-am{padding:0;border-left:0;flex-direction:row;align-items:baseline;gap:10px;flex-wrap:wrap;}
+    .af-an{width:78px;flex:none;}
+    .af-ab{font-size:20px;}
     .af-brow{grid-template-columns:56px 1fr auto 66px;font-size:12.5px;}
   }
 </style>
@@ -8278,7 +8291,7 @@ function afModel(){
   ev.forEach(e=>byDay[e.i].push(e));
   // what each tracked month has left over, in the Month Tracker's own terms
   const leftBy = {};
-  [curKey, monthKey(new Date(today.getFullYear(), today.getMonth()+1, 1))].forEach(k=>{ if(state.months[k]) leftBy[k] = monthTotals(state.months[k]).totalLeftOver; });
+  for(let n=0;n<=3;n++){ const k = monthKey(new Date(today.getFullYear(), today.getMonth()+n, 1)); if(state.months[k]) leftBy[k] = monthTotals(state.months[k]).totalLeftOver; }
   return {today, curKey, payDate, payIdx, simEnd, idxOf, dateOf, ev, byDay, bal0: monthTotals(cur).liveBalance, leftBy, horizon: (payDate && payDate>monthEnd) ? 'until payday' : 'until the end of the month', pot: Math.max(0, potBalance('savings')), cushion: afCushion()};
 }
 function afRun(M, buys, tr){
@@ -8298,14 +8311,17 @@ function afRun(M, buys, tr){
   const spent = {};
   buys.forEach(p=>{ if(p.date){ const k = monthKey(p.date); spent[k] = (spent[k]||0) + p.a; } });
   if(tr && tr.x) spent[M.curKey] = (spent[M.curKey]||0) - tr.x;
+  const mkeys = Object.keys(M.leftBy).sort();
+  const cumBy = {}; let cum = 0;
+  mkeys.forEach(k=>{ cum += spent[k]||0; cumBy[k] = cum; });   // a month's left over starts the next month, so spending carries forward
   let lv = 'yes';
-  Object.keys(spent).forEach(k=>{ if(M.leftBy[k]===undefined) return; const g = grade(M.leftBy[k]-spent[k]); if(rank[g]>rank[lv]) lv = g; });
+  mkeys.forEach(k=>{ if(!spent[k]) return; const g = grade(M.leftBy[k]-cumBy[k]); if(rank[g]>rank[lv]) lv = g; });
   const tm = buys[0] && buys[0].date ? monthKey(buys[0].date) : M.curKey;
   const left0 = M.leftBy[tm] === undefined ? null : M.leftBy[tm];
-  const left = left0===null ? null : round2(left0 - (spent[tm]||0));
+  const left = left0===null ? null : round2(left0 - (cumBy[tm]||0));
   const v = rank[lv]>rank[pv] ? lv : pv;
   const worst = M.byDay[mi].filter(e=>e.a<0).sort((a,b)=>a.a-b.a)[0];
-  return {s, mn:{i:mi, b:mn}, v, pv, lv, left, left0, tm, evn: worst ? worst.name : null};
+  return {s, mn:{i:mi, b:mn}, v, pv, lv, left, left0, tm, cumBy, evn: worst ? worst.name : null};
 }
 function afBuys(M, S){
   if(S.m==='pay3') return buildPay3Schedule(S.a, 3, 'month', S.date, false).map(x=>({i:M.idxOf(parseYmd(x.date)), a:x.amount, date:parseYmd(x.date)}));
@@ -8335,6 +8351,19 @@ const afWd = (M,i)=>M.dateOf(i).toLocaleDateString('en-GB',{weekday:'short', day
 const afWdM = (M,i)=>M.dateOf(i).toLocaleDateString('en-GB',{weekday:'short', day:'numeric', month:'short'});
 const afCls = v=>v==='yes'?'good':v==='tight'?'warn':'bad';
 const afWord = v=>v==='yes'?'Yes':v==='tight'?'Tight':'No';
+function afAheadHtml(M, e){
+  if(!e) return '';
+  const cells = [1,2,3].map(n=>{
+    const d = new Date(M.today.getFullYear(), M.today.getMonth()+n, 1), k = monthKey(d);
+    const name = d.toLocaleDateString('en-GB',{month:'long'});
+    const before = M.leftBy[k];
+    if(before===undefined) return `<div class="af-am"><span class="af-an">${name}</span><span class="af-ab" style="color:var(--muted);font-size:13px;font-weight:600;">Not set up yet</span></div>`;
+    const cum = e.r.cumBy[k]||0, after = round2(before-cum);
+    const cls = after<0 ? 'bad' : after<M.cushion ? 'warn' : '';
+    return `<div class="af-am"><span class="af-an">${name}</span><span class="af-ab ${cls}">${escapeHtml(fmt(after))}</span><span class="af-ad">${Math.abs(cum)<0.005 ? 'no change' : 'was '+escapeHtml(fmt(before))+' · '+(cum>0?'−':'+')+escapeHtml(fmt(Math.abs(cum)))}</span></div>`;
+  }).join('');
+  return `<div class="af-ahead"><div class="af-lab" style="margin-bottom:10px;">Left over in the months ahead</div><div class="af-ahead-g">${cells}</div></div>`;
+}
 function afMonthName(k){ const [y,mo] = k.split('-').map(Number); return new Date(y, mo-1, 1).toLocaleDateString('en-GB',{month:'long'}); }
 function afWhy(M, S, e){
   const until = M.horizon;
@@ -8485,7 +8514,7 @@ function renderAfford(){
   const buildFoot = (v)=>`<div class="af-foot"><button type="button" class="btn ${v && v!=='no'?'green':''}" style="${v==='no'?'opacity:.6':''}" data-af="plan" ${has?'':'disabled'}>${S.m==='pay3'?'Plan as Pay in 3':'Plan this purchase'}</button><button type="button" class="af-link" data-af="reset">Not now</button><div style="flex:1"></div>${has?`<button type="button" class="af-link" data-af="bills">${aff.bills?'Hide':'See'} what it squeezes ${aff.bills?'↑':'↓'}</button>`:''}</div>`;
   const foot = buildFoot(v);
 
-  el.innerHTML = `<div class="af"><div class="af-sheet" style="--hc:${hc}"><div id="afStripWrap">${strip}</div><div class="af-cols"><div>${buy}</div><div>${ways}</div></div>${bills}<div id="afFootWrap">${foot}</div></div></div>`;
+  el.innerHTML = `<div class="af"><div class="af-sheet" style="--hc:${hc}"><div id="afStripWrap">${strip}</div><div class="af-cols"><div>${buy}</div><div>${ways}</div></div><div id="afAheadWrap">${afAheadHtml(M, e)}</div>${bills}<div id="afFootWrap">${foot}</div></div></div>`;
 
   if(had){ const inp = document.getElementById('afAmt'); if(inp){ inp.focus(); try{ inp.setSelectionRange(caret, caret); }catch(_){} } }
 
@@ -8513,6 +8542,7 @@ function renderAfford(){
       el.querySelector('.af-sheet').style.setProperty('--hc', hcOf(v2));
       document.getElementById('afStripWrap').innerHTML = buildStrip(e);
       document.getElementById('afFootWrap').innerHTML = buildFoot(v2);
+      document.getElementById('afAheadWrap').innerHTML = afAheadHtml(M, e);
       document.getElementById('afSvX').innerHTML = `<b>${escapeHtml(fmt(cx))}</b> from Savings`;
       document.getElementById('afSvPot').innerHTML = afPotBar(M.pot, cx);
     }
