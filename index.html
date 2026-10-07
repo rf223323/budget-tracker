@@ -1759,6 +1759,28 @@
   .af-lr.gone{opacity:.55;}
   .af-lx{flex:none;width:34px;height:34px;border-radius:50%;border:1px solid var(--border);background:none;color:var(--muted);font-size:20px;line-height:1;cursor:pointer;display:grid;place-items:center;padding:0;}
   .af-lx:hover{color:var(--red);border-color:var(--red);}
+  .modal.af-wmodal{width:min(440px,92vw);padding:24px;border-radius:24px;max-height:92vh;overflow-y:auto;}
+  .af-whead{display:flex;align-items:center;gap:12px;}
+  .af-whead h3{margin:0;font-size:20px;letter-spacing:-.02em;}
+  .af-bang{width:38px;height:38px;border-radius:50%;background:var(--c);color:#1a1000;display:grid;place-items:center;font-weight:900;font-size:21px;line-height:1;flex:none;box-shadow:0 0 0 6px color-mix(in srgb,var(--c) 18%,transparent);}
+  .af-wp{margin:12px 0 0;font-size:14.5px;line-height:1.55;color:color-mix(in srgb,var(--text) 80%,transparent);}
+  .af-wp b{color:var(--text);}
+  .af-wfix{display:grid;gap:8px;margin-top:16px;}
+  .af-wf{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;border:1px solid var(--border);background:color-mix(in srgb,var(--bg) 40%,var(--panel2));color:var(--text);font:inherit;text-align:left;cursor:pointer;width:100%;}
+  .af-wf:hover{border-color:var(--accent);}
+  .af-wf .t{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:color-mix(in srgb,var(--cc) 18%,transparent);color:var(--cc);flex:none;}
+  .af-wf .m{flex:1;min-width:0;}
+  .af-wf b{display:block;font-size:14.5px;}
+  .af-wf .s{font-size:12.5px;color:var(--muted);}
+  .af-wf .r{font-size:12.5px;font-weight:800;white-space:nowrap;}
+  .af-ack{display:flex;align-items:center;gap:12px;width:100%;margin-top:16px;padding:12px 14px;border-radius:14px;border:1px dashed color-mix(in srgb,var(--c) 55%,transparent);background:none;color:var(--text);font:inherit;font-size:13.5px;line-height:1.4;text-align:left;cursor:pointer;}
+  .af-ack .cb{width:24px;height:24px;border-radius:8px;border:2px solid color-mix(in srgb,var(--c) 70%,transparent);display:grid;place-items:center;flex:none;color:transparent;font-weight:900;font-size:14px;}
+  .af-ack.on .cb{background:var(--c);border-color:var(--c);color:#1a1000;}
+  .af-wrow{display:flex;gap:12px;margin-top:14px;}
+  .af-wback{flex:1;height:50px;border-radius:15px;border:0;background:linear-gradient(135deg,var(--accent),var(--accent2));color:var(--on-accent);font:inherit;font-weight:800;font-size:15px;cursor:pointer;box-shadow:0 8px 22px color-mix(in srgb,var(--accent) 38%,transparent);}
+  .af-wgo{flex:1.2;height:50px;border-radius:15px;border:0;background:var(--c);color:#1a1000;font:inherit;font-weight:800;font-size:15px;cursor:pointer;box-shadow:0 8px 22px color-mix(in srgb,var(--c) 40%,transparent);}
+  .af-wgo[disabled]{opacity:.4;cursor:not-allowed;box-shadow:none;}
+  .af-wgo:not([disabled]):hover,.af-wback:hover{filter:brightness(1.08);}
   .af-bills{padding:6px 28px 12px;border-top:1px solid var(--border);}
   .af-brow{display:grid;grid-template-columns:84px 1fr auto 90px;gap:10px;padding:9px 0;border-top:1px solid color-mix(in srgb,var(--border) 70%,transparent);font-size:14px;}
   .af-brow:first-of-type{border-top:0;}
@@ -8484,20 +8506,62 @@ function afLogHtml(){
 }
 // Warns first when the purchase would make things tight, overdraw you, or cost more than you have right now.
 function afAttempt(M, S, e){
-  const r = e.r, warns = [];
+  const r = e.r;
   const todayOut = e.buys.filter(p=>p.i===0).reduce((t,p)=>t+p.a, 0);
   const cashNow = M.bal0 + (e.tr && e.tr.i===0 ? e.tr.x : 0);
-  if(todayOut > cashNow + 0.005) warns.push(`You have <b>${escapeHtml(fmt(Math.max(0, cashNow)))}</b> in your account right now, and <b>${escapeHtml(fmt(todayOut))}</b> comes out today.`);
-  if(r.v==='no' || r.v==='tight') warns.push(afWhy(M, S, e));
-  if(!warns.length){ afMake(M, S, e); return; }
+  const over = todayOut > cashNow + 0.005;
+  if(!over && r.v==='yes'){ afMake(M, S, e); return; }
+  const mon = afMonthName(r.tm);
+  const lc = t => t.charAt(0).toLowerCase()+t.slice(1);
+  const reason = over
+    ? `You have <b>${escapeHtml(fmt(Math.max(0, cashNow)))}</b> in your account right now, and <b>${escapeHtml(fmt(todayOut))}</b> comes out today.`
+    : afWhy(M, S, e);
+  let ack;
+  if(over) ack = `you have ${fmt(Math.max(0, cashNow))} right now and ${fmt(todayOut)} comes out today`;
+  else if(r.mn.b<0) ack = `you would be ${fmt(-r.mn.b)} overdrawn on ${afWd(M, r.mn.i)}`;
+  else if(r.left!==null && r.left<0) ack = `you would end ${mon} ${fmt(-r.left)} short`;
+  else if(r.left!==null && r.lv!=='yes') ack = `your left over for ${mon} drops to ${fmt(r.left)}, under your ${fmt(M.cushion)} cushion`;
+  else ack = `your lowest balance drops to ${fmt(r.mn.b)}, under your ${fmt(M.cushion)} cushion`;
+  const title = over ? 'More than you have right now' : r.v==='no' ? 'This will put you short' : 'This one is tight';
+  const col = (over || r.v==='no') ? 'var(--red)' : 'var(--amber)';
+
+  // quick fixes, each showing what it would turn the answer into
+  const fixes = [];
+  const chip = v2 => v2==='yes' ? ['→ Yes','var(--green)'] : v2==='tight' ? ['→ Tight','var(--amber)'] : ['Still no','var(--red)'];
+  if(S.m!=='pay3'){
+    const p3 = afEval(M, {...S, m:'pay3'}), first = p3.buys.find(b=>b.i===0) || p3.buys[0];
+    fixes.push({k:'p3', ic:'cal', c:'var(--accent)', t:'Pay in 3', s:`${fmt(first.a)} ${M.idxOf(S.date)===0?'today':'on the day'}${p3.r.left!==null?', left over '+fmt(p3.r.left):''}`, r:p3.r.v});
+  }
+  if(M.pot>0 && !(S.sv && !S.svX)){
+    const noSv = afEval(M, {...S, sv:false}), n = afNeed(M, noSv.buys, noSv.first);
+    if(n){ const sv = afEval(M, {...S, sv:true, svX:undefined}); fixes.push({k:'sv', ic:'wallet', c:'var(--green)', t:`Take ${fmt(n)} from Savings`, s:`Pot ${fmt(M.pot)} → ${fmt(M.pot-n)}`, r:sv.r.v}); }
+  }
+  const best = afEarliest(M, {...S, date:M.today});
+  if(best!==null && best>0 && best!==M.idxOf(S.date)){
+    const w = afEval(M, {...S, date:M.dateOf(best)});
+    fixes.push({k:'wait', i:best, ic:'clock', c:'var(--amber)', t:`Wait until ${afWdM(M, best)}`, s:'Pay in full, from your own money', r:w.r.v});
+  }
   const bg = document.getElementById('modalBg'), box = document.getElementById('modalBox');
-  box.innerHTML = `<h3>${r.v==='no' ? 'This will put you short' : 'Before you go ahead'}</h3>
-    <div style="font-size:13.5px;line-height:1.55;">${warns.map(w=>`<p style="margin:0 0 10px;">${w}</p>`).join('')}</div>
-    <p style="font-size:13px;color:var(--muted);margin:4px 0 0;">Make the purchase anyway?</p>
-    <div class="actions"><button class="btn secondary small" id="modalCancel">Go back</button><button class="btn danger small" id="modalOk">Make the purchase anyway</button></div>`;
+  const close = ()=>{ bg.classList.remove('open'); box.className = 'modal'; box.style.removeProperty('--c'); };
+  box.className = 'modal af-wmodal';
+  box.style.setProperty('--c', col);
+  box.innerHTML = `<div class="af-whead"><div class="af-bang">!</div><h3>${title}</h3></div>
+    <p class="af-wp">${reason}${fixes.length?' Want to fix it first?':''}</p>
+    ${fixes.length ? `<div class="af-wfix">${fixes.map(f=>{ const c = chip(f.r); return `<button type="button" class="af-wf" data-k="${f.k}" ${f.i!==undefined?`data-i="${f.i}"`:''} style="--cc:${f.c}"><span class="t">${(()=>{ try{ return `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${AF_PATHS[f.ic]}"/></svg>`; }catch(_){ return ''; } })()}</span><span class="m"><b>${escapeHtml(f.t)}</b><span class="s">${escapeHtml(f.s)}</span></span><span class="r" style="color:${c[1]}">${c[0]}</span></button>`; }).join('')}</div>` : ''}
+    <button type="button" class="af-ack" id="afAck"><span class="cb">✓</span><span>I understand: ${escapeHtml(ack)}</span></button>
+    <div class="af-wrow"><button type="button" class="af-wback" id="afBack">‹ Go back</button><button type="button" class="af-wgo" id="afGo" disabled>Make it anyway</button></div>`;
   bg.classList.add('open');
-  document.getElementById('modalCancel').onclick = ()=>bg.classList.remove('open');
-  document.getElementById('modalOk').onclick = ()=>{ bg.classList.remove('open'); afMake(M, S, e); };
+  const ackBtn = document.getElementById('afAck'), go = document.getElementById('afGo');
+  ackBtn.onclick = ()=>{ const on = ackBtn.classList.toggle('on'); go.disabled = !on; };
+  document.getElementById('afBack').onclick = close;
+  go.onclick = ()=>{ if(go.disabled) return; close(); afMake(M, S, e); };
+  box.querySelectorAll('.af-wf').forEach(b=>b.onclick = ()=>{
+    const k = b.dataset.k;
+    if(k==='p3') aff.m = 'pay3';
+    else if(k==='sv'){ aff.sv = true; delete aff.svX; }
+    else if(k==='wait'){ aff.d = ymd(M.dateOf(Number(b.dataset.i))); delete aff.svX; }
+    close(); renderAfford();
+  });
 }
 function openAfCushion(){
   const bg = document.getElementById('modalBg'), box = document.getElementById('modalBox');
