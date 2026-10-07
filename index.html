@@ -1683,14 +1683,18 @@
   .af-amt input:focus{outline:none;border-color:var(--hc);}
   .af-cur{font-size:26px;font-weight:800;color:var(--muted);}
   .af-chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
-  .af-chips button,.af-seg button,.af-link{font:inherit;}
+  .af-chips button,.af-link{font:inherit;}
   .af-chips button{padding:8px 14px;border-radius:99px;border:1px solid var(--border);background:none;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;}
   .af-chips button:hover{color:var(--text);border-color:var(--accent);}
   .af-name{width:100%;margin-top:18px;}
-  .af-seg{display:inline-flex;gap:4px;padding:3px;border-radius:12px;background:color-mix(in srgb,var(--bg) 55%,var(--panel));border:1px solid var(--border);flex-wrap:wrap;}
-  .af-seg button,.af-seg label{padding:8px 11px;border-radius:9px;border:0;background:none;font-size:13px;font-weight:800;color:var(--muted);cursor:pointer;white-space:nowrap;position:relative;display:inline-block;}
-  .af-seg .on{background:var(--accent);color:var(--on-accent);}
-  .af-seg label input{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;}
+  .af-when{display:flex;flex-wrap:wrap;gap:8px;}
+  .af-wc{font:inherit;font-size:13px;font-weight:700;padding:9px 15px;border-radius:99px;border:1px solid var(--border);background:none;color:var(--muted);cursor:pointer;white-space:nowrap;position:relative;display:inline-flex;align-items:center;gap:6px;line-height:1.2;}
+  .af-wc:hover{color:var(--text);border-color:var(--accent);}
+  .af-wc.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent);}
+  .af-wc svg{width:14px;height:14px;}
+  .af-wpick{border-style:dashed;}
+  .af-wpick.on{border-style:solid;}
+  .af-wpick input{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;}
   .af-note{font-size:12.5px;color:var(--muted);line-height:1.5;margin-top:12px;}
   .af-link{background:none;border:0;padding:0;color:var(--muted);font-weight:700;font-size:13.5px;cursor:pointer;text-decoration:underline;text-underline-offset:3px;}
   .af-link:hover{color:var(--text);}
@@ -1721,6 +1725,13 @@
   .af-p3 .st.later .dot{background:var(--bg);border:2px solid var(--muted);box-shadow:none;}
   .af-p3 b{display:block;font-size:15px;margin-top:8px;}
   .af-p3 span{font-size:12px;color:var(--muted);}
+  .af-svh{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:6px;font-size:14px;}
+  .af-svh b{font-size:20px;letter-spacing:-.02em;}
+  .af-svbtns{display:flex;gap:6px;}
+  .af-svbtns button{font:inherit;font-size:12px;font-weight:700;padding:4px 11px;border-radius:99px;border:1px solid var(--border);background:none;color:var(--muted);cursor:pointer;}
+  .af-svbtns button:hover{color:var(--text);border-color:var(--green);}
+  .af-range{width:100%;accent-color:var(--green);margin:6px 0 0;}
+  .af-rl{display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted);margin-bottom:8px;}
   .af-pot{height:8px;border-radius:99px;background:color-mix(in srgb,var(--text) 12%,transparent);overflow:hidden;display:flex;margin:2px 0 6px;}
   .af-pot i{display:block;height:100%;}
   .af-pot .keep{background:linear-gradient(90deg,var(--green),#2ab57b);}
@@ -8311,7 +8322,7 @@ function afNeed(M, buys, i){
 function afEval(M, S){
   const buys = afBuys(M, S), first = Math.max(0, buys[0].i);
   let tr = null;
-  if(S.sv){ const x = afNeed(M, buys, first); if(x) tr = {i:first, x}; }
+  if(S.sv){ const x = (S.svX!==undefined && S.svX!==null) ? Math.min(Math.max(0, S.svX), M.pot) : afNeed(M, buys, first); if(x) tr = {i:first, x}; }
   return {buys, tr, first, r: afRun(M, buys, tr), beyond: first>M.simEnd};
 }
 function afEarliest(M, S){
@@ -8406,19 +8417,21 @@ function renderAfford(){
   let date = aff.d ? parseYmd(aff.d) : M.today;
   if(date < M.today) date = M.today;
   aff.d = ymd(date);
-  const S = {a:Math.max(0, Number(aff.a)||0), date, m:aff.m, sv:aff.sv};
+  const S = {a:Math.max(0, Number(aff.a)||0), date, m:aff.m, sv:aff.sv, svX:aff.sv ? aff.svX : undefined};
   const has = S.a>0;
   const base = afRun(M, [], null);
-  const e = has ? afEval(M, S) : null;
+  let e = has ? afEval(M, S) : null;
   const v = has ? e.r.v : null;
-  const hc = v==='yes' ? 'var(--green)' : v==='tight' ? 'var(--amber)' : v==='no' ? 'var(--red)' : 'var(--accent)';
+  const hcOf = x => x==='yes' ? 'var(--green)' : x==='tight' ? 'var(--amber)' : x==='no' ? 'var(--red)' : 'var(--accent)';
+  const hc = hcOf(v);
   const until = M.horizon==='until payday' ? `your next payday (${afWdM(M, M.simEnd)})` : `the end of the month (${afWdM(M, M.simEnd)})`;
   const mon = M.today.toLocaleDateString('en-GB',{month:'long'});
 
   // ----- verdict strip
-  const strip = has
+  const buildStrip = (e)=>{ const v = has ? e.r.v : null; return has
     ? `<div class="af-strip"><div class="af-ico">${ic(v==='yes'?'check':v==='tight'?'warn':'x', 28)}</div><div><h3>${e.tr && v==='yes' ? 'Yes, with savings' : v==='yes' ? 'Yes, go for it' : v==='tight' ? 'You can, but it is tight' : 'Not right now'}</h3><p>${afWhy(M, S, e)}</p></div>${e.r.left!==null ? `<div class="af-num"><span class="af-nk">Left over for ${afMonthName(e.r.tm)}</span><b style="color:var(--hc)">${escapeHtml(fmt(e.r.left))}</b><span>was ${escapeHtml(fmt(e.r.left0))} · lowest balance ${escapeHtml(fmt(e.r.mn.b))}</span></div>` : `<div class="af-num"><span class="af-nk">Lowest balance</span><b style="color:var(--hc)">${escapeHtml(fmt(e.r.mn.b))}</b><span>${afWd(M, e.r.mn.i)}</span></div>`}</div>`
-    : `<div class="af-strip"><div class="af-ico">${ic('q', 28)}</div><div><h3>How much is it?</h3><p>Enter a price and a day. I will check it against your bills, income and savings up to ${until}.</p></div><div class="af-num"><span class="af-nk">Left over for ${mon}</span><b>${escapeHtml(fmt(M.leftBy[M.curKey]))}</b><span>lowest balance ahead ${escapeHtml(fmt(base.mn.b))}</span></div></div>`;
+    : `<div class="af-strip"><div class="af-ico">${ic('q', 28)}</div><div><h3>How much is it?</h3><p>Enter a price and a day. I will check it against your bills, income and savings up to ${until}.</p></div><div class="af-num"><span class="af-nk">Left over for ${mon}</span><b>${escapeHtml(fmt(M.leftBy[M.curKey]))}</b><span>lowest balance ahead ${escapeHtml(fmt(base.mn.b))}</span></div></div>` };
+  const strip = buildStrip(e);
 
   // ----- left column: what you want to buy
   const chips = afDateChips(M);
@@ -8429,7 +8442,7 @@ function renderAfford(){
     <div class="af-chips">${[25,50,100,250,500].map(x=>`<button type="button" data-af="amt" data-v="${x}">${escapeHtml(state.currency)}${x}</button>`).join('')}</div>
     <input type="text" id="afName" class="af-name" placeholder="What is it? (optional)" value="${escapeHtml(aff.name)}" maxlength="60" autocomplete="off">
     <div class="af-lab" style="margin-top:22px;">When</div>
-    <div class="af-seg">${chips.map(c=>`<button type="button" class="${c.i===curI?'on':''}" data-af="when" data-v="${c.i}">${escapeHtml(c.label)}</button>`).join('')}<label class="${custom?'on':''}">${custom ? afWd(M, curI) : 'Pick…'}<input type="date" id="afDate" min="${ymd(M.today)}" value="${aff.d}" aria-label="Pick a date"></label></div>
+    <div class="af-when">${chips.map(c=>`<button type="button" class="af-wc ${c.i===curI?'on':''}" data-af="when" data-v="${c.i}">${escapeHtml(c.label)}</button>`).join('')}<label class="af-wc af-wpick ${custom?'on':''}">${ic('cal')}${custom ? afWd(M, curI) : 'Pick a date'}<input type="date" id="afDate" min="${ymd(M.today)}" value="${aff.d}" aria-label="Pick a date"></label></div>
     <div class="af-note">Looking ahead to ${until}. Safety cushion ${escapeHtml(fmt(M.cushion))} · <button type="button" class="af-link" data-af="cushion">change</button></div>`;
 
   // ----- right column: ways to make it work
@@ -8443,7 +8456,7 @@ function renderAfford(){
     const firstAmt = sc[0].amount;
     const noSv = afEval(M, {...S, sv:false});
     const n = afNeed(M, noSv.buys, noSv.first);
-    const svr = afEval(M, {...S, sv:true});
+    const svr = afEval(M, {...S, sv:true, svX:undefined});
     const best = afEarliest(M, {...S, date:M.today});
     ways = `<div class="af-lab" style="margin-bottom:4px;">Ways to make it work</div>
     <div class="af-way"><div class="af-tl" style="--c:var(--accent)">${ic('cal')}</div><div><b>Pay in 3</b><span class="af-provs">${['klarna','paypal'].map(p=>`<button type="button" class="${aff.prov===p?'on':''}" data-af="prov" data-v="${p}">${p==='klarna'?'Klarna':'PayPal'}</button>`).join('')}</span></div><div class="af-ctl"><button type="button" class="af-tg ${p3on?'on':''}" data-af="p3" role="switch" aria-checked="${p3on}" aria-label="Pay in 3"></button></div>
@@ -8452,7 +8465,7 @@ function renderAfford(){
     </div>
     <div class="af-way"><div class="af-tl" style="--c:var(--green)">${ic('wallet')}</div><div><b>Use some savings</b></div><div class="af-ctl"><button type="button" class="af-tg ${S.sv?'on':''}" data-af="sv" role="switch" aria-checked="${S.sv}" aria-label="Use some savings" ${M.pot<=0?'disabled':''}></button></div>
       <span class="af-d">${M.pot<=0 ? 'Your Savings pot is empty.' : n===0 ? 'Not needed right now.' : n===null ? 'Savings cannot cover it.' : `Moves ${escapeHtml(fmt(n))} over. `}${(S.sv||M.pot<=0||!n)?'':`<span class="af-rc ${afCls(svr.r.v)}">→ ${afWord(svr.r.v)} · lowest ${escapeHtml(fmt(svr.r.mn.b))}</span>`}</span>
-      ${S.sv && e.tr ? `<div class="af-ex">${afPotBar(M.pot, e.tr.x)}</div>` : ''}
+      ${S.sv && M.pot>0 ? (()=>{ const maxX = Math.max(5, Math.floor(Math.min(M.pot, Math.max(S.a, n||0))/5)*5); const cx = e.tr ? e.tr.x : 0; return `<div class="af-ex"><div class="af-svh"><span id="afSvX"><b>${escapeHtml(fmt(cx))}</b> from Savings</span><span class="af-svbtns"><button type="button" data-af="svauto">Just enough${n?' · '+escapeHtml(fmt(n)):''}</button><button type="button" data-af="svfull">Full price</button></span></div><input type="range" class="af-range" id="afSv" min="0" max="${maxX}" step="5" value="${Math.min(cx,maxX)}" aria-label="How much to move from Savings"><div class="af-rl"><span>${escapeHtml(fmt(0))}</span><span>${escapeHtml(fmt(maxX))}</span></div><div id="afSvPot">${afPotBar(M.pot, cx)}</div></div>`; })() : ''}
     </div>
     <div class="af-way"><div class="af-tl" style="--c:var(--amber)">${ic('clock')}</div><div><b>${best===0 ? 'No need to wait' : best===null ? 'No comfortable day this month' : 'Wait until '+afWdM(M, best)}</b></div><div class="af-ctl">${best!==null && best>0 ? `<button type="button" class="af-btn6" data-af="when" data-v="${best}">${curI===best?'✓ Chosen':'Use '+afWd(M, best)}</button>` : ''}</div>
       <span class="af-d">${best>0 ? 'Pay in full, from your own money, once you are above your cushion.' : best===0 ? 'You are fine to buy it today.' : 'Try a smaller amount, or pay in 3.'}</span></div>`;
@@ -8469,32 +8482,46 @@ function renderAfford(){
     }
     bills = `<div class="af-bills"><div class="af-lab" style="margin:14px 0 4px;">Balance after each line</div>${rows.slice(0,24).map(x=>`<div class="af-brow"><span class="d">${afWd(M, x.i)}</span><span style="${x.me?'font-weight:800':''}">${escapeHtml(x.n)}</span><span class="${x.a<0?'':'good'}">${x.a<0?'−':'+'}${escapeHtml(fmt(Math.abs(x.a)))}</span><span class="bal ${x.b<0?'bad':x.b<M.cushion?'warn':''}">${escapeHtml(fmt(x.b))}</span></div>`).join('')}${rows.length>24?`<div class="af-fine">+ ${rows.length-24} more lines</div>`:''}</div>`;
   }
-  const foot = `<div class="af-foot"><button type="button" class="btn ${v && v!=='no'?'green':''}" style="${v==='no'?'opacity:.6':''}" data-af="plan" ${has?'':'disabled'}>${S.m==='pay3'?'Plan as Pay in 3':'Plan this purchase'}</button><button type="button" class="af-link" data-af="reset">Not now</button><div style="flex:1"></div>${has?`<button type="button" class="af-link" data-af="bills">${aff.bills?'Hide':'See'} what it squeezes ${aff.bills?'↑':'↓'}</button>`:''}</div>`;
+  const buildFoot = (v)=>`<div class="af-foot"><button type="button" class="btn ${v && v!=='no'?'green':''}" style="${v==='no'?'opacity:.6':''}" data-af="plan" ${has?'':'disabled'}>${S.m==='pay3'?'Plan as Pay in 3':'Plan this purchase'}</button><button type="button" class="af-link" data-af="reset">Not now</button><div style="flex:1"></div>${has?`<button type="button" class="af-link" data-af="bills">${aff.bills?'Hide':'See'} what it squeezes ${aff.bills?'↑':'↓'}</button>`:''}</div>`;
+  const foot = buildFoot(v);
 
-  el.innerHTML = `<div class="af"><div class="af-sheet" style="--hc:${hc}">${strip}<div class="af-cols"><div>${buy}</div><div>${ways}</div></div>${bills}${foot}</div></div>`;
+  el.innerHTML = `<div class="af"><div class="af-sheet" style="--hc:${hc}"><div id="afStripWrap">${strip}</div><div class="af-cols"><div>${buy}</div><div>${ways}</div></div>${bills}<div id="afFootWrap">${foot}</div></div></div>`;
 
   if(had){ const inp = document.getElementById('afAmt'); if(inp){ inp.focus(); try{ inp.setSelectionRange(caret, caret); }catch(_){} } }
 
   el.onclick = ev=>{
     const t = ev.target.closest('[data-af]'); if(!t) return;
     const a = t.dataset.af, val = t.dataset.v;
-    if(a==='amt'){ aff.a = Number(val)||0; delete aff.aRaw; }
-    else if(a==='when') aff.d = ymd(M.dateOf(Number(val)));
+    if(a==='amt'){ aff.a = Number(val)||0; delete aff.aRaw; delete aff.svX; }
+    else if(a==='when'){ aff.d = ymd(M.dateOf(Number(val))); delete aff.svX; }
     else if(a==='p3') aff.m = aff.m==='pay3' ? 'now' : 'pay3';
-    else if(a==='sv'){ if(t.disabled) return; aff.sv = !aff.sv; }
+    else if(a==='sv'){ if(t.disabled) return; aff.sv = !aff.sv; delete aff.svX; }
+    else if(a==='svauto') delete aff.svX;
+    else if(a==='svfull') aff.svX = Math.min(M.pot, Math.ceil(S.a/5)*5);
     else if(a==='prov') aff.prov = val;
     else if(a==='bills') aff.bills = !aff.bills;
     else if(a==='cushion'){ openAfCushion(); return; }
-    else if(a==='reset'){ aff = {...aff, a:0, d:null, m:'now', sv:false, name:'', bills:false}; delete aff.aRaw; }
+    else if(a==='reset'){ aff = {...aff, a:0, d:null, m:'now', sv:false, name:'', bills:false}; delete aff.aRaw; delete aff.svX; }
     else if(a==='plan'){ if(S.a>0) afPlan(M, S, e); return; }
     renderAfford();
   };
   el.oninput = ev=>{
-    if(ev.target.id==='afAmt'){ aff.aRaw = ev.target.value; aff.a = parseFloat(String(ev.target.value).replace(/[^0-9.]/g,'')) || 0; renderAfford(); }
+    if(ev.target.id==='afSv'){
+      // dragging the Savings slider: refresh just the answer, so the slider itself is never rebuilt mid-drag
+      aff.svX = Number(ev.target.value); S.svX = aff.svX; e = afEval(M, S);
+      const v2 = e.r.v, cx = e.tr ? e.tr.x : 0;
+      el.querySelector('.af-sheet').style.setProperty('--hc', hcOf(v2));
+      document.getElementById('afStripWrap').innerHTML = buildStrip(e);
+      document.getElementById('afFootWrap').innerHTML = buildFoot(v2);
+      document.getElementById('afSvX').innerHTML = `<b>${escapeHtml(fmt(cx))}</b> from Savings`;
+      document.getElementById('afSvPot').innerHTML = afPotBar(M.pot, cx);
+    }
+    else if(ev.target.id==='afAmt'){ aff.aRaw = ev.target.value; aff.a = parseFloat(String(ev.target.value).replace(/[^0-9.]/g,'')) || 0; delete aff.svX; renderAfford(); }
     else if(ev.target.id==='afName') aff.name = ev.target.value;
   };
   el.onchange = ev=>{
-    if(ev.target.id==='afDate' && ev.target.value){ aff.d = ev.target.value; renderAfford(); }
+    if(ev.target.id==='afDate' && ev.target.value){ aff.d = ev.target.value; delete aff.svX; renderAfford(); }
+    else if(ev.target.id==='afSv') renderAfford();   // released: refresh the rest (other ways, bill list)
   };
   const dateIn = document.getElementById('afDate');
   if(dateIn) dateIn.onclick = ()=>{ try{ dateIn.showPicker && dateIn.showPicker(); }catch(_){} };
