@@ -1750,6 +1750,15 @@
   .af-ab{font-size:24px;font-weight:800;letter-spacing:-.03em;line-height:1.15;}
   .af-ab.bad{color:var(--red);} .af-ab.warn{color:var(--amber);}
   .af-ad{font-size:12px;color:var(--muted);}
+  .af-log{margin-top:18px;padding:20px 24px;background:var(--panel);border:1px solid var(--border);border-radius:24px;}
+  .af-lr{display:flex;align-items:center;gap:14px;padding:12px 0;border-top:1px solid var(--border);}
+  .af-lr:first-of-type{border-top:0;}
+  .af-lm{flex:1;min-width:0;}
+  .af-lm b{font-size:15px;}
+  .af-la{font-weight:800;margin-left:8px;}
+  .af-lr.gone{opacity:.55;}
+  .af-lx{flex:none;width:34px;height:34px;border-radius:50%;border:1px solid var(--border);background:none;color:var(--muted);font-size:20px;line-height:1;cursor:pointer;display:grid;place-items:center;padding:0;}
+  .af-lx:hover{color:var(--red);border-color:var(--red);}
   .af-bills{padding:6px 28px 12px;border-top:1px solid var(--border);}
   .af-brow{display:grid;grid-template-columns:84px 1fr auto 90px;gap:10px;padding:9px 0;border-top:1px solid color-mix(in srgb,var(--border) 70%,transparent);font-size:14px;}
   .af-brow:first-of-type{border-top:0;}
@@ -1772,6 +1781,7 @@
     .af-foot{padding:16px 18px;gap:14px;}
     .af-bills{padding:6px 18px 12px;}
     .af-ahead{padding:18px;}
+    .af-log{padding:16px 18px;border-radius:22px;}
     .af-ahead-g{grid-template-columns:1fr;gap:12px;}
     .af-am{padding:0;border-left:0;flex-direction:row;align-items:baseline;gap:10px;flex-wrap:wrap;}
     .af-an{width:78px;flex:none;}
@@ -2168,6 +2178,7 @@ function normalizeState(){
   if(!Array.isArray(state.pay3)) state.pay3 = [];
   if(!state.afford || typeof state.afford!=='object') state.afford = {};
   if(typeof state.afford.cushion!=='number' || state.afford.cushion<0) state.afford.cushion = 100;
+  if(!Array.isArray(state.afford.log)) state.afford.log = [];
   if(!state.ember || typeof state.ember!=='object') state.ember = {};
   if(!Array.isArray(state.ember.seen)) state.ember.seen = [];
   if(typeof state.ember.skin!=='string') state.ember.skin = 'classic';
@@ -2824,8 +2835,10 @@ function addPotTransfer(potKey, type, amount, note, forKey){
   } else {
     m.outgoings.push({id:linkedItemId, name:`To ${potLabel}`, amount, status:'done', recurring:false, category:'Savings & Debt'});
   }
-  state.pots[potKey].manualLedger.push({id:uid(), type, amount, note: note||'', monthKey: tKey, linkedItemId, source:'manual'});
+  const ledgerId = uid();
+  state.pots[potKey].manualLedger.push({id:ledgerId, type, amount, note: note||'', monthKey: tKey, linkedItemId, source:'manual'});
   save();
+  return ledgerId;
 }
 // Returns a function that restores the deleted transfer (ledger entry plus its
 // linked incoming/outgoing item), or undefined if nothing was deleted.
@@ -2948,15 +2961,17 @@ function showToast(title, sub){
 // A deletion removes the item straight away and shows a toast with an Undo
 // button; Ctrl/Cmd+Z undoes the most recent one too.
 const undoStack = [];
-function showUndoToast(label, onUndo, duration){
+function showUndoToast(label, onUndo, duration, opts){
+  opts = opts || {};
   const stack = document.getElementById('toastStack');
   if(!stack) return;
   const el = document.createElement('div');
   el.className = 'toast';
   el.innerHTML = `
-    <div class="toast-icon del">🗑</div>
+    <div class="toast-icon ${opts.title?'ok':'del'}">${opts.title?'✓':'🗑'}</div>
     <div class="toast-body">
-      <div class="toast-title">Deleted ${escapeHtml(label)}</div>
+      <div class="toast-title">${opts.title ? escapeHtml(opts.title) : 'Deleted '+escapeHtml(label)}</div>
+      ${opts.sub ? `<div class="toast-sub">${escapeHtml(opts.sub)}</div>` : ''}
     </div>
     <button class="toast-undo" type="button">Undo</button>
     <button class="toast-close" aria-label="Dismiss">×</button>
@@ -2976,7 +2991,7 @@ function showUndoToast(label, onUndo, duration){
     if(done) return;
     dismiss();
     onUndo();
-    showToast('Restored', label);
+    showToast(opts.after || 'Restored', label);
   };
   entry.run = undo;
   undoStack.push(entry);
@@ -8404,24 +8419,68 @@ function afMake(M, S, e){
   const date = S.date;
   const isToday = M.idxOf(date)===0;
   const did = [];
+  const en = {id:uid(), name, amount:round2(S.a), date:ymd(date), mode:S.m==='pay3'?'pay3':'now', today:isToday, at:Date.now(), potX:0};
   if(S.m==='pay3'){
     const inst = buildPay3Schedule(S.a, 3, 'month', date, isToday);   // the first third is paid at the till
-    state.pay3.push({id:uid(), name, provider:aff.prov, total:round2(S.a), every:'month', inst});
+    const plan = {id:uid(), name, provider:aff.prov, total:round2(S.a), every:'month', inst};
+    state.pay3.push(plan);
     syncPay3All();
+    en.planId = plan.id; en.each = inst[0].amount;
     did.push(`Pay in 3 plan added (${inst.length} × ${fmt(inst[0].amount)}${isToday?', first one paid':''})`);
   } else {
     const mm = ensureMonth(monthKey(date));
-    mm.outgoings.push({id:uid(), name, amount:round2(S.a), status:isToday?'done':'none', recurring:false, category: autoCategoryForName(name, 'Uncategorized', 'out') || 'Uncategorized', day:date.getDate()});
+    const out = {id:uid(), name, amount:round2(S.a), status:isToday?'done':'none', recurring:false, category: autoCategoryForName(name, 'Uncategorized', 'out') || 'Uncategorized', day:date.getDate()};
+    mm.outgoings.push(out);
+    en.outId = out.id; en.outKey = monthKey(date);
     did.push(isToday ? `${fmt(S.a)} marked as paid` : `${fmt(S.a)} scheduled for ${afWdM(M, M.idxOf(date))}`);
   }
   if(e.tr && e.tr.x>0){
-    addPotTransfer('savings', 'out', e.tr.x, 'For '+name, M.curKey);
+    en.potId = addPotTransfer('savings', 'out', e.tr.x, 'For '+name, M.curKey);
+    en.potX = e.tr.x;
     did.push(`${fmt(e.tr.x)} moved out of Savings`);
   }
+  state.afford.log.push(en);
+  if(state.afford.log.length>50) state.afford.log.shift();
   save();
-  showToast('Purchase made · '+name, did.join(' · '));
   aff = {...aff, a:0, d:null, m:'now', sv:false, name:'', bills:false}; delete aff.aRaw; delete aff.svX;
   renderAfford();
+  showUndoToast(name, ()=>{ afRevert(en.id); render(); }, 9000, {title:'Purchase made · '+name, sub:did.join(' · '), after:'Purchase undone'});
+}
+// Reverses a purchase made on this page: removes its bill or Pay in 3 plan and puts any Savings back.
+// Returns a function that re-applies it all (for an Undo), or null if there is nothing to reverse.
+function afRevert(id){
+  const log = state.afford.log, idx = log.findIndex(x=>x.id===id);
+  if(idx<0) return null;
+  const en = log[idx], again = [];
+  if(en.outId){
+    const mm = state.months[en.outKey];
+    const oi = mm ? mm.outgoings.findIndex(o=>o.id===en.outId) : -1;
+    if(oi>=0){ const o = mm.outgoings.splice(oi,1)[0]; again.push(()=>{ const m2 = ensureMonth(en.outKey); m2.outgoings.splice(Math.min(oi, m2.outgoings.length), 0, o); }); }
+  }
+  if(en.planId){
+    const pi = state.pay3.findIndex(p=>p.id===en.planId);
+    if(pi>=0){ const plan = state.pay3[pi]; removePay3Links(plan.id); state.pay3.splice(pi,1); again.push(()=>{ state.pay3.splice(Math.min(pi, state.pay3.length), 0, plan); syncPay3All(); }); }
+  }
+  if(en.potId){ const r = deletePotTransfer('savings', en.potId); if(r) again.push(r); }
+  log.splice(idx,1);
+  save();
+  return ()=>{ again.forEach(f=>f()); state.afford.log.splice(Math.min(idx, state.afford.log.length), 0, en); save(); };
+}
+function afLogHtml(){
+  const log = state.afford.log;
+  if(!log.length) return '';
+  const rows = log.slice().reverse().slice(0,10).map(en=>{
+    const when = new Date(en.at).toLocaleString('en-GB',{day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
+    const day = parseYmd(en.date).toLocaleDateString('en-GB',{weekday:'short', day:'numeric', month:'short'});
+    let how;
+    if(en.mode==='pay3') how = `Pay in 3 · 3 × ${fmt(en.each||en.amount/3)}${en.today?', first paid':', from '+day}`;
+    else how = en.today ? 'Paid today' : 'Scheduled for '+day;
+    if(en.potX>0) how += ` · ${fmt(en.potX)} from Savings`;
+    const mm = en.outId ? state.months[en.outKey] : null;
+    const missing = en.outId ? !(mm && mm.outgoings.some(o=>o.id===en.outId)) : (en.planId ? !state.pay3.some(p=>p.id===en.planId) : false);
+    return `<div class="af-lr${missing?' gone':''}"><div class="af-lm"><b>${escapeHtml(en.name)}</b> <span class="af-la">${escapeHtml(fmt(en.amount))}</span><div class="af-d">${escapeHtml(how)} · made ${escapeHtml(when)}${missing?' · already removed from your trackers':''}</div></div><button type="button" class="af-lx" data-af="logdel" data-id="${en.id}" aria-label="Remove ${escapeHtml(en.name)} and undo it" title="Remove this purchase and undo its changes">×</button></div>`;
+  }).join('');
+  return `<div class="af-log"><div class="af-lab">Purchases made here</div>${rows}${log.length>10?`<div class="af-fine">+ ${log.length-10} older</div>`:''}<div class="af-fine">Tap × to remove a purchase. It takes the bill or Pay in 3 plan back out and returns any Savings.</div></div>`;
 }
 // Warns first when the purchase would make things tight, overdraw you, or cost more than you have right now.
 function afAttempt(M, S, e){
@@ -8448,7 +8507,7 @@ function openAfCushion(){
   const commit = ()=>{
     const v = parseFloat(String(inp.value).replace(/[^0-9.]/g,''));
     bg.classList.remove('open');
-    if(isFinite(v) && v>=0){ state.afford = {cushion:round2(v)}; save(); renderAfford(); }
+    if(isFinite(v) && v>=0){ state.afford.cushion = round2(v); save(); renderAfford(); }
   };
   document.getElementById('modalCancel').onclick = ()=>bg.classList.remove('open');
   document.getElementById('modalOk').onclick = commit;
@@ -8536,7 +8595,7 @@ function renderAfford(){
   const buildFoot = (v)=>`<div class="af-foot"><button type="button" class="btn ${v && v!=='no'?'green':''}" style="${v==='no'?'background:var(--red);box-shadow:none;color:#fff':''}" data-af="plan" ${has?'':'disabled'}>Make the purchase</button><button type="button" class="af-link" data-af="reset">Not now</button><div style="flex:1"></div>${has?`<button type="button" class="af-link" data-af="bills">${aff.bills?'Hide':'See'} what it squeezes ${aff.bills?'↑':'↓'}</button>`:''}</div>`;
   const foot = buildFoot(v);
 
-  el.innerHTML = `<div class="af"><div class="af-sheet" style="--hc:${hc}"><div id="afStripWrap">${strip}</div><div class="af-cols"><div>${buy}</div><div>${ways}</div></div><div id="afAheadWrap">${afAheadHtml(M, e)}</div>${bills}<div id="afFootWrap">${foot}</div></div></div>`;
+  el.innerHTML = `<div class="af"><div class="af-sheet" style="--hc:${hc}"><div id="afStripWrap">${strip}</div><div class="af-cols"><div>${buy}</div><div>${ways}</div></div><div id="afAheadWrap">${afAheadHtml(M, e)}</div>${bills}<div id="afFootWrap">${foot}</div></div>${afLogHtml()}</div>`;
 
   if(had){ const inp = document.getElementById('afAmt'); if(inp){ inp.focus(); try{ inp.setSelectionRange(caret, caret); }catch(_){} } }
 
@@ -8554,6 +8613,13 @@ function renderAfford(){
     else if(a==='cushion'){ openAfCushion(); return; }
     else if(a==='reset'){ aff = {...aff, a:0, d:null, m:'now', sv:false, name:'', bills:false}; delete aff.aRaw; delete aff.svX; }
     else if(a==='plan'){ if(S.a>0) afAttempt(M, S, e); return; }
+    else if(a==='logdel'){
+      const en = state.afford.log.find(x=>x.id===t.dataset.id);
+      const again = afRevert(t.dataset.id);
+      renderAfford();
+      if(en) showUndoToast(en.name, ()=>{ if(again) again(); render(); }, 9000, {title:'Removed · '+en.name, sub:'Its changes have been taken back out', after:'Purchase put back'});
+      return;
+    }
     renderAfford();
   };
   el.oninput = ev=>{
