@@ -1861,6 +1861,65 @@
     .rn-cols>div{padding:18px;}
     .rn-cols>div+div{border-left:0;border-top:1px solid var(--border);}
   }
+  /* ---------- Pots ---------- */
+  .pt{max-width:1060px;margin:0 auto;}
+  .pt-grid{display:grid;grid-template-columns:500px 1fr;gap:28px;align-items:start;}
+  .pt-stage{border-radius:30px;padding:34px 30px 22px;background:radial-gradient(500px 280px at 50% 0%,rgba(255,255,255,.07),transparent 70%),radial-gradient(420px 240px at 15% 100%,rgba(167,139,250,.18),transparent 70%),radial-gradient(420px 240px at 95% 90%,rgba(91,140,255,.18),transparent 70%),#0b0d14;border:1px solid var(--border);}
+  .pt-stack{position:relative;height:330px;}
+  .pt-card{position:absolute;left:0;width:min(440px,100%);height:262px;border-radius:26px;padding:22px 26px;overflow:hidden;color:#0e1430;background:conic-gradient(from var(--ang,110deg) at 50% 50%,#ffb3c7,#ffe7b0,#b8f5cf,#9fd3ff,#d3b8ff,#ffb3c7);border:1px solid rgba(255,255,255,.7);box-shadow:0 24px 60px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.4);transition:transform .35s cubic-bezier(.2,.8,.2,1),top .35s,opacity .35s;transform:perspective(900px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));--mx:50%;--my:30%;top:68px;z-index:2;will-change:transform;}
+  .pt-card.sv{--ang:110deg;} .pt-card.st{--ang:250deg;}
+  .pt-card:before{content:"";position:absolute;inset:0;background:linear-gradient(115deg,rgba(255,255,255,.55),rgba(255,255,255,0) 40%,rgba(255,255,255,.35) 70%);pointer-events:none;}
+  .pt-card.back{top:0;left:34px;z-index:1;transform:scale(.93);opacity:.88;cursor:pointer;}
+  .pt-card.back:hover{opacity:1;}
+  .pt-sh{position:absolute;inset:0;pointer-events:none;background:radial-gradient(420px circle at var(--mx) var(--my),rgba(255,255,255,.4),transparent 55%);mix-blend-mode:soft-light;}
+  .pt-top{position:relative;display:flex;align-items:center;gap:10px;}
+  .pt-logo{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:800;letter-spacing:.16em;}
+  .pt-cl{margin-left:auto;opacity:.85;}
+  .pt-chip{position:relative;width:52px;height:38px;border-radius:9px;margin-top:18px;background:linear-gradient(135deg,#fff1b8,#e0b04a 55%,#f6d98a);box-shadow:inset 0 0 0 1px rgba(120,80,0,.35),0 2px 6px rgba(0,0,0,.25);}
+  .pt-chip:before{content:"";position:absolute;inset:6px 10px;border-radius:4px;border:1px solid rgba(120,80,0,.35);}
+  .pt-chip:after{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(120,80,0,.35);}
+  .pt-nm{position:absolute;left:26px;bottom:78px;font-size:12.5px;font-weight:800;letter-spacing:.18em;opacity:.9;}
+  .pt-bl{position:absolute;left:26px;bottom:24px;font-size:42px;font-weight:800;letter-spacing:-.035em;line-height:1;}
+  .pt-ring{position:absolute;right:24px;bottom:22px;width:78px;height:78px;}
+  .pt-ring .t{position:absolute;inset:0;display:grid;place-items:center;text-align:center;font-size:19px;font-weight:800;line-height:1;}
+  .pt-ring .t small{display:block;font-size:9px;letter-spacing:.08em;font-weight:800;opacity:.85;margin-top:2px;}
+  .pt-hov{display:none;} @media (hover:hover){.pt-hov{display:inline;}}
+  .pt-hint{font-size:12.5px;color:rgba(255,255,255,.55);margin-top:10px;text-align:center;}
+  .pt-k{font-size:11px;font-weight:800;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;}
+  .pt-total{font-size:54px;font-weight:800;letter-spacing:-.05em;line-height:1.05;margin-top:6px;background:linear-gradient(120deg,#6ee7b7,#5b8cff 60%,#a78bfa);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .pt-pill{display:inline-flex;margin-top:12px;padding:6px 13px;border-radius:99px;font-size:13px;font-weight:800;color:var(--green);background:color-mix(in srgb,var(--green) 14%,transparent);}
+  .pt-acts{display:grid;gap:12px;margin-top:18px;}
+  .pt-ab{display:flex;align-items:center;gap:14px;padding:15px 18px;border-radius:20px;border:1px solid var(--border);background:var(--panel);cursor:pointer;font:inherit;color:var(--text);text-align:left;width:100%;}
+  .pt-ab:hover,.pt-ab.on{border-color:var(--c);}
+  .pt-ab .ic{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;flex:none;background:color-mix(in srgb,var(--c) 18%,transparent);color:var(--c);}
+  .pt-ab .ic svg{width:20px;height:20px;}
+  .pt-ab b{display:block;font-size:15px;} .pt-ab .s{font-size:12.5px;color:var(--muted);}
+  .pt-form{margin-top:12px;padding:16px 18px;border-radius:20px;border:1px solid var(--border);background:var(--panel2);}
+  .pt-ft{font-weight:800;font-size:14.5px;margin-bottom:12px;}
+  .pt-fr{display:flex;gap:10px;flex-wrap:wrap;} .pt-fr input[type=text]{flex:1;min-width:140px;}
+  .pt-fh{font-size:12.5px;color:var(--muted);margin-top:10px;line-height:1.45;}
+  .pt-fb{display:flex;justify-content:flex-end;gap:8px;margin-top:14px;}
+  .pt-feed{margin-top:22px;border-radius:24px;border:1px solid var(--border);background:var(--panel);padding:8px 24px 10px;}
+  .pt-fh2{display:flex;align-items:center;padding:16px 0 4px;} .pt-fh2 b{font-size:16px;} .pt-fh2 span{margin-left:auto;font-size:12.5px;color:var(--muted);}
+  .pt-fr2{display:flex;align-items:center;gap:14px;padding:14px 0;border-top:1px solid var(--border);}
+  .pt-fr2:first-of-type{border-top:0;}
+  .pt-fr2 .d{width:40px;height:40px;border-radius:13px;display:grid;place-items:center;flex:none;} .pt-fr2 .d svg{width:18px;height:18px;}
+  .pt-fr2 .d.in{background:color-mix(in srgb,var(--green) 16%,transparent);color:var(--green);} .pt-fr2 .d.out{background:color-mix(in srgb,var(--red) 16%,transparent);color:var(--red);}
+  .pt-fr2 .m{min-width:0;flex:1;} .pt-fr2 b{font-size:15px;display:block;} .pt-fr2 .s{font-size:12.5px;color:var(--muted);}
+  .pt-fr2 .a{font-weight:800;font-size:16px;white-space:nowrap;} .pt-fr2 .a.pos{color:var(--green);} .pt-fr2 .a.neg{color:var(--red);}
+  .pt-x{flex:none;width:30px;height:30px;border-radius:50%;border:1px solid var(--border);background:none;color:var(--muted);cursor:pointer;font-size:13px;padding:0;} .pt-x:hover{color:var(--red);border-color:var(--red);} .pt-x.ph{border-color:transparent;cursor:default;}
+  @media (max-width:860px){
+    .pt-grid{grid-template-columns:1fr;gap:18px;}
+    .pt-stage{padding:20px 14px 14px;border-radius:26px;}
+    .pt-stack{height:250px;}
+    .pt-card{height:196px;padding:16px 18px;border-radius:22px;top:54px;}
+    .pt-card.back{left:0;}
+    .pt-chip{width:40px;height:30px;margin-top:10px;}
+    .pt-nm{left:18px;bottom:60px;font-size:11px;} .pt-bl{left:18px;bottom:16px;font-size:30px;}
+    .pt-ring{right:14px;bottom:14px;width:60px;height:60px;} .pt-ring .t{font-size:15px;}
+    .pt-total{font-size:38px;}
+    .pt-feed{padding:6px 16px 8px;border-radius:22px;}
+  }
 </style>
 </head>
 <body data-theme="midnight">
@@ -9014,92 +9073,89 @@ function renderRecurring(){
 }
 
 // ---------------- Pots ----------------
-function potPanelHtml(potKey, label){
-  const rows = potRows(potKey);
-  return `
-    <div class="panel">
-      <div class="panel-head"><h2>${label}</h2><span class="hint">balance: ${fmt(potBalance(potKey))}</span></div>
-      <div class="field-inline" style="margin-bottom:10px;flex-wrap:wrap;">
-        <input type="number" step="0.01" class="pot-amount-${potKey}" placeholder="Amount" style="max-width:140px;">
-        <select class="pot-dir-${potKey}">
-          <option value="out">Transfer to Current Balance</option>
-          <option value="in">Transfer from Current Balance</option>
-        </select>
-        <input type="text" class="pot-note-${potKey}" placeholder="Note (optional)" style="max-width:200px;">
-        <button class="btn small pot-transfer-${potKey}">Transfer</button>
-      </div>
-      <div class="field-inline" style="margin-bottom:14px;flex-wrap:wrap;">
-        <label style="font-size:12px;color:var(--muted);">Manually set current balance to</label>
-        <input type="number" step="0.01" class="pot-setbal-${potKey}" placeholder="${round2(potBalance(potKey))}" style="max-width:140px;">
-        <button class="btn secondary small pot-setbal-btn-${potKey}">Set balance</button>
-        <span style="font-size:12px;color:var(--muted);">records the difference as an adjustment — doesn't touch Current Balance</span>
-      </div>
-      <table>
-        <thead><tr><th>Month</th><th style="width:60px;">Type</th><th style="width:70px;">Source</th><th>Note</th><th style="width:110px;">Amount</th><th style="width:36px;"></th></tr></thead>
-        <tbody class="pot-body-${potKey}">
-          ${rows.length ? rows.map(r=>`
-            <tr>
-              <td>${monthLabelFromKey(r.month)}</td>
-              <td>${r.type==='in' ? '<span style="color:var(--green);">In</span>' : '<span style="color:var(--red);">Out</span>'}</td>
-              <td>${r.source==='auto'?'Auto':(r.source==='adjustment'?'Adjust':'Manual')}</td>
-              <td>${escapeHtml(r.note)}</td>
-              <td class="amt-cell">${fmt(r.amount)}</td>
-              <td>${r.source!=='auto' ? `<button class="del-btn pot-del-${potKey}" data-id="${r.id}">✕</button>` : ''}</td>
-            </tr>
-          `).join('') : '<tr><td colspan="6" class="empty">No transfers yet</td></tr>'}
-        </tbody>
-      </table>
-    </div>
-  `;
+// Pots page: two holographic wallet cards (tap the one behind to bring it forward), a total, three
+// actions (move out, add in, set balance) and a feed of everything that went in or out.
+let potsAct = null;
+const POT_FLAME = '<svg viewBox="0 0 100 100" width="22" height="22" aria-hidden="true"><path d="M50,97 C24,97 9,79 12,58 C14,45 23,36 31,27 C31,38 35,43 39,45 C36,28 44,13 59,3 C58,20 66,29 74,38 C83,48 89,57 89,67 C89,85 73,97 50,97 Z" fill="currentColor"/></svg>';
+const POT_CONTACTLESS = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 8.5a5 5 0 0 1 0 7M11.5 6a8.5 8.5 0 0 1 0 12M15 3.5a12 12 0 0 1 0 17"/></svg>';
+function potMonthlyBills(){
+  const m = state.months[monthKey(new Date())];
+  return m ? recurringSummaryItems(m).reduce((t,o)=>t+(Number(o.amount)||0), 0) : 0;
 }
-function wirePotPanel(potKey){
-  const amountInp = document.querySelector(`.pot-amount-${potKey}`);
-  const dirSel = document.querySelector(`.pot-dir-${potKey}`);
-  const noteInp = document.querySelector(`.pot-note-${potKey}`);
-  const btn = document.querySelector(`.pot-transfer-${potKey}`);
-  btn.onclick = ()=>{
-    const amt = Number(amountInp.value);
-    if(!amt || amt<=0) return;
-    addPotTransfer(potKey, dirSel.value, amt, noteInp.value);
-    renderPots();
-  };
-  const setBalInp = document.querySelector(`.pot-setbal-${potKey}`);
-  const setBalBtn = document.querySelector(`.pot-setbal-btn-${potKey}`);
-  setBalBtn.onclick = ()=>{
-    if(setBalInp.value === '') return;
-    setPotBalance(potKey, Number(setBalInp.value));
-    renderPots();
-  };
-  document.querySelectorAll(`.pot-del-${potKey}`).forEach(b=>{
-    b.onclick = ()=>{
-      const restore = deletePotTransfer(potKey, b.dataset.id);
-      renderPots();
-      if(restore) showUndoToast('pot transfer', ()=>{ restore(); render(); });
-    };
-  });
+function potCardHtml(key, front, bills){
+  const label = key==='savings' ? 'Savings Pot' : 'Stocks & Shares Pot';
+  const bal = potBalance(key);
+  const mo = bills>0 ? Math.max(0, bal)/bills : null;
+  let ring = '';
+  if(mo!==null){
+    const r = 32, c = 2*Math.PI*r, f = Math.min(1, mo/6);
+    ring = `<div class="pt-ring"><svg viewBox="0 0 80 80" width="100%" height="100%" aria-hidden="true"><circle cx="40" cy="40" r="${r}" fill="none" stroke="rgba(14,20,48,.2)" stroke-width="7"/><circle cx="40" cy="40" r="${r}" fill="none" stroke="#0e1430" stroke-width="7" stroke-linecap="round" stroke-dasharray="${(c*f).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 40 40)"/></svg><div class="t"><div>${mo.toFixed(1)}<small>MONTHS</small></div></div></div>`;
+  }
+  return `<div class="pt-card ${key==='savings'?'sv':'st'}${front?'':' back'}" data-pot="${key}" ${front?'':'role="button" tabindex="0"'} aria-label="${label}, ${escapeHtml(fmt(bal))}"><div class="pt-sh"></div><div class="pt-top"><div class="pt-logo">${POT_FLAME}<span>EMBALANCE</span></div><div class="pt-cl">${POT_CONTACTLESS}</div></div>${front?'<div class="pt-chip"></div>':''}<div class="pt-nm">${label.toUpperCase()}</div><div class="pt-bl">${escapeHtml(fmt(bal))}</div>${ring}</div>`;
 }
 function renderPots(){
   const el = document.getElementById('view-pots');
-  el.innerHTML = `
-    <div class="grid" style="grid-template-columns:repeat(2,1fr);">
-      <div class="card highlight"><div class="k">Savings Pot</div><div class="v pos">${fmt(potBalance('savings'))}</div><div class="sub">total currently in savings</div></div>
-      <div class="card highlight"><div class="k">Stocks &amp; Shares Pot</div><div class="v pos">${fmt(potBalance('stocks'))}</div><div class="sub">total currently invested</div></div>
+  const key = potsTab==='stocks' ? 'stocks' : 'savings', other = key==='savings' ? 'stocks' : 'savings';
+  const name = key==='savings' ? 'Savings' : 'Stocks & Shares';
+  const bills = potMonthlyBills();
+  const total = potBalance('savings') + potBalance('stocks');
+  const monthsAll = bills>0 ? Math.max(0,total)/bills : null;
+  const act = (a, tone, icon, t, sub)=>`<button type="button" class="pt-ab${potsAct===a?' on':''}" data-pa="${a}" style="--c:${tone}"><span class="ic">${iconSvg(icon)}</span><span><b>${t}</b><span class="s">${sub}</span></span></button>`;
+  let form = '';
+  if(potsAct==='move' || potsAct==='add'){
+    form = `<div class="pt-form"><div class="pt-ft">${potsAct==='move' ? `Move money from ${name} to your current balance` : `Add money to ${name} from your current balance`}</div><div class="pt-fr"><label class="sv-amt"><span class="sv-cur">${escapeHtml(state.currency)}</span><input type="number" step="0.01" min="0" id="potAmt" placeholder="Amount" aria-label="Amount"></label><input type="text" id="potNote" placeholder="Note (optional)" maxlength="60" aria-label="Note"></div><div class="pt-fb"><button type="button" class="btn secondary small" data-pa="close">Cancel</button><button type="button" class="btn small" id="potGo">${potsAct==='move'?'Move money':'Add money'}</button></div></div>`;
+  } else if(potsAct==='set'){
+    form = `<div class="pt-form"><div class="pt-ft">Set the ${name} balance to</div><div class="pt-fr"><label class="sv-amt"><span class="sv-cur">${escapeHtml(state.currency)}</span><input type="number" step="0.01" id="potSet" placeholder="${round2(potBalance(key))}" aria-label="New balance"></label></div><div class="pt-fh">Records the difference as an adjustment. It doesn't touch your current balance.</div><div class="pt-fb"><button type="button" class="btn secondary small" data-pa="close">Cancel</button><button type="button" class="btn small" id="potGo">Set balance</button></div></div>`;
+  }
+  const rows = potRows(key).slice().reverse();
+  const feed = rows.length ? rows.map(r=>`<div class="pt-fr2"><div class="d ${r.type==='in'?'in':'out'}">${iconSvg(r.type==='in' ? 'M12 4v12M7 11l5 5 5-5M5 20h14' : 'M12 20V8M7 13l5-5 5 5M5 4h14')}</div><div class="m"><b>${escapeHtml(r.note || (r.type==='in'?'Money in':'Money out'))}</b><span class="s">${escapeHtml(monthLabelFromKey(r.month))} · ${r.source==='auto'?'Auto':(r.source==='adjustment'?'Adjust':'Manual')}</span></div><div class="a ${r.type==='in'?'pos':'neg'}">${r.type==='in'?'+':'−'}${escapeHtml(fmt(r.amount))}</div>${r.source!=='auto' ? `<button type="button" class="pt-x" data-id="${r.id}" aria-label="Delete this entry" title="Delete">✕</button>` : '<span class="pt-x ph"></span>'}</div>`).join('') : '<div class="empty">No transfers yet</div>';
+  el.innerHTML = `<div class="pt">
+    <div class="pt-grid">
+      <div class="pt-stage"><div class="pt-stack">${potCardHtml(other,false,bills)}${potCardHtml(key,true,bills)}</div><div class="pt-hint">Tap the card behind to switch.<span class="pt-hov"> Move your mouse over the front one.</span></div></div>
+      <div class="pt-side"><div class="pt-k">Total in your pots</div><div class="pt-total">${escapeHtml(fmt(total))}</div>${monthsAll!==null?`<div class="pt-pill">${monthsAll.toFixed(1)} months of bills covered</div>`:''}<div class="pt-acts">${act('move','var(--accent)','M7 7h12l-3-3M17 17H5l3 3','Move money','To your current balance')}${act('add','var(--green)','M12 5v14M5 12h14','Add money','From your current balance')}${act('set','var(--amber)','M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4','Set balance','Records the difference')}</div>${form}</div>
     </div>
-    <div class="seg-toggle wide" id="potsTabs" role="tablist">
-      <button class="seg-btn${potsTab==='savings'?' active':''}" role="tab" data-tab="savings">Savings</button>
-      <button class="seg-btn${potsTab==='stocks'?' active':''}" role="tab" data-tab="stocks">Stocks &amp; Shares</button>
-    </div>
-    <div id="potsPanelSavings" class="${potsTab==='savings'?'':'hidden'}">${potPanelHtml('savings','Savings Pot')}</div>
-    <div id="potsPanelStocks" class="${potsTab==='stocks'?'':'hidden'}">${potPanelHtml('stocks','Stocks & Shares Pot')}</div>
-  `;
-  wirePillTabs(document.getElementById('potsTabs'), potsTab, tab=>{
-    potsTab = tab;
-    document.querySelectorAll('#potsTabs .seg-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
-    document.getElementById('potsPanelSavings').classList.toggle('hidden', tab!=='savings');
-    document.getElementById('potsPanelStocks').classList.toggle('hidden', tab!=='stocks');
+    <div class="pt-feed"><div class="pt-fh2"><b>${name} activity</b><span>${rows.length} ${rows.length===1?'entry':'entries'}</span></div>${feed}</div>
+  </div>`;
+
+  // card tilt + swap
+  const front = el.querySelector('.pt-card:not(.back)');
+  if(front && window.matchMedia && !window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+    const base = front.classList.contains('sv') ? 110 : 250;
+    front.addEventListener('pointermove', ev=>{
+      const r = front.getBoundingClientRect(), px = (ev.clientX-r.left)/r.width, py = (ev.clientY-r.top)/r.height;
+      front.style.setProperty('--rx', ((py-.5)*-12).toFixed(1)+'deg'); front.style.setProperty('--ry', ((px-.5)*12).toFixed(1)+'deg');
+      front.style.setProperty('--mx', (px*100)+'%'); front.style.setProperty('--my', (py*100)+'%'); front.style.setProperty('--ang', (base+px*160)+'deg');
+    });
+    front.addEventListener('pointerleave', ()=>{ ['--rx','--ry','--ang'].forEach(v=>front.style.removeProperty(v)); });
+  }
+  const swap = ()=>{ potsTab = potsTab==='stocks' ? 'savings' : 'stocks'; potsAct = null; renderPots(); };
+  const back = el.querySelector('.pt-card.back');
+  if(back){ back.onclick = swap; back.onkeydown = ev=>{ if(ev.key==='Enter' || ev.key===' '){ ev.preventDefault(); swap(); } }; }
+  el.querySelectorAll('[data-pa]').forEach(b=>b.onclick = ()=>{ const a = b.dataset.pa; potsAct = (a==='close' || potsAct===a) ? null : a; renderPots(); if(potsAct){ const f = document.getElementById('potAmt') || document.getElementById('potSet'); if(f) f.focus(); } });
+  const go = document.getElementById('potGo');
+  if(go){
+    const submit = ()=>{
+      if(potsAct==='set'){
+        const v = document.getElementById('potSet').value;
+        if(v==='') return;
+        setPotBalance(key, Number(v));
+        showToast(name+' balance set', fmt(potBalance(key)));
+      } else {
+        const amt = Number(document.getElementById('potAmt').value);
+        if(!amt || amt<=0) return;
+        addPotTransfer(key, potsAct==='move'?'out':'in', amt, document.getElementById('potNote').value);
+        showToast(potsAct==='move' ? 'Moved to your current balance' : 'Added to '+name, fmt(amt));
+      }
+      potsAct = null; renderPots();
+    };
+    go.onclick = submit;
+    el.querySelectorAll('.pt-form input').forEach(i=>i.addEventListener('keydown', ev=>{ if(ev.key==='Enter') submit(); }));
+  }
+  el.querySelectorAll('.pt-x[data-id]').forEach(b=>b.onclick = ()=>{
+    const restore = deletePotTransfer(key, b.dataset.id);
+    renderPots();
+    if(restore) showUndoToast('pot transfer', ()=>{ restore(); render(); });
   });
-  wirePotPanel('savings');
-  wirePotPanel('stocks');
 }
 
 // ---------------- Settings ----------------
