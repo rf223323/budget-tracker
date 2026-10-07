@@ -1659,6 +1659,99 @@
     body.kbd-open .bottom-nav{display:none;}
     body.kbd-open .toast-stack{bottom:12px;}
   }
+  /* ---------- Can I afford it? ---------- */
+  .af{max-width:1060px;margin:0 auto;}
+  .af-sheet{background:var(--panel);border:1px solid var(--border);border-radius:24px;overflow:hidden;--hc:var(--accent);}
+  .af-strip{display:grid;grid-template-columns:auto 1fr auto;gap:20px;align-items:center;padding:24px 28px;background:linear-gradient(95deg,color-mix(in srgb,var(--hc) 20%,transparent),color-mix(in srgb,var(--hc) 3%,transparent) 75%);border-bottom:1px solid var(--border);}
+  .af-ico{width:60px;height:60px;border-radius:50%;display:grid;place-items:center;background:var(--hc);color:#07120d;box-shadow:0 0 0 7px color-mix(in srgb,var(--hc) 20%,transparent),0 0 30px color-mix(in srgb,var(--hc) 55%,transparent);}
+  .af-ico svg{width:28px;height:28px;}
+  .af-strip h3{margin:0;font-size:30px;letter-spacing:-.035em;line-height:1.1;color:var(--hc);}
+  .af-strip p{margin:6px 0 0;font-size:14.5px;line-height:1.5;color:color-mix(in srgb,var(--text) 78%,transparent);}
+  .af-strip p b{color:var(--text);}
+  .af-num{text-align:right;padding-left:24px;border-left:1px solid color-mix(in srgb,var(--hc) 30%,transparent);}
+  .af-num b{display:block;font-size:34px;letter-spacing:-.04em;line-height:1.05;color:var(--hc);}
+  .af-num span{font-size:12px;color:var(--muted);}
+  .af-cols{display:grid;grid-template-columns:350px 1fr;}
+  .af-cols>div{padding:24px 28px;min-width:0;}
+  .af-cols>div+div{border-left:1px solid var(--border);}
+  .af-lab{font-size:11px;font-weight:800;letter-spacing:.12em;color:var(--muted);margin-bottom:10px;text-transform:uppercase;}
+  .af-amt{display:flex;align-items:center;gap:10px;}
+  .af-pm{flex:none;width:44px;height:44px;border-radius:50%;border:1px solid var(--border);background:var(--panel2);color:var(--muted);font-size:22px;line-height:1;cursor:pointer;display:grid;place-items:center;padding:0;}
+  .af-pm:hover{color:var(--text);border-color:var(--accent);}
+  .af-amt input{flex:1;min-width:0;width:100%;text-align:center;font-size:44px;font-weight:800;letter-spacing:-.04em;background:transparent;border:0;border-bottom:2px solid var(--border);border-radius:0;padding:2px 0;color:var(--text);}
+  .af-amt input:focus{outline:none;border-color:var(--hc);}
+  .af-cur{font-size:26px;font-weight:800;color:var(--muted);}
+  .af-chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+  .af-chips button,.af-seg button,.af-link{font:inherit;}
+  .af-chips button{padding:8px 14px;border-radius:99px;border:1px solid var(--border);background:none;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;}
+  .af-chips button:hover{color:var(--text);border-color:var(--accent);}
+  .af-name{width:100%;margin-top:18px;}
+  .af-seg{display:inline-flex;gap:4px;padding:3px;border-radius:12px;background:color-mix(in srgb,var(--bg) 55%,var(--panel));border:1px solid var(--border);flex-wrap:wrap;}
+  .af-seg button,.af-seg label{padding:8px 11px;border-radius:9px;border:0;background:none;font-size:13px;font-weight:800;color:var(--muted);cursor:pointer;white-space:nowrap;position:relative;display:inline-block;}
+  .af-seg .on{background:var(--accent);color:var(--on-accent);}
+  .af-seg label input{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;}
+  .af-note{font-size:12.5px;color:var(--muted);line-height:1.5;margin-top:12px;}
+  .af-link{background:none;border:0;padding:0;color:var(--muted);font-weight:700;font-size:13.5px;cursor:pointer;text-decoration:underline;text-underline-offset:3px;}
+  .af-link:hover{color:var(--text);}
+  .af-way{display:grid;grid-template-columns:42px 1fr auto;gap:2px 14px;align-items:center;padding:17px 0;border-top:1px solid var(--border);}
+  .af-way:first-of-type{border-top:0;padding-top:4px;}
+  .af-tl{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;grid-row:1 / span 2;background:color-mix(in srgb,var(--c) 17%,transparent);color:var(--c);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--c) 32%,transparent);}
+  .af-tl svg{width:20px;height:20px;}
+  .af-way b{font-size:16px;}
+  .af-d{font-size:13px;color:var(--muted);line-height:1.45;}
+  .af-ctl{grid-row:1 / span 2;grid-column:3;}
+  .af-ex{grid-column:2 / 4;margin-top:10px;}
+  .af-rc{font-size:12.5px;font-weight:800;}
+  .af-tg{display:block;width:48px;height:27px;border-radius:99px;background:color-mix(in srgb,var(--text) 22%,transparent);position:relative;border:0;padding:0;cursor:pointer;transition:background .15s;}
+  .af-tg:after{content:"";position:absolute;left:3px;top:3px;width:21px;height:21px;border-radius:50%;background:#fff;transition:left .15s;}
+  .af-tg.on{background:var(--green);}
+  .af-tg.on:after{left:24px;}
+  .af-tg[disabled]{opacity:.4;cursor:not-allowed;}
+  .af-btn6{border:1px solid var(--border);background:none;color:var(--text);border-radius:99px;padding:9px 16px;font:inherit;font-weight:800;font-size:13px;cursor:pointer;white-space:nowrap;}
+  .af-btn6:hover{border-color:var(--accent);color:var(--accent);}
+  .af-provs{display:inline-flex;gap:6px;margin-left:8px;vertical-align:middle;}
+  .af-provs button{font:inherit;font-size:12px;font-weight:700;color:var(--muted);padding:2px 10px;border-radius:99px;border:1px solid var(--border);background:none;cursor:pointer;}
+  .af-provs button.on{color:var(--text);border-color:var(--accent);}
+  .af-p3{display:flex;align-items:flex-start;}
+  .af-p3 .st{flex:1;position:relative;text-align:left;min-width:0;}
+  .af-p3 .st:before{content:"";position:absolute;left:14px;right:-4px;top:7px;height:2px;background:var(--border);}
+  .af-p3 .st:last-child:before{display:none;}
+  .af-p3 .dot{width:16px;height:16px;border-radius:50%;background:var(--green);position:relative;box-shadow:0 0 0 4px color-mix(in srgb,var(--green) 22%,transparent);}
+  .af-p3 .st.later .dot{background:var(--bg);border:2px solid var(--muted);box-shadow:none;}
+  .af-p3 b{display:block;font-size:15px;margin-top:8px;}
+  .af-p3 span{font-size:12px;color:var(--muted);}
+  .af-pot{height:8px;border-radius:99px;background:color-mix(in srgb,var(--text) 12%,transparent);overflow:hidden;display:flex;margin:2px 0 6px;}
+  .af-pot i{display:block;height:100%;}
+  .af-pot .keep{background:linear-gradient(90deg,var(--green),#2ab57b);}
+  .af-pot .take{background:repeating-linear-gradient(45deg,var(--amber),var(--amber) 5px,color-mix(in srgb,var(--amber) 55%,transparent) 5px,color-mix(in srgb,var(--amber) 55%,transparent) 10px);}
+  .af-potl{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);}
+  .af-potl b{color:var(--text);}
+  .af-foot{display:flex;align-items:center;gap:22px;padding:18px 28px;border-top:1px solid var(--border);background:color-mix(in srgb,var(--bg) 38%,var(--panel));flex-wrap:wrap;}
+  .af-foot .btn{height:50px;padding:0 28px;border-radius:99px;font-size:15px;}
+  .af-foot .btn.green{background:linear-gradient(135deg,#3ecf8e,#2ab57b);color:#06231a;box-shadow:0 6px 20px color-mix(in srgb,var(--green) 38%,transparent);}
+  .af-foot .btn[disabled]{opacity:.4;cursor:not-allowed;}
+  .af-bills{padding:6px 28px 12px;border-top:1px solid var(--border);}
+  .af-brow{display:grid;grid-template-columns:84px 1fr auto 90px;gap:10px;padding:9px 0;border-top:1px solid color-mix(in srgb,var(--border) 70%,transparent);font-size:14px;}
+  .af-brow:first-of-type{border-top:0;}
+  .af-brow .d{color:var(--muted);}
+  .af-brow .bal{text-align:right;font-weight:800;}
+  .af .good{color:var(--green);} .af .warn{color:var(--amber);} .af .bad{color:var(--red);}
+  .af-fine{font-size:12px;color:var(--muted);line-height:1.5;margin-top:8px;}
+  @media (max-width:860px){
+    .af-sheet{border-radius:22px;}
+    .af-strip{grid-template-columns:auto 1fr;padding:18px;gap:12px 14px;}
+    .af-ico{width:48px;height:48px;} .af-ico svg{width:24px;height:24px;}
+    .af-strip h3{font-size:23px;} .af-strip p{font-size:13px;}
+    .af-num{grid-column:1 / 3;text-align:left;border-left:0;padding:10px 0 0;border-top:1px solid color-mix(in srgb,var(--hc) 30%,transparent);display:flex;align-items:baseline;gap:10px;}
+    .af-num b{font-size:26px;}
+    .af-cols{grid-template-columns:1fr;}
+    .af-cols>div{padding:18px;}
+    .af-cols>div+div{border-left:0;border-top:1px solid var(--border);}
+    .af-amt input{font-size:38px;}
+    .af-foot{padding:16px 18px;gap:14px;}
+    .af-bills{padding:6px 18px 12px;}
+    .af-brow{grid-template-columns:56px 1fr auto 66px;font-size:12.5px;}
+  }
 </style>
 </head>
 <body data-theme="midnight">
@@ -1691,6 +1784,10 @@
     <div class="nav-item" data-view="pay3">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19"/><path d="M6.5 15h4"/></svg>
       Pay in 3
+    </div>
+    <div class="nav-item" data-view="afford">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.4a2.6 2.6 0 1 1 3.7 2.3c-.8.4-1.2 1-1.2 1.8M12 17h.01"/></svg>
+      Can I afford it?
     </div>
     <div class="nav-item" data-view="trend">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>
@@ -1768,6 +1865,7 @@
     <div id="view-quarterly" class="view hidden"></div>
     <div id="view-recurring" class="view hidden"></div>
     <div id="view-pay3" class="view hidden"></div>
+    <div id="view-afford" class="view hidden"></div>
     <div id="view-pots" class="view hidden"></div>
     <div id="view-settings" class="view hidden"></div>
 
@@ -2042,6 +2140,8 @@ function normalizeState(){
   if(state.theme==='light') state.theme = 'paper';
   if(!THEME_NAMES.includes(state.theme)) state.theme = 'midnight';
   if(!Array.isArray(state.pay3)) state.pay3 = [];
+  if(!state.afford || typeof state.afford!=='object') state.afford = {};
+  if(typeof state.afford.cushion!=='number' || state.afford.cushion<0) state.afford.cushion = 100;
   if(!state.ember || typeof state.ember!=='object') state.ember = {};
   if(!Array.isArray(state.ember.seen)) state.ember.seen = [];
   if(typeof state.ember.skin!=='string') state.ember.skin = 'classic';
@@ -3832,7 +3932,7 @@ function render(){
   const activeProfile = profilesMeta.profiles.find(p=>p.id===profilesMeta.activeId);
   document.getElementById('sfAvatar').textContent = ((activeProfile && activeProfile.name || '?').trim().charAt(0) || '?').toUpperCase();
   renderSyncIndicator();
-  const titles = {month:'Month Tracker', calendar:'Calendar', trend:'Trend', quarterly:'Quarterly', recurring:'Recurring', pay3:'Pay in 3', pots:'Pots', settings:'Settings'};
+  const titles = {month:'Month Tracker', calendar:'Calendar', trend:'Trend', quarterly:'Quarterly', recurring:'Recurring', pay3:'Pay in 3', afford:'Can I afford it?', pots:'Pots', settings:'Settings'};
   document.getElementById('viewTitle').textContent = titles[currentView];
   document.querySelectorAll('.view').forEach(v=>v.classList.add('hidden'));
   document.getElementById('view-'+currentView).classList.remove('hidden');
@@ -3842,6 +3942,7 @@ function render(){
   if(currentView==='quarterly') renderQuarterly();
   if(currentView==='recurring') renderRecurring();
   if(currentView==='pay3') renderPay3();
+  if(currentView==='afford') renderAfford();
   if(currentView==='pots') renderPots();
   if(currentView==='settings') renderSettings();
   document.querySelectorAll('.bn-item').forEach(b=>b.classList.toggle('active', b.dataset.view===currentView));
@@ -8100,6 +8201,268 @@ function renderPay3(){
   });
   el.querySelectorAll('.p3-del').forEach(b=>b.onclick = ()=>deletePay3(b.closest('[data-plan]').dataset.plan));
   bindTrophy(el);
+}
+
+// ---------------- Can I afford it? ----------------
+// Walks your real balance forward day by day to your next payday (bills still to pay, the
+// Weekend budget, planned savings, income still to land), drops a purchase in, and checks
+// the lowest point. Pay in 3 and a Savings top-up are tried the same way.
+const AF_DAY = 86400000;
+let aff = {a:0, d:null, m:'now', prov:'klarna', sv:false, name:'', bills:false};
+const AF_PATHS = {
+  check:'M5 12.5l4.5 4.5L19 7.5', warn:'M12 8v5M12 17h.01M10.3 3.9L2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z',
+  x:'M6 6l12 12M18 6L6 18', q:'M9 9a3 3 0 1 1 4.5 2.6c-.9.5-1.5 1.2-1.5 2.4M12 17h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z',
+  cal:CALENDAR_ICON_PATH, wallet:CATEGORY_ICON_PATHS['Savings & Debt'], clock:'M12 7v5l3 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z'
+};
+function afCushion(){ const c = state.afford ? Number(state.afford.cushion) : NaN; return c>=0 ? c : 100; }
+function afDay(d){ const x = new Date(d); x.setHours(0,0,0,0); return x; }
+function afModel(){
+  const today = afDay(new Date());
+  const curKey = monthKey(today);
+  const cur = state.months[curKey];
+  if(!cur) return null;
+  const dp = daysUntilPayday();
+  const payDate = dp ? new Date(today.getFullYear(), today.getMonth(), today.getDate()+dp) : null;
+  const endDate = payDate || new Date(today.getFullYear(), today.getMonth()+1, 0);
+  const simEnd = Math.round((endDate-today)/AF_DAY);
+  const idxOf = date => Math.round((afDay(date)-today)/AF_DAY);
+  const dateOf = i => new Date(today.getFullYear(), today.getMonth(), today.getDate()+i);
+  const ev = [];
+  const add = (date, name, a, kind)=>{ let i = idxOf(date); if(i<0) i = 0; if(i>simEnd) return; ev.push({i, name, a, kind}); };
+  const keys = [curKey]; if(monthKey(endDate)!==curKey) keys.push(monthKey(endDate));
+  keys.forEach(k=>{
+    const mm = state.months[k]; if(!mm) return;
+    const [y,mo] = k.split('-').map(Number);
+    const dim = new Date(y, mo, 0).getDate();
+    mm.outgoings.forEach(o=>{
+      const amt = Number(o.amount)||0; if(o.status==='done' || amt<=0) return;
+      const day = resolveScheduledDay(o, y, mo);
+      add(new Date(y, mo-1, day||dim), o.name||'Bill', -amt, 'bill');
+    });
+    const firstSat = 1 + ((6 - new Date(y, mo-1, 1).getDay() + 7) % 7);
+    ['week1','week2','week3','week4'].forEach((wk,i)=>{
+      const w = mm.weekly && mm.weekly[wk]; if(!w) return;
+      const amt = Number(w.amount)||0; if(w.status==='done' || amt<=0) return;
+      add(new Date(y, mo-1, firstSat+i*7), 'Weekend · Week '+(i+1), -amt, 'weekend');
+    });
+    [['Savings', mm.savings], ['Stocks & Shares', mm.stocks]].forEach(([n,it])=>{
+      const amt = Number(it && it.amount)||0; if(!it || it.status==='done' || amt<=0) return;
+      add(new Date(y, mo-1, dim), 'To '+n, -amt, 'savings');
+    });
+    mm.incoming.forEach(inc=>{
+      const amt = Number(inc.amount)||0; if(inc.status==='done' || amt<=0) return;
+      const day = resolveScheduledDay(inc, y, mo); if(!day) return;
+      const date = new Date(y, mo-1, day); if(idxOf(date)<0) return;
+      add(date, inc.name||'Income', amt, 'income');
+    });
+  });
+  const byDay = Array.from({length:simEnd+1}, ()=>[]);
+  ev.forEach(e=>byDay[e.i].push(e));
+  return {today, curKey, payDate, simEnd, idxOf, dateOf, ev, byDay, bal0: monthTotals(cur).liveBalance, pot: Math.max(0, potBalance('savings')), cushion: afCushion()};
+}
+function afRun(M, buys, tr){
+  let b = M.bal0; const s = [];
+  for(let i=0;i<=M.simEnd;i++){
+    M.byDay[i].forEach(e=>{ b += e.a; });
+    buys.forEach(p=>{ if(p.i===i) b -= p.a; });
+    if(tr && tr.x && tr.i===i) b += tr.x;
+    s.push(b);
+  }
+  let mi = 0; s.forEach((v,i)=>{ if(v<s[mi]) mi = i; });
+  const mn = round2(s[mi]);
+  const v = mn>=M.cushion ? 'yes' : mn>=0 ? 'tight' : 'no';
+  const worst = M.byDay[mi].filter(e=>e.a<0).sort((a,b)=>a.a-b.a)[0];
+  return {s, mn:{i:mi, b:mn}, v, evn: worst ? worst.name : null};
+}
+function afBuys(M, S){
+  if(S.m==='pay3') return buildPay3Schedule(S.a, 3, 'month', S.date, false).map(x=>({i:M.idxOf(parseYmd(x.date)), a:x.amount, date:parseYmd(x.date)}));
+  return [{i:M.idxOf(S.date), a:S.a, date:S.date}];
+}
+function afNeed(M, buys, i){
+  if(afRun(M, buys, null).v==='yes') return 0;
+  const hi = Math.floor(M.pot/5);
+  if(hi<1 || afRun(M, buys, {i, x:hi*5}).v!=='yes') return null;
+  let lo = 1, h = hi;
+  while(lo<h){ const mid = (lo+h)>>1; if(afRun(M, buys, {i, x:mid*5}).v==='yes') h = mid; else lo = mid+1; }
+  return lo*5;
+}
+function afEval(M, S){
+  const buys = afBuys(M, S), first = Math.max(0, buys[0].i);
+  let tr = null;
+  if(S.sv){ const x = afNeed(M, buys, first); if(x) tr = {i:first, x}; }
+  return {buys, tr, first, r: afRun(M, buys, tr), beyond: first>M.simEnd};
+}
+function afEarliest(M, S){
+  for(let i=0;i<=M.simEnd;i++){ if(afEval(M, {...S, date:M.dateOf(i)}).r.v==='yes') return i; }
+  return null;
+}
+const afWd = (M,i)=>M.dateOf(i).toLocaleDateString('en-GB',{weekday:'short', day:'numeric'});
+const afWdM = (M,i)=>M.dateOf(i).toLocaleDateString('en-GB',{weekday:'short', day:'numeric', month:'short'});
+const afCls = v=>v==='yes'?'good':v==='tight'?'warn':'bad';
+const afWord = v=>v==='yes'?'Yes':v==='tight'?'Tight':'No';
+function afWhy(M, S, e){
+  const until = M.payDate ? 'until payday' : 'until the end of the month';
+  const r = e.r;
+  if(e.beyond) return `That is after your next payday, so nothing planned in the meantime gets in its way.`;
+  if(e.tr && r.v==='yes') return `Moving <b>${escapeHtml(fmt(e.tr.x))}</b> from Savings keeps you at <b>${escapeHtml(fmt(r.mn.b))}</b> or more ${until}.`;
+  if(r.v==='yes') return `Your lowest balance ${until} stays at <b>${escapeHtml(fmt(r.mn.b))}</b>${r.evn?', after '+escapeHtml(r.evn):''}.`;
+  if(r.v==='tight') return `You dip to <b>${escapeHtml(fmt(r.mn.b))}</b> on <b>${afWd(M,r.mn.i)}</b>${r.evn?' (after '+escapeHtml(r.evn)+')':''}, under your ${escapeHtml(fmt(M.cushion))} cushion.`;
+  return `You would be <b>${escapeHtml(fmt(-r.mn.b))} overdrawn</b> on <b>${afWd(M,r.mn.i)}</b>${r.evn?' when '+escapeHtml(r.evn)+' goes out':''}.`;
+}
+function afDateChips(M){
+  const list = [{i:0, label:'Today'}];
+  const delta = (6 - M.today.getDay() + 7) % 7;
+  if(delta>0 && delta<=M.simEnd) list.push({i:delta, label:afWd(M, delta)});
+  const inc = M.ev.filter(e=>e.kind==='income' && e.i>0 && e.i<M.simEnd).sort((a,b)=>a.i-b.i)[0];
+  if(inc) list.push({i:inc.i, label:`${String(inc.name).length>13?String(inc.name).slice(0,12)+'…':inc.name} · ${afWd(M, inc.i)}`});
+  if(M.payDate) list.push({i:M.simEnd, label:`Payday · ${afWd(M, M.simEnd)}`});
+  const seen = new Set();
+  return list.filter(c=>!seen.has(c.i) && seen.add(c.i)).sort((a,b)=>a.i-b.i);
+}
+function afPotBar(pot, x){
+  return `<div class="af-pot"><i class="keep" style="width:${pot>0?(pot-x)/pot*100:0}%"></i><i class="take" style="width:${pot>0?x/pot*100:0}%"></i></div><div class="af-potl"><span>Savings now <b>${escapeHtml(fmt(pot))}</b></span><span>after <b>${escapeHtml(fmt(pot-x))}</b></span></div>`;
+}
+function afPlan(M, S, e){
+  const name = (aff.name||'').trim() || 'Purchase';
+  const date = S.date;
+  let sub;
+  if(S.m==='pay3'){
+    state.pay3.push({id:uid(), name, provider:aff.prov, total:round2(S.a), every:'month', inst:buildPay3Schedule(S.a, 3, 'month', date, false)});
+    syncPay3All();
+    sub = '3 payments added to Pay in 3';
+  } else {
+    const mm = ensureMonth(monthKey(date));
+    mm.outgoings.push({id:uid(), name, amount:round2(S.a), status:'none', recurring:false, category: autoCategoryForName(name, 'Uncategorized', 'out') || 'Uncategorized', day:date.getDate()});
+    sub = 'Added to '+monthLabelFromKey(monthKey(date));
+  }
+  if(e.tr){
+    if(e.tr.i===0 && state.currentMonthKey===M.curKey){ addPotTransfer('savings', 'out', e.tr.x, 'For '+name); sub += ' · '+fmt(e.tr.x)+' moved from Savings'; }
+    else sub += ' · move '+fmt(e.tr.x)+' from Savings on '+afWdM(M, e.tr.i);
+  }
+  save();
+  showToast('Purchase planned', sub);
+  aff = {...aff, a:0, d:null, m:'now', sv:false, name:'', bills:false}; delete aff.aRaw;
+  renderAfford();
+}
+function openAfCushion(){
+  const bg = document.getElementById('modalBg'), box = document.getElementById('modalBox');
+  box.innerHTML = `<h3>Safety cushion</h3><p style="color:var(--muted);font-size:13px;line-height:1.5;margin:0 0 12px;">The least you want left in your account at any point. If a purchase takes you below it, it counts as "tight".</p><input type="text" inputmode="decimal" id="afCushionIn" value="${afCushion()}" style="width:100%;"><div class="actions"><button class="btn secondary small" id="modalCancel">Cancel</button><button class="btn small" id="modalOk">Save</button></div>`;
+  bg.classList.add('open');
+  const inp = document.getElementById('afCushionIn'); inp.focus(); inp.select();
+  const commit = ()=>{
+    const v = parseFloat(String(inp.value).replace(/[^0-9.]/g,''));
+    bg.classList.remove('open');
+    if(isFinite(v) && v>=0){ state.afford = {cushion:round2(v)}; save(); renderAfford(); }
+  };
+  document.getElementById('modalCancel').onclick = ()=>bg.classList.remove('open');
+  document.getElementById('modalOk').onclick = commit;
+  inp.addEventListener('keydown', ev=>{ if(ev.key==='Enter') commit(); });
+}
+function renderAfford(){
+  const el = document.getElementById('view-afford');
+  const M = afModel();
+  const ic = (k,s)=>`<svg viewBox="0 0 24 24" width="${s||20}" height="${s||20}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${AF_PATHS[k]}"/></svg>`;
+  if(!M){
+    el.innerHTML = `<div class="panel"><div class="empty">There is no budget for this month yet. Add this month in the Month Tracker first and then come back to check a purchase.</div></div>`;
+    return;
+  }
+  const had = document.activeElement && document.activeElement.id==='afAmt' ? document.activeElement : null;
+  const caret = had ? had.selectionStart : null;
+  // keep the chosen day valid (never in the past)
+  let date = aff.d ? parseYmd(aff.d) : M.today;
+  if(date < M.today) date = M.today;
+  aff.d = ymd(date);
+  const S = {a:Math.max(0, Number(aff.a)||0), date, m:aff.m, sv:aff.sv};
+  const has = S.a>0;
+  const base = afRun(M, [], null);
+  const e = has ? afEval(M, S) : null;
+  const v = has ? e.r.v : null;
+  const hc = v==='yes' ? 'var(--green)' : v==='tight' ? 'var(--amber)' : v==='no' ? 'var(--red)' : 'var(--accent)';
+  const until = M.payDate ? `your next payday (${afWdM(M, M.simEnd)})` : 'the end of the month';
+
+  // ----- verdict strip
+  const strip = has
+    ? `<div class="af-strip"><div class="af-ico">${ic(v==='yes'?'check':v==='tight'?'warn':'x', 28)}</div><div><h3>${e.tr && v==='yes' ? 'Yes, with savings' : v==='yes' ? 'Yes, go for it' : v==='tight' ? 'You can, but it is tight' : 'Not right now'}</h3><p>${afWhy(M, S, e)}</p></div><div class="af-num"><b>${escapeHtml(fmt(e.r.mn.b))}</b><span>lowest balance · ${afWd(M, e.r.mn.i)}</span></div></div>`
+    : `<div class="af-strip"><div class="af-ico">${ic('q', 28)}</div><div><h3>How much is it?</h3><p>Enter a price and a day. I will check it against your bills, income and savings up to ${until}.</p></div><div class="af-num"><b>${escapeHtml(fmt(base.mn.b))}</b><span>your lowest balance ahead · ${afWd(M, base.mn.i)}</span></div></div>`;
+
+  // ----- left column: what you want to buy
+  const chips = afDateChips(M);
+  const curI = M.idxOf(date);
+  const custom = !chips.some(c=>c.i===curI);
+  const buy = `<div class="af-lab">I want to spend</div>
+    <div class="af-amt"><button type="button" class="af-pm" data-af="amt" data-v="${Math.max(0, round2(S.a-10))}" aria-label="Less">−</button><span class="af-cur">${escapeHtml(state.currency)}</span><input type="text" inputmode="decimal" id="afAmt" placeholder="0" value="${aff.aRaw!==undefined ? escapeHtml(aff.aRaw) : (aff.a ? aff.a : '')}" aria-label="Amount you want to spend" autocomplete="off"><button type="button" class="af-pm" data-af="amt" data-v="${round2(S.a+10)}" aria-label="More">+</button></div>
+    <div class="af-chips">${[25,50,100,250,500].map(x=>`<button type="button" data-af="amt" data-v="${x}">${escapeHtml(state.currency)}${x}</button>`).join('')}</div>
+    <input type="text" id="afName" class="af-name" placeholder="What is it? (optional)" value="${escapeHtml(aff.name)}" maxlength="60" autocomplete="off">
+    <div class="af-lab" style="margin-top:22px;">When</div>
+    <div class="af-seg">${chips.map(c=>`<button type="button" class="${c.i===curI?'on':''}" data-af="when" data-v="${c.i}">${escapeHtml(c.label)}</button>`).join('')}<label class="${custom?'on':''}">${custom ? afWd(M, curI) : 'Pick…'}<input type="date" id="afDate" min="${ymd(M.today)}" value="${aff.d}" aria-label="Pick a date"></label></div>
+    <div class="af-note">Looking ahead to ${until}. Safety cushion ${escapeHtml(fmt(M.cushion))} · <button type="button" class="af-link" data-af="cushion">change</button></div>`;
+
+  // ----- right column: ways to make it work
+  let ways;
+  if(!has){
+    ways = `<div class="af-lab">Ways to make it work</div><div class="af-d" style="font-size:13.5px;line-height:1.55;">Pay in 3, using some savings or waiting for a better day will show up here once you enter a price.</div>`;
+  } else {
+    const p3on = S.m==='pay3';
+    const p3 = afEval(M, {...S, m:'pay3'});
+    const sc = buildPay3Schedule(S.a, 3, 'month', S.date, false);
+    const firstAmt = sc[0].amount;
+    const noSv = afEval(M, {...S, sv:false});
+    const n = afNeed(M, noSv.buys, noSv.first);
+    const svr = afEval(M, {...S, sv:true});
+    const best = afEarliest(M, {...S, date:M.today});
+    ways = `<div class="af-lab" style="margin-bottom:4px;">Ways to make it work</div>
+    <div class="af-way"><div class="af-tl" style="--c:var(--accent)">${ic('cal')}</div><div><b>Pay in 3</b><span class="af-provs">${['klarna','paypal'].map(p=>`<button type="button" class="${aff.prov===p?'on':''}" data-af="prov" data-v="${p}">${p==='klarna'?'Klarna':'PayPal'}</button>`).join('')}</span></div><div class="af-ctl"><button type="button" class="af-tg ${p3on?'on':''}" data-af="p3" role="switch" aria-checked="${p3on}" aria-label="Pay in 3"></button></div>
+      <span class="af-d">${p3on ? '' : `Only ${escapeHtml(fmt(firstAmt))} comes out ${curI===0?'today':'on the day'}. <span class="af-rc ${afCls(p3.r.v)}">→ ${afWord(p3.r.v)} · lowest ${escapeHtml(fmt(p3.r.mn.b))}</span>`}</span>
+      ${p3on ? `<div class="af-ex"><div class="af-p3">${sc.map((x,i)=>{ const di = M.idxOf(parseYmd(x.date)); return `<div class="st ${di>M.simEnd?'later':''}"><div class="dot"></div><b>${escapeHtml(fmt(x.amount))}</b><span>${i===0&&di===0?'today':parseYmd(x.date).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}${di>M.simEnd?' · after payday':''}</span></div>`; }).join('')}</div><div class="af-fine">Subject to approval by Klarna or PayPal. Late fees can apply if you miss a payment.</div></div>` : ''}
+    </div>
+    <div class="af-way"><div class="af-tl" style="--c:var(--green)">${ic('wallet')}</div><div><b>Use some savings</b></div><div class="af-ctl"><button type="button" class="af-tg ${S.sv?'on':''}" data-af="sv" role="switch" aria-checked="${S.sv}" aria-label="Use some savings" ${M.pot<=0?'disabled':''}></button></div>
+      <span class="af-d">${M.pot<=0 ? 'Your Savings pot is empty.' : n===0 ? 'Not needed right now.' : n===null ? 'Savings cannot cover it.' : `Moves ${escapeHtml(fmt(n))} over. `}${(S.sv||M.pot<=0||!n)?'':`<span class="af-rc ${afCls(svr.r.v)}">→ ${afWord(svr.r.v)} · lowest ${escapeHtml(fmt(svr.r.mn.b))}</span>`}</span>
+      ${S.sv && e.tr ? `<div class="af-ex">${afPotBar(M.pot, e.tr.x)}</div>` : ''}
+    </div>
+    <div class="af-way"><div class="af-tl" style="--c:var(--amber)">${ic('clock')}</div><div><b>${best===0 ? 'No need to wait' : best===null ? 'No comfortable day before payday' : 'Wait until '+afWdM(M, best)}</b></div><div class="af-ctl">${best!==null && best>0 ? `<button type="button" class="af-btn6" data-af="when" data-v="${best}">${curI===best?'✓ Chosen':'Use '+afWd(M, best)}</button>` : ''}</div>
+      <span class="af-d">${best>0 ? 'Pay in full, from your own money, once you are above your cushion.' : best===0 ? 'You are fine to buy it today.' : 'Try a smaller amount, or pay in 3.'}</span></div>`;
+  }
+
+  // ----- what it squeezes
+  let bills = '';
+  if(has && aff.bills){
+    let b = M.bal0; const rows = [];
+    for(let i=0;i<=M.simEnd;i++){
+      e.buys.forEach(p=>{ if(p.i===i){ b -= p.a; rows.push({i, n:(aff.name||'').trim() || (S.m==='pay3'?'Pay in 3 payment':'Your purchase'), a:-p.a, b, me:1}); } });
+      if(e.tr && e.tr.i===i){ b += e.tr.x; rows.push({i, n:'From Savings', a:e.tr.x, b, me:1}); }
+      M.byDay[i].forEach(x=>{ b += x.a; rows.push({i, n:x.name, a:x.a, b}); });
+    }
+    bills = `<div class="af-bills"><div class="af-lab" style="margin:14px 0 4px;">Balance after each line</div>${rows.slice(0,24).map(x=>`<div class="af-brow"><span class="d">${afWd(M, x.i)}</span><span style="${x.me?'font-weight:800':''}">${escapeHtml(x.n)}</span><span class="${x.a<0?'':'good'}">${x.a<0?'−':'+'}${escapeHtml(fmt(Math.abs(x.a)))}</span><span class="bal ${x.b<0?'bad':x.b<M.cushion?'warn':''}">${escapeHtml(fmt(x.b))}</span></div>`).join('')}${rows.length>24?`<div class="af-fine">+ ${rows.length-24} more lines</div>`:''}</div>`;
+  }
+  const foot = `<div class="af-foot"><button type="button" class="btn ${v && v!=='no'?'green':''}" style="${v==='no'?'opacity:.6':''}" data-af="plan" ${has?'':'disabled'}>${S.m==='pay3'?'Plan as Pay in 3':'Plan this purchase'}</button><button type="button" class="af-link" data-af="reset">Not now</button><div style="flex:1"></div>${has?`<button type="button" class="af-link" data-af="bills">${aff.bills?'Hide':'See'} what it squeezes ${aff.bills?'↑':'↓'}</button>`:''}</div>`;
+
+  el.innerHTML = `<div class="af"><div class="af-sheet" style="--hc:${hc}">${strip}<div class="af-cols"><div>${buy}</div><div>${ways}</div></div>${bills}${foot}</div></div>`;
+
+  if(had){ const inp = document.getElementById('afAmt'); if(inp){ inp.focus(); try{ inp.setSelectionRange(caret, caret); }catch(_){} } }
+
+  el.onclick = ev=>{
+    const t = ev.target.closest('[data-af]'); if(!t) return;
+    const a = t.dataset.af, val = t.dataset.v;
+    if(a==='amt'){ aff.a = Number(val)||0; delete aff.aRaw; }
+    else if(a==='when') aff.d = ymd(M.dateOf(Number(val)));
+    else if(a==='p3') aff.m = aff.m==='pay3' ? 'now' : 'pay3';
+    else if(a==='sv'){ if(t.disabled) return; aff.sv = !aff.sv; }
+    else if(a==='prov') aff.prov = val;
+    else if(a==='bills') aff.bills = !aff.bills;
+    else if(a==='cushion'){ openAfCushion(); return; }
+    else if(a==='reset'){ aff = {...aff, a:0, d:null, m:'now', sv:false, name:'', bills:false}; delete aff.aRaw; }
+    else if(a==='plan'){ if(S.a>0) afPlan(M, S, e); return; }
+    renderAfford();
+  };
+  el.oninput = ev=>{
+    if(ev.target.id==='afAmt'){ aff.aRaw = ev.target.value; aff.a = parseFloat(String(ev.target.value).replace(/[^0-9.]/g,'')) || 0; renderAfford(); }
+    else if(ev.target.id==='afName') aff.name = ev.target.value;
+  };
+  el.onchange = ev=>{
+    if(ev.target.id==='afDate' && ev.target.value){ aff.d = ev.target.value; renderAfford(); }
+  };
+  const dateIn = document.getElementById('afDate');
+  if(dateIn) dateIn.onclick = ()=>{ try{ dateIn.showPicker && dateIn.showPicker(); }catch(_){} };
 }
 
 // ---------------- Recurring costs summary (subscriptions overview) ----------------
