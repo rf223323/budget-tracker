@@ -2812,18 +2812,19 @@ function setPotBalance(potKey, newBalance){
   });
   save();
 }
-function addPotTransfer(potKey, type, amount, note){
+function addPotTransfer(potKey, type, amount, note, forKey){
   amount = round2(amount);
   if(!amount || amount<=0) return;
   const potLabel = potKey==='savings' ? 'Savings Pot' : 'Stocks & Shares Pot';
-  const m = ensureMonth(state.currentMonthKey);
+  const tKey = forKey || state.currentMonthKey;
+  const m = ensureMonth(tKey);
   const linkedItemId = uid();
   if(type==='out'){
     m.incoming.push({id:linkedItemId, name:`From ${potLabel}`, amount, status:'done', recurring:false, transfer:true, category:'Uncategorized'});
   } else {
     m.outgoings.push({id:linkedItemId, name:`To ${potLabel}`, amount, status:'done', recurring:false, category:'Savings & Debt'});
   }
-  state.pots[potKey].manualLedger.push({id:uid(), type, amount, note: note||'', monthKey: state.currentMonthKey, linkedItemId, source:'manual'});
+  state.pots[potKey].manualLedger.push({id:uid(), type, amount, note: note||'', monthKey: tKey, linkedItemId, source:'manual'});
   save();
 }
 // Returns a function that restores the deleted transfer (ledger entry plus its
@@ -8396,27 +8397,48 @@ function afDateChips(M){
 function afPotBar(pot, x){
   return `<div class="af-pot"><i class="keep" style="width:${pot>0?(pot-x)/pot*100:0}%"></i><i class="take" style="width:${pot>0?x/pot*100:0}%"></i></div><div class="af-potl"><span>Savings now <b>${escapeHtml(fmt(pot))}</b></span><span>after <b>${escapeHtml(fmt(pot-x))}</b></span></div>`;
 }
-function afPlan(M, S, e){
+// Does what the page says: records the purchase (paid today, or scheduled for a later day), starts a
+// Pay in 3 plan, and moves the chosen amount out of the Savings pot, so every tracker reflects it.
+function afMake(M, S, e){
   const name = (aff.name||'').trim() || 'Purchase';
   const date = S.date;
-  let sub;
+  const isToday = M.idxOf(date)===0;
+  const did = [];
   if(S.m==='pay3'){
-    state.pay3.push({id:uid(), name, provider:aff.prov, total:round2(S.a), every:'month', inst:buildPay3Schedule(S.a, 3, 'month', date, false)});
+    const inst = buildPay3Schedule(S.a, 3, 'month', date, isToday);   // the first third is paid at the till
+    state.pay3.push({id:uid(), name, provider:aff.prov, total:round2(S.a), every:'month', inst});
     syncPay3All();
-    sub = '3 payments added to Pay in 3';
+    did.push(`Pay in 3 plan added (${inst.length} × ${fmt(inst[0].amount)}${isToday?', first one paid':''})`);
   } else {
     const mm = ensureMonth(monthKey(date));
-    mm.outgoings.push({id:uid(), name, amount:round2(S.a), status:'none', recurring:false, category: autoCategoryForName(name, 'Uncategorized', 'out') || 'Uncategorized', day:date.getDate()});
-    sub = 'Added to '+monthLabelFromKey(monthKey(date));
+    mm.outgoings.push({id:uid(), name, amount:round2(S.a), status:isToday?'done':'none', recurring:false, category: autoCategoryForName(name, 'Uncategorized', 'out') || 'Uncategorized', day:date.getDate()});
+    did.push(isToday ? `${fmt(S.a)} marked as paid` : `${fmt(S.a)} scheduled for ${afWdM(M, M.idxOf(date))}`);
   }
-  if(e.tr){
-    if(e.tr.i===0 && state.currentMonthKey===M.curKey){ addPotTransfer('savings', 'out', e.tr.x, 'For '+name); sub += ' · '+fmt(e.tr.x)+' moved from Savings'; }
-    else sub += ' · move '+fmt(e.tr.x)+' from Savings on '+afWdM(M, e.tr.i);
+  if(e.tr && e.tr.x>0){
+    addPotTransfer('savings', 'out', e.tr.x, 'For '+name, M.curKey);
+    did.push(`${fmt(e.tr.x)} moved out of Savings`);
   }
   save();
-  showToast('Purchase planned', sub);
-  aff = {...aff, a:0, d:null, m:'now', sv:false, name:'', bills:false}; delete aff.aRaw;
+  showToast('Purchase made · '+name, did.join(' · '));
+  aff = {...aff, a:0, d:null, m:'now', sv:false, name:'', bills:false}; delete aff.aRaw; delete aff.svX;
   renderAfford();
+}
+// Warns first when the purchase would make things tight, overdraw you, or cost more than you have right now.
+function afAttempt(M, S, e){
+  const r = e.r, warns = [];
+  const todayOut = e.buys.filter(p=>p.i===0).reduce((t,p)=>t+p.a, 0);
+  const cashNow = M.bal0 + (e.tr && e.tr.i===0 ? e.tr.x : 0);
+  if(todayOut > cashNow + 0.005) warns.push(`You have <b>${escapeHtml(fmt(Math.max(0, cashNow)))}</b> in your account right now, and <b>${escapeHtml(fmt(todayOut))}</b> comes out today.`);
+  if(r.v==='no' || r.v==='tight') warns.push(afWhy(M, S, e));
+  if(!warns.length){ afMake(M, S, e); return; }
+  const bg = document.getElementById('modalBg'), box = document.getElementById('modalBox');
+  box.innerHTML = `<h3>${r.v==='no' ? 'This will put you short' : 'Before you go ahead'}</h3>
+    <div style="font-size:13.5px;line-height:1.55;">${warns.map(w=>`<p style="margin:0 0 10px;">${w}</p>`).join('')}</div>
+    <p style="font-size:13px;color:var(--muted);margin:4px 0 0;">Make the purchase anyway?</p>
+    <div class="actions"><button class="btn secondary small" id="modalCancel">Go back</button><button class="btn danger small" id="modalOk">Make the purchase anyway</button></div>`;
+  bg.classList.add('open');
+  document.getElementById('modalCancel').onclick = ()=>bg.classList.remove('open');
+  document.getElementById('modalOk').onclick = ()=>{ bg.classList.remove('open'); afMake(M, S, e); };
 }
 function openAfCushion(){
   const bg = document.getElementById('modalBg'), box = document.getElementById('modalBox');
@@ -8511,7 +8533,7 @@ function renderAfford(){
     }
     bills = `<div class="af-bills"><div class="af-lab" style="margin:14px 0 4px;">Balance after each line</div>${rows.slice(0,24).map(x=>`<div class="af-brow"><span class="d">${afWd(M, x.i)}</span><span style="${x.me?'font-weight:800':''}">${escapeHtml(x.n)}</span><span class="${x.a<0?'':'good'}">${x.a<0?'−':'+'}${escapeHtml(fmt(Math.abs(x.a)))}</span><span class="bal ${x.b<0?'bad':x.b<M.cushion?'warn':''}">${escapeHtml(fmt(x.b))}</span></div>`).join('')}${rows.length>24?`<div class="af-fine">+ ${rows.length-24} more lines</div>`:''}</div>`;
   }
-  const buildFoot = (v)=>`<div class="af-foot"><button type="button" class="btn ${v && v!=='no'?'green':''}" style="${v==='no'?'opacity:.6':''}" data-af="plan" ${has?'':'disabled'}>${S.m==='pay3'?'Plan as Pay in 3':'Plan this purchase'}</button><button type="button" class="af-link" data-af="reset">Not now</button><div style="flex:1"></div>${has?`<button type="button" class="af-link" data-af="bills">${aff.bills?'Hide':'See'} what it squeezes ${aff.bills?'↑':'↓'}</button>`:''}</div>`;
+  const buildFoot = (v)=>`<div class="af-foot"><button type="button" class="btn ${v && v!=='no'?'green':''}" style="${v==='no'?'background:var(--red);box-shadow:none;color:#fff':''}" data-af="plan" ${has?'':'disabled'}>Make the purchase</button><button type="button" class="af-link" data-af="reset">Not now</button><div style="flex:1"></div>${has?`<button type="button" class="af-link" data-af="bills">${aff.bills?'Hide':'See'} what it squeezes ${aff.bills?'↑':'↓'}</button>`:''}</div>`;
   const foot = buildFoot(v);
 
   el.innerHTML = `<div class="af"><div class="af-sheet" style="--hc:${hc}"><div id="afStripWrap">${strip}</div><div class="af-cols"><div>${buy}</div><div>${ways}</div></div><div id="afAheadWrap">${afAheadHtml(M, e)}</div>${bills}<div id="afFootWrap">${foot}</div></div></div>`;
@@ -8531,7 +8553,7 @@ function renderAfford(){
     else if(a==='bills') aff.bills = !aff.bills;
     else if(a==='cushion'){ openAfCushion(); return; }
     else if(a==='reset'){ aff = {...aff, a:0, d:null, m:'now', sv:false, name:'', bills:false}; delete aff.aRaw; delete aff.svX; }
-    else if(a==='plan'){ if(S.a>0) afPlan(M, S, e); return; }
+    else if(a==='plan'){ if(S.a>0) afAttempt(M, S, e); return; }
     renderAfford();
   };
   el.oninput = ev=>{
