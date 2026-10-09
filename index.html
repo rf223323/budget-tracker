@@ -1827,6 +1827,7 @@
   .rn-tg button.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent);}
   .rn-tg button.pool.on{background:color-mix(in srgb,var(--pc) 22%,transparent);border-color:var(--pc);color:var(--text);}
   .rn-top{padding:18px 28px 6px;display:grid;gap:8px;}
+  .rn-cnt{display:none;font-size:12.5px;color:var(--muted);text-align:center;} .rn-cnt b{color:var(--text);}
   .rn-cols{display:grid;grid-template-columns:1fr 1.05fr;margin-top:12px;}
   .rn-cols>div{padding:22px 28px;min-width:0;}
   .rn-cols>div+div{border-left:1px solid var(--border);}
@@ -1857,6 +1858,9 @@
     .rn-sheet{border-radius:22px;}
     .rn-band{padding:18px;} .rn-mega{font-size:52px;}
     .rn-top{padding:16px 18px 4px;}
+    .rn-tg{flex-wrap:nowrap;gap:6px;} .rn-tg button{flex:1;padding:9px 4px;font-size:12.5px;font-weight:800;white-space:nowrap;text-align:center;}
+    .rn-tg button .pa,.rn-tg button .pk,.rn-tg button .pf{display:none;}
+    .rn-cnt{display:block;}
     .rn-cols{grid-template-columns:1fr;}
     .rn-cols>div{padding:18px;}
     .rn-cols>div+div{border-left:0;border-top:1px solid var(--border);}
@@ -9058,7 +9062,7 @@ function renderRunway(){
   const H = heroHtml();
   const poolNames = ['cash'].concat(rwS.sav?['Savings']:[], rwS.stk?['Stocks']:[], rwS.bnd?['Premium Bonds']:[]);
   const poolsOn = poolNames.length>1 ? poolNames.slice(0,-1).join(', ')+' and '+poolNames[poolNames.length-1] : 'cash only';
-  const top = `<div class="rn-top"><div class="rn-tg"><button type="button" class="${!rwS.wk?'on':''}" data-rw="wk0">Bills only</button><button type="button" class="${rwS.wk?'on':''}" data-rw="wk1">Bills + weekend budget</button></div><div class="rn-tg"><button type="button" class="pool on" style="--pc:var(--accent);cursor:default">Cash ${escapeHtml(fmt(D.cash))}</button><button type="button" class="pool ${rwS.sav?'on':''}" style="--pc:var(--green)" data-rw="sav">${rwS.sav?'✓ ':''}Savings ${escapeHtml(fmt(D.sav))}</button><button type="button" class="pool ${rwS.stk?'on':''}" style="--pc:var(--amber)" data-rw="stk">${rwS.stk?'✓ ':''}Stocks ${escapeHtml(fmt(D.stk))}</button><button type="button" class="pool ${rwS.bnd?'on':''}" style="--pc:#a78bfa" data-rw="bnd">${rwS.bnd?'✓ ':''}Premium Bonds ${escapeHtml(fmt(D.bnd))}</button></div></div>`;
+  const top = `<div class="rn-top"><div class="rn-tg"><button type="button" class="${!rwS.wk?'on':''}" data-rw="wk0">Bills only</button><button type="button" class="${rwS.wk?'on':''}" data-rw="wk1">Bills + weekend budget</button></div><div class="rn-tg"><button type="button" class="pool on" style="--pc:var(--accent);cursor:default">Cash<span class="pa"> ${escapeHtml(fmt(D.cash))}</span></button><button type="button" class="pool ${rwS.sav?'on':''}" style="--pc:var(--green)" data-rw="sav"><span class="pk">${rwS.sav?'✓ ':''}</span>Savings<span class="pa"> ${escapeHtml(fmt(D.sav))}</span></button><button type="button" class="pool ${rwS.stk?'on':''}" style="--pc:var(--amber)" data-rw="stk"><span class="pk">${rwS.stk?'✓ ':''}</span>Stocks<span class="pa"> ${escapeHtml(fmt(D.stk))}</span></button><button type="button" class="pool ${rwS.bnd?'on':''}" style="--pc:#a78bfa" data-rw="bnd"><span class="pk">${rwS.bnd?'✓ ':''}</span><span class="pf">Premium </span>Bonds<span class="pa"> ${escapeHtml(fmt(D.bnd))}</span></button></div><div class="rn-cnt">Counting <b>${escapeHtml(fmt(C0.pool))}</b></div></div>`;
   const mx = D.bills[0].amount;
   const rows = D.bills.map(b=>`<div class="rn-row ${rwS.cut[b.id]?'cut':''}"><div class="rn-day">${b.day||'·'}</div><div><div class="nm" style="font-weight:700;">${escapeHtml(b.name)}</div><div class="rn-bar"><i style="width:${b.amount/mx*100}%"></i></div></div><div style="font-weight:800;">${escapeHtml(fmt(b.amount))}</div><button type="button" class="rn-sw ${rwS.cut[b.id]?'on':''}" data-rw="cut" data-id="${b.id}" role="switch" aria-checked="${!!rwS.cut[b.id]}" aria-label="Cut ${escapeHtml(b.name)}"></button></div>`).join('');
   const subs = D.bills.filter(b=>b.cat==='Subscriptions').reduce((t,b)=>t+b.amount,0);
