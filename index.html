@@ -1867,9 +1867,10 @@
   .pt-stage{border-radius:30px;padding:34px 30px 22px;background:radial-gradient(500px 280px at 50% 0%,rgba(255,255,255,.07),transparent 70%),radial-gradient(420px 240px at 15% 100%,rgba(167,139,250,.18),transparent 70%),radial-gradient(420px 240px at 95% 90%,rgba(91,140,255,.18),transparent 70%),#0b0d14;border:1px solid var(--border);}
   .pt-stack{position:relative;height:330px;}
   .pt-card{position:absolute;left:0;width:min(440px,100%);height:262px;border-radius:26px;padding:22px 26px;overflow:hidden;color:#0e1430;background:conic-gradient(from var(--ang,110deg) at 50% 50%,#ffb3c7,#ffe7b0,#b8f5cf,#9fd3ff,#d3b8ff,#ffb3c7);border:1px solid rgba(255,255,255,.7);box-shadow:0 24px 60px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.4);transition:transform .35s cubic-bezier(.2,.8,.2,1),top .35s,opacity .35s;transform:perspective(900px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));--mx:50%;--my:30%;top:68px;z-index:2;will-change:transform;}
-  .pt-card.sv{--ang:110deg;} .pt-card.st{--ang:250deg;}
+  .pt-card.sv{--ang:110deg;} .pt-card.st{--ang:250deg;} .pt-card.pb{--ang:330deg;}
   .pt-card:before{content:"";position:absolute;inset:0;background:linear-gradient(115deg,rgba(255,255,255,.55),rgba(255,255,255,0) 40%,rgba(255,255,255,.35) 70%);pointer-events:none;}
-  .pt-card.back{top:0;left:34px;z-index:1;transform:scale(.93);opacity:.88;cursor:pointer;}
+  .pt-card.back{top:30px;left:22px;z-index:1;transform:scale(.93);opacity:.88;cursor:pointer;}
+  .pt-card.back.b2{top:0;left:44px;z-index:0;transform:scale(.86);opacity:.72;}
   .pt-card.back:hover{opacity:1;}
   .pt-sh{position:absolute;inset:0;pointer-events:none;background:radial-gradient(420px circle at var(--mx) var(--my),rgba(255,255,255,.4),transparent 55%);mix-blend-mode:soft-light;}
   .pt-top{position:relative;display:flex;align-items:center;gap:10px;}
@@ -1896,7 +1897,7 @@
   .pt-ab b{display:block;font-size:15px;} .pt-ab .s{font-size:12.5px;color:var(--muted);}
   .pt-form{margin-top:12px;padding:16px 18px;border-radius:20px;border:1px solid var(--border);background:var(--panel2);}
   .pt-ft{font-weight:800;font-size:14.5px;margin-bottom:12px;}
-  .pt-fr{display:flex;gap:10px;flex-wrap:wrap;} .pt-fr input[type=text]{flex:1;min-width:140px;}
+  .pt-fr{display:flex;gap:10px;flex-wrap:wrap;} .pt-fr input[type=text]{flex:1;min-width:140px;} .pt-fr select{flex:1 1 100%;}
   .pt-fh{font-size:12.5px;color:var(--muted);margin-top:10px;line-height:1.45;}
   .pt-fb{display:flex;justify-content:flex-end;gap:8px;margin-top:14px;}
   .pt-feed{margin-top:22px;border-radius:24px;border:1px solid var(--border);background:var(--panel);padding:8px 24px 10px;}
@@ -1913,7 +1914,7 @@
     .pt-stage{padding:20px 14px 14px;border-radius:26px;}
     .pt-stack{height:250px;}
     .pt-card{height:196px;padding:16px 18px;border-radius:22px;top:54px;}
-    .pt-card.back{left:0;}
+    .pt-card.back{top:26px;left:0;} .pt-card.back.b2{top:0;left:22px;}
     .pt-chip{width:40px;height:30px;margin-top:10px;}
     .pt-nm{left:18px;bottom:60px;font-size:11px;} .pt-bl{left:18px;bottom:16px;font-size:30px;}
     .pt-ring{right:14px;bottom:14px;width:60px;height:60px;} .pt-ring .t{font-size:15px;}
@@ -2356,6 +2357,7 @@ function normalizeState(){
   if(!state.pots) state.pots = {};
   if(!state.pots.savings) state.pots.savings = {manualLedger:[]};
   if(!state.pots.stocks) state.pots.stocks = {manualLedger:[]};
+  if(!state.pots.bonds) state.pots.bonds = {manualLedger:[]};
   Object.values(state.months).forEach(m=>{
     if(!m.stocks) m.stocks = {amount:0, status:'none'};
     if(typeof m.adjustment !== 'number') m.adjustment = 0;
@@ -2911,10 +2913,19 @@ function pay3Summary(){
 }
 
 // ---------------- Pots (Savings / Stocks & Shares) ----------------
+// Savings and Stocks & Shares are fed from the month tracker; Premium Bonds only moves by transfers.
+const POT_KEYS = ['savings','stocks','bonds'];
+const POT_DEFS = {
+  savings:{label:'Savings Pot', short:'Savings', cls:'sv', auto:'savings'},
+  stocks:{label:'Stocks & Shares Pot', short:'Stocks & Shares', cls:'st', auto:'stocks'},
+  bonds:{label:'Premium Bonds Pot', short:'Premium Bonds', cls:'pb', auto:null}
+};
+function potAutoItem(m, potKey){ const a = POT_DEFS[potKey].auto; return a ? m[a] : null; }
+function potTotal(){ return POT_KEYS.reduce((t,k)=>t+potBalance(k), 0); }
 function potBalance(potKey){
   let auto = 0;
   Object.values(state.months).forEach(m=>{
-    const item = potKey==='savings' ? m.savings : m.stocks;
+    const item = potAutoItem(m, potKey);
     if(item && item.status==='done') auto += Number(item.amount)||0;
   });
   let manual = 0;
@@ -2927,7 +2938,7 @@ function potRows(potKey){
   const rows = [];
   Object.keys(state.months).sort().forEach(k=>{
     const m = state.months[k];
-    const item = potKey==='savings' ? m.savings : m.stocks;
+    const item = potAutoItem(m, potKey);
     if(item && item.status==='done' && Number(item.amount)>0){
       rows.push({month:k, type:'in', source:'auto', note: potKey==='savings' ? 'Add to Savings' : 'Move to Stocks & Shares', amount:Number(item.amount)});
     }
@@ -2957,8 +2968,8 @@ function potBalanceSeriesPlanned(potKey, monthKeys){
   const monthDelta = {};
   monthKeys.forEach(k=>{
     const m = state.months[k];
-    const item = potKey==='savings' ? m.savings : m.stocks;
-    const amt = Number(item.amount)||0;
+    const item = potAutoItem(m, potKey);
+    const amt = item ? Number(item.amount)||0 : 0;
     if(amt) monthDelta[k] = (monthDelta[k]||0) + amt;
   });
   (state.pots[potKey].manualLedger||[]).forEach(e=>{
@@ -2983,7 +2994,7 @@ function setPotBalance(potKey, newBalance){
 function addPotTransfer(potKey, type, amount, note, forKey){
   amount = round2(amount);
   if(!amount || amount<=0) return;
-  const potLabel = potKey==='savings' ? 'Savings Pot' : 'Stocks & Shares Pot';
+  const potLabel = POT_DEFS[potKey].label;
   const tKey = forKey || state.currentMonthKey;
   const m = ensureMonth(tKey);
   const linkedItemId = uid();
@@ -2997,6 +3008,17 @@ function addPotTransfer(potKey, type, amount, note, forKey){
   save();
   return ledgerId;
 }
+// Moves money between two pots. Your current balance isn't touched, so it only writes a matching
+// pair of ledger entries (each one remembers the other so they are deleted together).
+function transferBetweenPots(fromKey, toKey, amount, note){
+  amount = round2(amount);
+  if(!amount || amount<=0 || fromKey===toKey) return;
+  const tKey = state.currentMonthKey, outId = uid(), inId = uid();
+  const extra = note ? ' \u2014 '+note : '';
+  state.pots[fromKey].manualLedger.push({id:outId, type:'out', amount, note:'To '+POT_DEFS[toKey].short+extra, monthKey:tKey, source:'transfer', pairId:inId, pairPot:toKey});
+  state.pots[toKey].manualLedger.push({id:inId, type:'in', amount, note:'From '+POT_DEFS[fromKey].short+extra, monthKey:tKey, source:'transfer', pairId:outId, pairPot:fromKey});
+  save();
+}
 // Returns a function that restores the deleted transfer (ledger entry plus its
 // linked incoming/outgoing item), or undefined if nothing was deleted.
 function deletePotTransfer(potKey, entryId){
@@ -3004,6 +3026,19 @@ function deletePotTransfer(potKey, entryId){
   const ledgerIdx = ledger.findIndex(e=>e.id===entryId);
   if(ledgerIdx<0) return;
   const entry = ledger[ledgerIdx];
+  if(entry.pairId && entry.pairPot && state.pots[entry.pairPot]){
+    const otherLedger = state.pots[entry.pairPot].manualLedger;
+    const otherIdx = otherLedger.findIndex(e=>e.id===entry.pairId);
+    const other = otherIdx>=0 ? otherLedger[otherIdx] : null;
+    state.pots[potKey].manualLedger = ledger.filter(e=>e.id!==entryId);
+    if(other) state.pots[entry.pairPot].manualLedger = otherLedger.filter(e=>e.id!==entry.pairId);
+    save();
+    return ()=>{
+      const l = state.pots[potKey].manualLedger.slice(); l.splice(Math.min(ledgerIdx, l.length), 0, entry); state.pots[potKey].manualLedger = l;
+      if(other){ const o = state.pots[entry.pairPot].manualLedger.slice(); o.splice(Math.min(otherIdx, o.length), 0, other); state.pots[entry.pairPot].manualLedger = o; }
+      save();
+    };
+  }
   const m = state.months[entry.monthKey];
   const listKey = entry.type==='out' ? 'incoming' : 'outgoings';
   let linked = null, linkedIdx = -1;
@@ -5373,7 +5408,7 @@ function emberStats(){
   const xpToNext = lvlFloor(level+1)-xp;
   // badges
   const earned = {};
-  const pots = round2(potBalance('savings') + potBalance('stocks'));
+  const pots = round2(potTotal());
   earned.k1 = pots>=1000;
   earned.s7 = best>=7; earned.s30 = best>=30;
   earned.sc80 = monthRows.some(x=>x.sc.score>=80);
@@ -6673,8 +6708,10 @@ function renderTrend(){
   const keys = Object.keys(state.months).sort();
   const savingsSeries = potBalanceSeries('savings', keys);
   const stocksSeries = potBalanceSeries('stocks', keys);
+  const bondsSeries = potBalanceSeries('bonds', keys);
   const plannedSavingsSeries = potBalanceSeriesPlanned('savings', keys);
   const plannedStocksSeries = potBalanceSeriesPlanned('stocks', keys);
+  const plannedBondsSeries = potBalanceSeriesPlanned('bonds', keys);
   const totals = keys.map(k=>monthTotals(state.months[k]));
   const liveBalances = totals.map(t=>t.liveBalance);
   const totalLeftOvers = totals.map(t=>t.totalLeftOver);
@@ -6683,8 +6720,8 @@ function renderTrend(){
   const idxs = trendWindow(keys);
   const todayIdx = idxs.indexOf(keys.indexOf(monthKey(new Date())));
   const chartMarker = todayIdx>=0 ? {index:todayIdx, label:'Today'} : null;
-  const actualNetWorth = keys.map((k,i)=>round2(liveBalances[i] + savingsSeries[i] + stocksSeries[i]));
-  const projectedNetWorth = keys.map((k,i)=>round2(totals[i].projectedCash + plannedSavingsSeries[i] + plannedStocksSeries[i]));
+  const actualNetWorth = keys.map((k,i)=>round2(liveBalances[i] + savingsSeries[i] + stocksSeries[i] + bondsSeries[i]));
+  const projectedNetWorth = keys.map((k,i)=>round2(totals[i].projectedCash + plannedSavingsSeries[i] + plannedStocksSeries[i] + plannedBondsSeries[i]));
   const enough = keys.length>=2;
   const noTrend = '<div class="empty">Track at least two months to see a trend line.</div>';
   const legendHtml = `
@@ -6776,6 +6813,10 @@ function renderTrend(){
           <div id="stocksPotChart"></div>
           ${legendHtml}
         </div>
+        <div class="panel">
+          <div class="panel-head"><h2>Premium Bonds Pot</h2><span class="hint">running balance</span></div>
+          <div id="bondsPotChart"></div>
+        </div>
       </div>`;
   } else {
     pane = `
@@ -6784,8 +6825,8 @@ function renderTrend(){
         <div class="mt-wrap">
         <table class="mt-table">
           <thead>
-            <tr class="mt-group"><th class="mt-sticky"></th><th colspan="7"><span class="mt-g mt-g-a">Each month</span></th><th colspan="4"><span class="mt-g mt-g-b">Net worth</span></th></tr>
-            <tr><th class="mt-sticky">Month</th><th class="amt-cell">Starting</th><th class="amt-cell">Current (live)</th><th class="amt-cell">Incoming</th><th class="amt-cell">Weekend</th><th class="amt-cell">Outgoings</th><th class="amt-cell">Savings</th><th class="amt-cell">Left over</th><th class="amt-cell">Savings pot</th><th class="amt-cell">Stocks pot</th><th class="amt-cell">Actual</th><th class="amt-cell">Projected</th></tr>
+            <tr class="mt-group"><th class="mt-sticky"></th><th colspan="7"><span class="mt-g mt-g-a">Each month</span></th><th colspan="5"><span class="mt-g mt-g-b">Net worth</span></th></tr>
+            <tr><th class="mt-sticky">Month</th><th class="amt-cell">Starting</th><th class="amt-cell">Current (live)</th><th class="amt-cell">Incoming</th><th class="amt-cell">Weekend</th><th class="amt-cell">Outgoings</th><th class="amt-cell">Savings</th><th class="amt-cell">Left over</th><th class="amt-cell">Savings pot</th><th class="amt-cell">Stocks pot</th><th class="amt-cell">Bonds pot</th><th class="amt-cell">Actual</th><th class="amt-cell">Projected</th></tr>
           </thead>
           <tbody>
             ${keys.map((k,i)=>{
@@ -6795,7 +6836,7 @@ function renderTrend(){
               const [yy, mo] = k.split('-').map(Number);
               const mname = new Date(yy, mo-1, 1).toLocaleString('en-GB',{month:'long'});
               const c = (v, cls)=>`<td class="amt-cell${cls?' '+cls:''}${Math.abs(Number(v)||0)<0.005?' zero':''}">${fmt(v)}</td>`;
-              return `<tr class="${k===curK?'cur':''}${k>curK?' future':''}"><td class="mt-sticky"><div class="mt-m"><b>${mname}</b><span>${yy}</span>${tag}</div></td>${c(mm.startingBalance)}${c(tt.liveBalance)}${c(tt.allIncoming,'pos')}${c(tt.weeklyTotal,'neg')}${c(tt.allOutgoing,'neg')}${c(tt.savingsAmount)}${c(tt.totalLeftOver, tt.totalLeftOver>=0?'pos strong':'neg strong')}${c(savingsSeries[i])}${c(stocksSeries[i])}${c(actualNetWorth[i])}<td class="amt-cell proj">${fmt(projectedNetWorth[i])}</td></tr>`;
+              return `<tr class="${k===curK?'cur':''}${k>curK?' future':''}"><td class="mt-sticky"><div class="mt-m"><b>${mname}</b><span>${yy}</span>${tag}</div></td>${c(mm.startingBalance)}${c(tt.liveBalance)}${c(tt.allIncoming,'pos')}${c(tt.weeklyTotal,'neg')}${c(tt.allOutgoing,'neg')}${c(tt.savingsAmount)}${c(tt.totalLeftOver, tt.totalLeftOver>=0?'pos strong':'neg strong')}${c(savingsSeries[i])}${c(stocksSeries[i])}${c(bondsSeries[i])}${c(actualNetWorth[i])}<td class="amt-cell proj">${fmt(projectedNetWorth[i])}</td></tr>`;
             }).join('')}
           </tbody>
         </table>
@@ -6835,9 +6876,11 @@ function renderTrend(){
     if(!enough){
       document.getElementById('savingsPotChart').innerHTML = noTrend;
       document.getElementById('stocksPotChart').innerHTML = noTrend;
+      document.getElementById('bondsPotChart').innerHTML = noTrend;
     } else {
       lineChart(document.getElementById('savingsPotChart'), pair(savingsSeries, plannedSavingsSeries), {height:210, marker:chartMarker});
       lineChart(document.getElementById('stocksPotChart'), pair(stocksSeries, plannedStocksSeries), {height:210, marker:chartMarker});
+      lineChart(document.getElementById('bondsPotChart'), pair(bondsSeries, plannedBondsSeries), {height:210, marker:chartMarker});
     }
   }
 }
@@ -9192,8 +9235,8 @@ function potMonthlyBills(){
   const m = state.months[monthKey(new Date())];
   return m ? recurringSummaryItems(m).reduce((t,o)=>t+(Number(o.amount)||0), 0) : 0;
 }
-function potCardHtml(key, front, bills){
-  const label = key==='savings' ? 'Savings Pot' : 'Stocks & Shares Pot';
+function potCardHtml(key, front, bills, depth){
+  const label = POT_DEFS[key].label;
   const bal = potBalance(key);
   const mo = bills>0 ? Math.max(0, bal)/bills : null;
   let ring = '';
@@ -9201,28 +9244,32 @@ function potCardHtml(key, front, bills){
     const r = 32, c = 2*Math.PI*r, f = Math.min(1, mo/6);
     ring = `<div class="pt-ring"><svg viewBox="0 0 80 80" width="100%" height="100%" aria-hidden="true"><circle cx="40" cy="40" r="${r}" fill="none" stroke="rgba(14,20,48,.2)" stroke-width="7"/><circle cx="40" cy="40" r="${r}" fill="none" stroke="#0e1430" stroke-width="7" stroke-linecap="round" stroke-dasharray="${(c*f).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 40 40)"/></svg><div class="t"><div>${mo.toFixed(1)}<small>MONTHS</small></div></div></div>`;
   }
-  return `<div class="pt-card ${key==='savings'?'sv':'st'}${front?'':' back'}" data-pot="${key}" ${front?'':'role="button" tabindex="0"'} aria-label="${label}, ${escapeHtml(fmt(bal))}"><div class="pt-sh"></div><div class="pt-top"><div class="pt-logo">${POT_FLAME}<span>EMBALANCE</span></div><div class="pt-cl">${POT_CONTACTLESS}</div></div>${front?'<div class="pt-chip"></div>':''}<div class="pt-nm">${label.toUpperCase()}</div><div class="pt-bl">${escapeHtml(fmt(bal))}</div>${ring}</div>`;
+  return `<div class="pt-card ${POT_DEFS[key].cls}${front?'':' back'+(depth===2?' b2':'')}" data-pot="${key}" ${front?'':'role="button" tabindex="0"'} aria-label="${label}, ${escapeHtml(fmt(bal))}"><div class="pt-sh"></div><div class="pt-top"><div class="pt-logo">${POT_FLAME}<span>EMBALANCE</span></div><div class="pt-cl">${POT_CONTACTLESS}</div></div>${front?'<div class="pt-chip"></div>':''}<div class="pt-nm">${label.toUpperCase()}</div><div class="pt-bl">${escapeHtml(fmt(bal))}</div>${ring}</div>`;
 }
 function renderPots(){
   const el = document.getElementById('view-pots');
-  const key = potsTab==='stocks' ? 'stocks' : 'savings', other = key==='savings' ? 'stocks' : 'savings';
-  const name = key==='savings' ? 'Savings' : 'Stocks & Shares';
+  const key = POT_KEYS.includes(potsTab) ? potsTab : 'savings';
+  const next1 = POT_KEYS[(POT_KEYS.indexOf(key)+1)%3], next2 = POT_KEYS[(POT_KEYS.indexOf(key)+2)%3];
+  const name = POT_DEFS[key].short;
   const bills = potMonthlyBills();
-  const total = potBalance('savings') + potBalance('stocks');
+  const total = potTotal();
   const monthsAll = bills>0 ? Math.max(0,total)/bills : null;
   const act = (a, tone, icon, t, sub)=>`<button type="button" class="pt-ab${potsAct===a?' on':''}" data-pa="${a}" style="--c:${tone}"><span class="ic">${iconSvg(icon)}</span><span><b>${t}</b><span class="s">${sub}</span></span></button>`;
   let form = '';
-  if(potsAct==='move' || potsAct==='add'){
+  if(potsAct==='transfer'){
+    const opts = [next1,next2].map(k=>`<option value="${k}">${escapeHtml(POT_DEFS[k].short)} (${escapeHtml(fmt(potBalance(k)))})</option>`).join('');
+    form = `<div class="pt-form"><div class="pt-ft">Transfer from ${name} (${escapeHtml(fmt(potBalance(key)))}) to another pot</div><div class="pt-fr"><select id="potTo" aria-label="Transfer to">${opts}</select><label class="sv-amt"><span class="sv-cur">${escapeHtml(state.currency)}</span><input type="number" step="0.01" min="0" id="potAmt" placeholder="Amount" aria-label="Amount"></label><input type="text" id="potNote" placeholder="Note (optional)" maxlength="60" aria-label="Note"></div><div class="pt-fh">Your current balance isn't touched.</div><div class="pt-fb"><button type="button" class="btn secondary small" data-pa="close">Cancel</button><button type="button" class="btn small" id="potGo">Transfer</button></div></div>`;
+  } else if(potsAct==='move' || potsAct==='add'){
     form = `<div class="pt-form"><div class="pt-ft">${potsAct==='move' ? `Move money from ${name} to your current balance` : `Add money to ${name} from your current balance`}</div><div class="pt-fr"><label class="sv-amt"><span class="sv-cur">${escapeHtml(state.currency)}</span><input type="number" step="0.01" min="0" id="potAmt" placeholder="Amount" aria-label="Amount"></label><input type="text" id="potNote" placeholder="Note (optional)" maxlength="60" aria-label="Note"></div><div class="pt-fb"><button type="button" class="btn secondary small" data-pa="close">Cancel</button><button type="button" class="btn small" id="potGo">${potsAct==='move'?'Move money':'Add money'}</button></div></div>`;
   } else if(potsAct==='set'){
     form = `<div class="pt-form"><div class="pt-ft">Set the ${name} balance to</div><div class="pt-fr"><label class="sv-amt"><span class="sv-cur">${escapeHtml(state.currency)}</span><input type="number" step="0.01" id="potSet" placeholder="${round2(potBalance(key))}" aria-label="New balance"></label></div><div class="pt-fh">Records the difference as an adjustment. It doesn't touch your current balance.</div><div class="pt-fb"><button type="button" class="btn secondary small" data-pa="close">Cancel</button><button type="button" class="btn small" id="potGo">Set balance</button></div></div>`;
   }
   const rows = potRows(key).slice().reverse();
-  const feed = rows.length ? rows.map(r=>`<div class="pt-fr2"><div class="d ${r.type==='in'?'in':'out'}">${iconSvg(r.type==='in' ? 'M12 4v12M7 11l5 5 5-5M5 20h14' : 'M12 20V8M7 13l5-5 5 5M5 4h14')}</div><div class="m"><b>${escapeHtml(r.note || (r.type==='in'?'Money in':'Money out'))}</b><span class="s">${escapeHtml(monthLabelFromKey(r.month))} · ${r.source==='auto'?'Auto':(r.source==='adjustment'?'Adjust':'Manual')}</span></div><div class="a ${r.type==='in'?'pos':'neg'}">${r.type==='in'?'+':'−'}${escapeHtml(fmt(r.amount))}</div>${r.source!=='auto' ? `<button type="button" class="pt-x" data-id="${r.id}" aria-label="Delete this entry" title="Delete">✕</button>` : '<span class="pt-x ph"></span>'}</div>`).join('') : '<div class="empty">No transfers yet</div>';
+  const feed = rows.length ? rows.map(r=>`<div class="pt-fr2"><div class="d ${r.type==='in'?'in':'out'}">${iconSvg(r.type==='in' ? 'M12 4v12M7 11l5 5 5-5M5 20h14' : 'M12 20V8M7 13l5-5 5 5M5 4h14')}</div><div class="m"><b>${escapeHtml(r.note || (r.type==='in'?'Money in':'Money out'))}</b><span class="s">${escapeHtml(monthLabelFromKey(r.month))} · ${r.source==='auto'?'Auto':(r.source==='adjustment'?'Adjust':(r.source==='transfer'?'Transfer':'Manual'))}</span></div><div class="a ${r.type==='in'?'pos':'neg'}">${r.type==='in'?'+':'−'}${escapeHtml(fmt(r.amount))}</div>${r.source!=='auto' ? `<button type="button" class="pt-x" data-id="${r.id}" aria-label="Delete this entry" title="Delete">✕</button>` : '<span class="pt-x ph"></span>'}</div>`).join('') : '<div class="empty">No transfers yet</div>';
   el.innerHTML = `<div class="pt">
     <div class="pt-grid">
-      <div class="pt-stage"><div class="pt-stack">${potCardHtml(other,false,bills)}${potCardHtml(key,true,bills)}</div><div class="pt-hint">Tap the card behind to switch.<span class="pt-hov"> Move your mouse over the front one.</span></div></div>
-      <div class="pt-side"><div class="pt-k">Total in your pots</div><div class="pt-total">${escapeHtml(fmt(total))}</div>${monthsAll!==null?`<div class="pt-pill">${monthsAll.toFixed(1)} months of bills covered</div>`:''}<div class="pt-acts">${act('move','var(--accent)','M7 7h12l-3-3M17 17H5l3 3','Move money','To your current balance')}${act('add','var(--green)','M12 5v14M5 12h14','Add money','From your current balance')}${act('set','var(--amber)','M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4','Set balance','Records the difference')}</div>${form}</div>
+      <div class="pt-stage"><div class="pt-stack">${potCardHtml(next2,false,bills,2)}${potCardHtml(next1,false,bills,1)}${potCardHtml(key,true,bills)}</div><div class="pt-hint">Tap the card behind to switch.<span class="pt-hov"> Move your mouse over the front one.</span></div></div>
+      <div class="pt-side"><div class="pt-k">Total in your pots</div><div class="pt-total">${escapeHtml(fmt(total))}</div>${monthsAll!==null?`<div class="pt-pill">${monthsAll.toFixed(1)} months of bills covered</div>`:''}<div class="pt-acts">${act('move','var(--accent)','M7 7h12l-3-3M17 17H5l3 3','Move money','To your current balance')}${act('add','var(--green)','M12 5v14M5 12h14','Add money','From your current balance')}${act('transfer','var(--violet,#a78bfa)','M7 16V4M3 8l4-4 4 4M17 8v12M21 16l-4 4-4-4','Transfer','To another pot')}${act('set','var(--amber)','M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4','Set balance','Records the difference')}</div>${form}</div>
     </div>
     <div class="pt-feed"><div class="pt-fh2"><b>${name} activity</b><span>${rows.length} ${rows.length===1?'entry':'entries'}</span></div>${feed}</div>
   </div>`;
@@ -9238,9 +9285,10 @@ function renderPots(){
     });
     front.addEventListener('pointerleave', ()=>{ ['--rx','--ry','--ang'].forEach(v=>front.style.removeProperty(v)); });
   }
-  const swap = ()=>{ potsTab = potsTab==='stocks' ? 'savings' : 'stocks'; potsAct = null; renderPots(); };
-  const back = el.querySelector('.pt-card.back');
-  if(back){ back.onclick = swap; back.onkeydown = ev=>{ if(ev.key==='Enter' || ev.key===' '){ ev.preventDefault(); swap(); } }; }
+  el.querySelectorAll('.pt-card.back').forEach(back=>{
+    const swap = ()=>{ potsTab = back.dataset.pot; potsAct = null; renderPots(); };
+    back.onclick = swap; back.onkeydown = ev=>{ if(ev.key==='Enter' || ev.key===' '){ ev.preventDefault(); swap(); } };
+  });
   el.querySelectorAll('[data-pa]').forEach(b=>b.onclick = ()=>{ const a = b.dataset.pa; potsAct = (a==='close' || potsAct===a) ? null : a; renderPots(); if(potsAct){ const f = document.getElementById('potAmt') || document.getElementById('potSet'); if(f) f.focus(); } });
   const go = document.getElementById('potGo');
   if(go){
@@ -9250,6 +9298,12 @@ function renderPots(){
         if(v==='') return;
         setPotBalance(key, Number(v));
         showToast(name+' balance set', fmt(potBalance(key)));
+      } else if(potsAct==='transfer'){
+        const amt = Number(document.getElementById('potAmt').value), to = document.getElementById('potTo').value;
+        if(!amt || amt<=0) return;
+        if(amt > potBalance(key)+0.005){ showToast('Not enough in '+name, 'Only '+fmt(potBalance(key))+' there'); return; }
+        transferBetweenPots(key, to, amt, document.getElementById('potNote').value.trim());
+        showToast('Moved to '+POT_DEFS[to].short, fmt(amt));
       } else {
         const amt = Number(document.getElementById('potAmt').value);
         if(!amt || amt<=0) return;
