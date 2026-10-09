@@ -8982,7 +8982,7 @@ function renderAfford(){
 // How long your money would last if no income came in: cash + (optionally) Savings and Stocks,
 // spread over your recurring bills (and, if you want, your Weekend budget). Changes you try here
 // (cut a bill, a one-off purchase, a new monthly cost) are only what-ifs and never touch your budget.
-let rwS = {wk:false, sav:true, stk:false, cut:{}, extra:0, addM:0};
+let rwS = {wk:false, sav:true, stk:false, bnd:false, cut:{}, extra:0, addM:0};
 function rwData(){
   const today = afDay(new Date());
   const m = state.months[monthKey(today)];
@@ -8990,10 +8990,10 @@ function rwData(){
   const tot = monthTotals(m);
   const bills = recurringSummaryItems(m).filter(o=>(Number(o.amount)||0)>0).map(o=>({id:o.id, name:o.name||'Bill', amount:Number(o.amount)||0, cat:o.category||'Other', item:o, day:o.day||null}));
   bills.sort((a,b)=>b.amount-a.amount);
-  return {today, m, cash:Math.max(0, tot.liveBalance), sav:Math.max(0, potBalance('savings')), stk:Math.max(0, potBalance('stocks')), bills, weeklyTotal:tot.weeklyTotal};
+  return {today, m, cash:Math.max(0, tot.liveBalance), sav:Math.max(0, potBalance('savings')), stk:Math.max(0, potBalance('stocks')), bnd:Math.max(0, potBalance('bonds')), bills, weeklyTotal:tot.weeklyTotal};
 }
 function rwCalc(D){
-  const pool = D.cash + (rwS.sav ? D.sav : 0) + (rwS.stk ? D.stk : 0);
+  const pool = D.cash + (rwS.sav ? D.sav : 0) + (rwS.stk ? D.stk : 0) + (rwS.bnd ? D.bnd : 0);
   const kept = D.bills.filter(b=>!rwS.cut[b.id]);
   const wkM = rwS.wk ? D.weeklyTotal*13/12 : 0;
   const baseMonthly = D.bills.reduce((t,b)=>t+b.amount,0) + wkM;
@@ -9048,18 +9048,19 @@ function renderRunway(){
   };
   const C0 = rwCalc(D);
   const H = heroHtml();
-  const poolsOn = rwS.stk ? 'cash, Savings and Stocks' : rwS.sav ? 'cash and Savings' : 'cash only';
-  const top = `<div class="rn-top"><div class="rn-tg"><button type="button" class="${!rwS.wk?'on':''}" data-rw="wk0">Bills only</button><button type="button" class="${rwS.wk?'on':''}" data-rw="wk1">Bills + weekend budget</button></div><div class="rn-tg"><button type="button" class="pool on" style="--pc:var(--accent);cursor:default">Cash ${escapeHtml(fmt(D.cash))}</button><button type="button" class="pool ${rwS.sav?'on':''}" style="--pc:var(--green)" data-rw="sav">${rwS.sav?'✓ ':''}Savings ${escapeHtml(fmt(D.sav))}</button><button type="button" class="pool ${rwS.stk?'on':''}" style="--pc:var(--amber)" data-rw="stk">${rwS.stk?'✓ ':''}Stocks ${escapeHtml(fmt(D.stk))}</button></div></div>`;
+  const poolNames = ['cash'].concat(rwS.sav?['Savings']:[], rwS.stk?['Stocks']:[], rwS.bnd?['Premium Bonds']:[]);
+  const poolsOn = poolNames.length>1 ? poolNames.slice(0,-1).join(', ')+' and '+poolNames[poolNames.length-1] : 'cash only';
+  const top = `<div class="rn-top"><div class="rn-tg"><button type="button" class="${!rwS.wk?'on':''}" data-rw="wk0">Bills only</button><button type="button" class="${rwS.wk?'on':''}" data-rw="wk1">Bills + weekend budget</button></div><div class="rn-tg"><button type="button" class="pool on" style="--pc:var(--accent);cursor:default">Cash ${escapeHtml(fmt(D.cash))}</button><button type="button" class="pool ${rwS.sav?'on':''}" style="--pc:var(--green)" data-rw="sav">${rwS.sav?'✓ ':''}Savings ${escapeHtml(fmt(D.sav))}</button><button type="button" class="pool ${rwS.stk?'on':''}" style="--pc:var(--amber)" data-rw="stk">${rwS.stk?'✓ ':''}Stocks ${escapeHtml(fmt(D.stk))}</button><button type="button" class="pool ${rwS.bnd?'on':''}" style="--pc:#a78bfa" data-rw="bnd">${rwS.bnd?'✓ ':''}Premium Bonds ${escapeHtml(fmt(D.bnd))}</button></div></div>`;
   const mx = D.bills[0].amount;
   const rows = D.bills.map(b=>`<div class="rn-row ${rwS.cut[b.id]?'cut':''}"><div class="rn-day">${b.day||'·'}</div><div><div class="nm" style="font-weight:700;">${escapeHtml(b.name)}</div><div class="rn-bar"><i style="width:${b.amount/mx*100}%"></i></div></div><div style="font-weight:800;">${escapeHtml(fmt(b.amount))}</div><button type="button" class="rn-sw ${rwS.cut[b.id]?'on':''}" data-rw="cut" data-id="${b.id}" role="switch" aria-checked="${!!rwS.cut[b.id]}" aria-label="Cut ${escapeHtml(b.name)}"></button></div>`).join('');
   const subs = D.bills.filter(b=>b.cat==='Subscriptions').reduce((t,b)=>t+b.amount,0);
   const maxEx = Math.max(1000, Math.ceil(C0.pool/1000)*1000);
   const squeeze = ()=>{
-    if(!rwS.sav && !rwS.stk) return '';
+    if(!rwS.sav && !rwS.stk && !rwS.bnd) return '';
     const r = rwCashSim(D, D.cash);
     if(!r) return `<div class="rn-note ok"><div class="bg">✓</div><div>Your cash on its own covers your bills for the next two years.</div></div>`;
     const last = new Date(r.date.getTime()-86400000);
-    return `<div class="rn-note"><div class="bg">!</div><div>Your cash alone covers you until <b>${fd(last)}</b>. On ${fd(r.date)} your ${rwS.wk?'bills and weekend budget':'bills'} come to <b>${escapeHtml(fmt(r.short))}</b> more than you have in your account, so you would lean on ${rwS.stk?'savings and stocks':'savings'} from then.</div></div>`;
+    return `<div class="rn-note"><div class="bg">!</div><div>Your cash alone covers you until <b>${fd(last)}</b>. On ${fd(r.date)} your ${rwS.wk?'bills and weekend budget':'bills'} come to <b>${escapeHtml(fmt(r.short))}</b> more than you have in your account, so you would lean on your ${(l=>l.length>1 ? l.slice(0,-1).join(', ')+' and '+l[l.length-1] : l[0])([rwS.sav&&'savings', rwS.stk&&'stocks', rwS.bnd&&'Premium Bonds'].filter(Boolean))} from then.</div></div>`;
   };
   const right = `<div class="rn-k" style="margin-bottom:10px;">What if I buy… (once)</div><div class="rn-slide"><input type="range" id="rwEx" min="0" max="${maxEx}" step="50" value="${Math.min(rwS.extra,maxEx)}" aria-label="One-off purchase"><b id="rwExV">${escapeHtml(fmt(rwS.extra))}</b></div><div class="rn-sub" id="rwExN" style="font-size:14.5px;">${rwS.extra && isFinite(C0.lost)?`That costs <b>${C0.lost} days</b> of runway.`:'Slide to see how many days a purchase costs.'}</div>
     <div class="rn-k" style="margin:26px 0 10px;">What if I add a monthly cost…</div><div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;"><div class="rn-stp"><button type="button" data-rw="am" data-v="-25" aria-label="Less">−</button><b>${escapeHtml(fmt(rwS.addM))}</b><button type="button" data-rw="am" data-v="25" aria-label="More">+</button></div><span class="rn-hint">a month, for example car finance</span></div>
@@ -9074,6 +9075,7 @@ function renderRunway(){
     if(a==='wk0') rwS.wk = false; else if(a==='wk1') rwS.wk = true;
     else if(a==='sav'){ rwS.sav = !rwS.sav; if(!rwS.sav) rwS.stk = false; }
     else if(a==='stk'){ rwS.stk = !rwS.stk; if(rwS.stk) rwS.sav = true; }
+    else if(a==='bnd') rwS.bnd = !rwS.bnd;
     else if(a==='cut') rwS.cut[t.dataset.id] = !rwS.cut[t.dataset.id];
     else if(a==='am') rwS.addM = Math.max(0, rwS.addM + Number(t.dataset.v));
     else if(a==='reset') rwS = {...rwS, cut:{}, extra:0, addM:0};
