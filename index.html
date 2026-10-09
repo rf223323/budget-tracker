@@ -1872,6 +1872,12 @@
   .pt-card.back{top:30px;left:22px;z-index:1;transform:scale(.93);opacity:.88;cursor:pointer;}
   .pt-card.back.b2{top:0;left:44px;z-index:0;transform:scale(.86);opacity:.72;}
   .pt-card.back:hover{opacity:1;}
+  .pt-card.back .pt-top,.pt-card.back .pt-nm,.pt-card.back .pt-bl,.pt-card.back .pt-ring{visibility:hidden;}
+  .pt-bn{display:none;position:absolute;left:26px;top:8px;font-size:11.5px;font-weight:800;letter-spacing:.14em;white-space:nowrap;}
+  .pt-card.back .pt-bn{display:block;} .pt-card.back.b2{opacity:.85;}
+  .pt-tabs{display:flex;justify-content:center;gap:6px;margin-top:14px;flex-wrap:wrap;}
+  .pt-tabs button{font:inherit;font-size:13px;font-weight:700;padding:7px 14px;border-radius:99px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:rgba(255,255,255,.75);cursor:pointer;}
+  .pt-tabs button.on{background:#fff;color:#0e1430;border-color:#fff;}
   .pt-sh{position:absolute;inset:0;pointer-events:none;background:radial-gradient(420px circle at var(--mx) var(--my),rgba(255,255,255,.4),transparent 55%);mix-blend-mode:soft-light;}
   .pt-top{position:relative;display:flex;align-items:center;gap:10px;}
   .pt-logo{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:800;letter-spacing:.16em;}
@@ -1915,6 +1921,8 @@
     .pt-stack{height:250px;}
     .pt-card{height:196px;padding:16px 18px;border-radius:22px;top:54px;}
     .pt-card.back{top:26px;left:0;} .pt-card.back.b2{top:0;left:22px;}
+    .pt-bn{left:18px;top:7px;font-size:10.5px;}
+    .pt-ring .t{font-size:14px;} .pt-ring .t small{font-size:7px;letter-spacing:.04em;}
     .pt-chip{width:40px;height:30px;margin-top:10px;}
     .pt-nm{left:18px;bottom:60px;font-size:11px;} .pt-bl{left:18px;bottom:16px;font-size:30px;}
     .pt-ring{right:14px;bottom:14px;width:60px;height:60px;} .pt-ring .t{font-size:15px;}
@@ -9246,7 +9254,7 @@ function potCardHtml(key, front, bills, depth){
     const r = 32, c = 2*Math.PI*r, f = Math.min(1, mo/6);
     ring = `<div class="pt-ring"><svg viewBox="0 0 80 80" width="100%" height="100%" aria-hidden="true"><circle cx="40" cy="40" r="${r}" fill="none" stroke="rgba(14,20,48,.2)" stroke-width="7"/><circle cx="40" cy="40" r="${r}" fill="none" stroke="#0e1430" stroke-width="7" stroke-linecap="round" stroke-dasharray="${(c*f).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 40 40)"/></svg><div class="t"><div>${mo.toFixed(1)}<small>MONTHS</small></div></div></div>`;
   }
-  return `<div class="pt-card ${POT_DEFS[key].cls}${front?'':' back'+(depth===2?' b2':'')}" data-pot="${key}" ${front?'':'role="button" tabindex="0"'} aria-label="${label}, ${escapeHtml(fmt(bal))}"><div class="pt-sh"></div><div class="pt-top"><div class="pt-logo">${POT_FLAME}<span>EMBALANCE</span></div><div class="pt-cl">${POT_CONTACTLESS}</div></div>${front?'<div class="pt-chip"></div>':''}<div class="pt-nm">${label.toUpperCase()}</div><div class="pt-bl">${escapeHtml(fmt(bal))}</div>${ring}</div>`;
+  return `<div class="pt-card ${POT_DEFS[key].cls}${front?'':' back'+(depth===2?' b2':'')}" data-pot="${key}" ${front?'':'role="button" tabindex="0"'} aria-label="${label}, ${escapeHtml(fmt(bal))}"><div class="pt-sh"></div><div class="pt-bn">${escapeHtml(POT_DEFS[key].short.toUpperCase())}${front?'':' · '+escapeHtml(fmt(bal))}</div><div class="pt-top"><div class="pt-logo">${POT_FLAME}<span>EMBALANCE</span></div><div class="pt-cl">${POT_CONTACTLESS}</div></div>${front?'<div class="pt-chip"></div>':''}<div class="pt-nm">${label.toUpperCase()}</div><div class="pt-bl">${escapeHtml(fmt(bal))}</div>${ring}</div>`;
 }
 function renderPots(){
   const el = document.getElementById('view-pots');
@@ -9270,7 +9278,7 @@ function renderPots(){
   const feed = rows.length ? rows.map(r=>`<div class="pt-fr2"><div class="d ${r.type==='in'?'in':'out'}">${iconSvg(r.type==='in' ? 'M12 4v12M7 11l5 5 5-5M5 20h14' : 'M12 20V8M7 13l5-5 5 5M5 4h14')}</div><div class="m"><b>${escapeHtml(r.note || (r.type==='in'?'Money in':'Money out'))}</b><span class="s">${escapeHtml(monthLabelFromKey(r.month))} · ${r.source==='auto'?'Auto':(r.source==='adjustment'?'Adjust':(r.source==='transfer'?'Transfer':'Manual'))}</span></div><div class="a ${r.type==='in'?'pos':'neg'}">${r.type==='in'?'+':'−'}${escapeHtml(fmt(r.amount))}</div>${r.source!=='auto' ? `<button type="button" class="pt-x" data-id="${r.id}" aria-label="Delete this entry" title="Delete">✕</button>` : '<span class="pt-x ph"></span>'}</div>`).join('') : '<div class="empty">No transfers yet</div>';
   el.innerHTML = `<div class="pt">
     <div class="pt-grid">
-      <div class="pt-stage"><div class="pt-stack">${potCardHtml(next2,false,bills,2)}${potCardHtml(next1,false,bills,1)}${potCardHtml(key,true,bills)}</div><div class="pt-hint">Tap the card behind to switch.<span class="pt-hov"> Move your mouse over the front one.</span></div></div>
+      <div class="pt-stage"><div class="pt-stack">${potCardHtml(next2,false,bills,2)}${potCardHtml(next1,false,bills,1)}${potCardHtml(key,true,bills)}</div><div class="pt-tabs" role="tablist">${POT_KEYS.map(k=>`<button type="button" role="tab" aria-selected="${k===key}" class="${k===key?'on':''}" data-pt="${k}">${k==='bonds'?'Bonds':k==='stocks'?'Stocks':'Savings'}</button>`).join('')}</div><div class="pt-hint">Tap a card or a tab to switch.<span class="pt-hov"> Move your mouse over the front one.</span></div></div>
       <div class="pt-side"><div class="pt-k">Total in your pots</div><div class="pt-total">${escapeHtml(fmt(total))}</div>${monthsAll!==null?`<div class="pt-pill">${monthsAll.toFixed(1)} months of bills covered</div>`:''}<div class="pt-acts">${act('move','var(--accent)','M7 7h12l-3-3M17 17H5l3 3','Move money','To your current balance')}${act('add','var(--green)','M12 5v14M5 12h14','Add money','From your current balance')}${act('transfer','var(--violet,#a78bfa)','M7 16V4M3 8l4-4 4 4M17 8v12M21 16l-4 4-4-4','Transfer','To another pot')}${act('set','var(--amber)','M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4','Set balance','Records the difference')}</div>${form}</div>
     </div>
     <div class="pt-feed"><div class="pt-fh2"><b>${name} activity</b><span>${rows.length} ${rows.length===1?'entry':'entries'}</span></div>${feed}</div>
@@ -9287,6 +9295,7 @@ function renderPots(){
     });
     front.addEventListener('pointerleave', ()=>{ ['--rx','--ry','--ang'].forEach(v=>front.style.removeProperty(v)); });
   }
+  el.querySelectorAll('.pt-tabs button').forEach(b=>b.onclick = ()=>{ if(b.dataset.pt===key) return; potsTab = b.dataset.pt; potsAct = null; renderPots(); });
   el.querySelectorAll('.pt-card.back').forEach(back=>{
     const swap = ()=>{ potsTab = back.dataset.pot; potsAct = null; renderPots(); };
     back.onclick = swap; back.onkeydown = ev=>{ if(ev.key==='Enter' || ev.key===' '){ ev.preventDefault(); swap(); } };

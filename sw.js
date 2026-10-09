@@ -1,4 +1,4 @@
-const CACHE_NAME = 'budget-tracker-v8';
+const CACHE_NAME = 'budget-tracker-v9';
 const PRECACHE_URLS = [
   './',
   './index.html',
