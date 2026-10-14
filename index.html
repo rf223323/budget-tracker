@@ -1003,6 +1003,7 @@
   .hero-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1.5fr);gap:32px;align-items:center;}
   .hero-id{display:flex;align-items:center;gap:14px;}
   .hero-who{min-width:0;}
+  .hero-pills{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px;} .hero-pills .hero-title,.hero-pills .ember-chip{margin-top:0;}
   .ember-chip{margin-top:8px;display:inline-flex;align-items:center;padding:4px 11px;border-radius:999px;border:none;background:color-mix(in srgb, #ffb15a 16%, transparent);color:#ffb15a;font:inherit;font-size:11.5px;font-weight:800;cursor:pointer;white-space:nowrap;}
   .ember-chip:hover{background:color-mix(in srgb, #ffb15a 26%, transparent);}
   .ember-chip.lo{background:rgba(160,60,60,.18);color:#e2837a;}
@@ -5640,7 +5641,7 @@ function renderMonth(){
         <div>
           <div class="hero-id">
             <button type="button" class="ember-btn" id="emberBtn" aria-label="Your Ember — streaks and milestones"></button>
-            <div class="hero-who"><div class="hero-hi" id="heroHi"></div><div class="hero-title" id="heroTitle"></div><div class="hero-date" id="heroDate"></div><button type="button" class="ember-chip" id="emberChip"></button></div>
+            <div class="hero-who"><div class="hero-hi" id="heroHi"></div><div class="hero-date" id="heroDate"></div><div class="hero-pills"><div class="hero-title" id="heroTitle"></div><button type="button" class="ember-chip" id="emberChip"></button></div></div>
           </div>
           <div class="hero-label">Current balance</div>
           <div class="hero-bal"><span class="hero-cur">${escapeHtml(state.currency)}</span><input type="number" step="0.01" id="liveBalanceInput" class="hero-bal-input" value="${t.liveBalance}" aria-label="Current balance" style="${t.liveBalance>=0?'':'color:var(--red);'}"></div>
